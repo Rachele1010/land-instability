@@ -49,11 +49,11 @@ def correlation():
         col4, col5 = st.columns([1, 2])  # Colonne per tabella e grafico
 
         with col1:
-            x_axis = st.selectbox(f"🛠️ X Axis {idx + 1}", df.columns.tolist(), key=f"x_axis_{idx}")
+            x_axis = st.selectbox(f"X Axis {idx + 1}", df.columns.tolist(), key=f"x_axis_{idx}")
         with col2:
-            y_axis = st.selectbox(f"📈 Y Axis {idx + 1}", df.columns.tolist(), key=f"y_axis_{idx}")
+            y_axis = st.selectbox(f"Y Axis {idx + 1}", df.columns.tolist(), key=f"y_axis_{idx}")
         with col3:
-            plot_type = st.selectbox(f"🎨 Plot Type {idx + 1}", [
+            plot_type = st.selectbox(f"Plot Type {idx + 1}", [
                 "Basic Scatter", "Basic Bar", "Basic Line", "Mixed Line and Bar", 
                 "Calendar Heatmap", "DataZoom"
             ], key=f"plot_type_{idx}")
