@@ -76,6 +76,6 @@ def correlation():
                 create_and_render_plot(df, x_axis, y_axis, plot_type)  # Mostra il grafico
 
     # Mappatura combinata di tutti i dataset caricati
-    st.subheader("🌍 Combined Map")
+    #st.subheader("🌍 Combined Map")
     map_combined_datasets(df_list)
 
