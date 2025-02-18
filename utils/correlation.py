@@ -1,7 +1,7 @@
 import streamlit as st
 import pandas as pd
 import io
-from plotting import create_and_render_plot
+from utils.plotting import create_and_render_plot
 
 def map_combined_datasets(dataframes):
     """
