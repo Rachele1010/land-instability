@@ -24,7 +24,6 @@ def map_combined_datasets(dataframes):
 
 def correlation():
     """Dashboard per la gestione dei file con Drag & Drop."""
-    st.set_page_config(layout="wide")  # Imposta il layout a tutta pagina
     st.header("📊 Data Analysis and Plotting")
 
     # Sidebar con file uploader
