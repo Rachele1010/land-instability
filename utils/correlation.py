@@ -7,18 +7,29 @@ def map_combined_datasets(dataframes):
     """
     Funzione per mappare più dataset combinati con colonne di latitudine e longitudine.
     """
-    combined_df = pd.DataFrame(columns=['lat', 'lon'])
+    combined_df = pd.DataFrame(columns=['lat', 'lon', 'info'])
 
     for df in dataframes:
         if df is not None:
             lat_col = [col for col in df.columns if "lat" in col.lower()]
             lon_col = [col for col in df.columns if "lon" in col.lower()]
+            info_col = df.columns[0]  # Usa la prima colonna come info di default (puoi personalizzarlo)
+            
             if lat_col and lon_col:
                 df = df.rename(columns={lat_col[0]: 'lat', lon_col[0]: 'lon'})
-                combined_df = pd.concat([combined_df, df[['lat', 'lon']]], ignore_index=True)
+                df['info'] = df[info_col].astype(str)  # Usa una colonna per il pop-up
+                combined_df = pd.concat([combined_df, df[['lat', 'lon', 'info']]], ignore_index=True)
 
     if not combined_df.empty:
-        st.map(combined_df)
+        fig = px.scatter_mapbox(
+            combined_df, 
+            lat="lat", lon="lon", 
+            hover_name="info",  # Mostra le info come pop-up
+            zoom=5, 
+            height=500
+        )
+        fig.update_layout(mapbox_style="open-street-map")
+        st.plotly_chart(fig, use_container_width=True)
     else:
         st.warning("No valid latitude or longitude data available for map display.")
 
