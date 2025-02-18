@@ -25,43 +25,40 @@ def map_combined_datasets(dataframes):
 def correlation():
     """Dashboard per la gestione dei file con Drag & Drop."""
     st.header("Data Analysis and Plotting")
-
+    col1, col2, col3, col4 = st.columns([1, 1, 1, 1])
+    col5, col6 = st.columns([1, 1])
+    with col1:
     # Drag & Drop per il caricamento multiplo di file CSV
-    uploaded_files = st.file_uploader("Drag & Drop your CSV files here", type=["csv"], accept_multiple_files=True)
+        uploaded_files = st.file_uploader("Drag & Drop your CSV files here", type=["csv"], accept_multiple_files=True)
 
-    if not uploaded_files:
-        st.info("No files uploaded yet.")
-        return
-    
-    df_list = []
-    
-    # Caricamento e visualizzazione dei dati
-    for uploaded_file in uploaded_files:
-        df = pd.read_csv(io.StringIO(uploaded_file.getvalue().decode("utf-8")))
-        df_list.append(df)
-        st.write(f"### {uploaded_file.name}")
-        st.dataframe(df)
+        if not uploaded_files:
+            st.info("No files uploaded yet.")
+            return
+        
+        df_list = []
+        
 
-    # Creazione dinamica dei controlli per ogni file caricato
-    for idx, df in enumerate(df_list):
-        st.subheader(f"Dataset {idx + 1}")
-
-        col1, col2, col3, col4 = st.columns([1, 1, 1, 2])
-
-        with col1:
+    with col2:
             x_axis = st.selectbox(f"Select X axis for Dataset {idx + 1}", df.columns.tolist(), key=f"x_axis_{idx}")
 
-        with col2:
+    with col3:
             y_axis = st.selectbox(f"Select Y axis for Dataset {idx + 1}", df.columns.tolist(), key=f"y_axis_{idx}")
 
-        with col3:
+    with col4:
             plot_type = st.selectbox(f"Select plot type for Dataset {idx + 1}", [
                 "Basic Scatter", "Basic Bar", "Basic Line", "Mixed Line and Bar", 
                 "Calendar Heatmap", "DataZoom"
             ], key=f"plot_type_{idx}")
 
-        with col4:
-            if not df.empty:
+    with col5:
+        # Caricamento e visualizzazione dei dati
+        for uploaded_file in uploaded_files:
+            df = pd.read_csv(io.StringIO(uploaded_file.getvalue().decode("utf-8")))
+            df_list.append(df)
+            st.write(f"### {uploaded_file.name}")
+            st.dataframe(df)
+    with col6:
+        if not df.empty:
                 create_and_render_plot(df, x_axis, y_axis, plot_type)
 
     # Mappatura combinata di tutti i dataset caricati
