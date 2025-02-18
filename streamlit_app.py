@@ -1,6 +1,74 @@
 import streamlit as st
+# Importa tutte le funzioni dalla cartella "Function"
+st.set_page_config(layout="wide", page_title="Land instability", page_icon="🌍", initial_sidebar_state="auto")
+import hydralit_components as hc
+from PIL import Image
+from utils.correlation import correlation
+from utils.display_dashboard import display_dashboard
 
-st.title("🎈 My new app")
-st.write(
-    "Let's start building! For help and inspiration, head over to [docs.streamlit.io](https://docs.streamlit.io/)."
-)
+def main():
+    # Definisci il menu con le voci principali e i sottomenu
+    menu_data = [
+        {'label': "Dashboard", 'ttip': "I'm the Dashboard tooltip!"},
+        {'label': "Correlation", 'ttip': "I'm the Correlation tooltip!"},
+        {'label': "Info", 'ttip': "For some problem, Contact us!"}
+    ]
+        # Tema personalizzato per il menu
+    over_theme = {
+        'txc_inactive': '#FFFFFF',  # Colore del testo inattivo
+        'menu_background': '#2E8B57',  # Verde scuro per lo sfondo della barra
+        'txc_active': '#FFFFFF',  # Testo bianco quando attivo
+        'option_active': '#2E8B57',  # Verde scuro menta per l'opzione attiva
+    }
+    # Carica l'immagine "itineris.jpg" per il logo in alto a sinistra
+    logo_itineris = Image.open('itineris.jpg')
+
+    # Crea la barra di navigazione al centro
+    menu_id = hc.nav_bar(
+        menu_definition=menu_data,
+        override_theme=over_theme,
+        hide_streamlit_markers=True, # Mostra il segnaposto di Streamlit
+        sticky_nav=True, # Appiccicoso in alto
+        sticky_mode='sticky', # Appiccicoso
+    )
+    # Cambia l'URL in base al menu selezionato
+    if menu_id == 'Dashboard':
+        st.query_params["page"] = "Dashboard"
+    elif menu_id == 'Correlation':
+        st.query_params["page"] = "Correlation"
+    elif menu_id == 'Info':
+        st.query_params["page"] = "Info"
+    # Retrieve and display the current query parameters
+    query_params = st.query_params
+#################################################################################################################################################################################################################
+##################### Dashboard #################################################################################################################################################################################
+#################################################################################################################################################################################################################
+    # Verifica cosa è stato selezionato nel menu
+    if menu_id == "Dashboard":
+        # Carica e mostra l'immagine di copertura centrata        
+        st.title("Welcome to Downstream - Land Domain")
+        display_dashboard()
+        st.stop()
+#################################################################################################################################################################################################################
+##################### UPLOAD #################################################################################################################################################################################
+#################################################################################################################################################################################################################
+    ## Sezione di Upload
+    if menu_id == "Correlation":
+        correlation()
+#################################################################################################################################################################################################################
+##################### CONTACT #################################################################################################################################################################################
+#################################################################################################################################################################################################################
+    # Sezione Contatti
+    if menu_id == "Info":
+        st.header("Information")
+        st.subheader("Contact Us")
+        st.write("""Information about how to contact the team or get support. 
+                 Rachele Franceschini : rfranceschini@ogs.it""")
+        col1, col2 = st.columns([1, 1])
+        with col1:
+            st.markdown("For more details about ITINERIS project, click on link -> **[ITINERIS](https://itineris.d4science.org/)**")
+        with col2:
+            st.image(logo_itineris, caption='Copyright © ITINERIS 2023-2024', use_container_width=False)
+
+if __name__ == "__main__":
+    main()
