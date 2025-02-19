@@ -9,7 +9,7 @@ def visualization_section(df):
         st.warning("No data available for visualization.")
         return
 
-    col1, col2, col3 = st.columns([2, 2, 1])  # Tabella | Mappa | Modifica coordinate
+    col1, col2, col3 = st.columns([3, 4, 1])  # Tabella | Mappa | Modifica coordinate
 
     with col1:
         st.subheader("📋 Data Table")
