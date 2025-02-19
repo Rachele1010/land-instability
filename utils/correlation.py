@@ -5,14 +5,10 @@ from utils.plotting import create_and_render_plot
 from utils.load import load_file, process_file
 import plotly.express as px
 
-import streamlit as st
-import pandas as pd
-import plotly.express as px
-
 def map_combined_datasets(dataframes, filenames=None):
     """
     Mappa più dataset con coordinate, rilevando automaticamente lat/lon o x/y.
-    Mostra un popup con il nome del file.
+    Mostra un popup con il nome del file e permette di selezionare manualmente le coordinate.
     """
     if filenames is None:
         filenames = [f"Dataset {i+1}" for i in range(len(dataframes))]
@@ -34,10 +30,10 @@ def map_combined_datasets(dataframes, filenames=None):
             if not possible_lat_cols or not possible_lon_cols:
                 st.warning(f"⚠ Nessuna colonna lat/lon o x/y trovata in '{filename}'.")
                 continue
-            
-            # Selezione delle colonne
-            lat_col = possible_lat_cols[0]  # Prendi la prima colonna trovata
-            lon_col = possible_lon_cols[0]
+
+            # Selezione delle colonne con selectbox
+            lat_col = st.selectbox(f"Seleziona colonna latitudine per '{filename}'", possible_lat_cols, key=f"lat_{filename}")
+            lon_col = st.selectbox(f"Seleziona colonna longitudine per '{filename}'", possible_lon_cols, key=f"lon_{filename}")
 
             # Prepara il DataFrame per la mappa
             df_map = df[[lat_col, lon_col]].dropna().copy()
@@ -83,8 +79,6 @@ def map_combined_datasets(dataframes, filenames=None):
 
         # Mostra solo informazioni sui dati disponibili
         st.write("✅ Il dataset contiene coordinate valide.")
-
-
 
 def correlation():
     """Dashboard per la gestione dei file con Drag & Drop."""
