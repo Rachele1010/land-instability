@@ -40,19 +40,40 @@ def visualization_section(df):
             st.warning("No valid coordinate columns found for mapping.")
 
     with col3:
-        st.subheader("✏️ Edit Point Coordinates")
-        # Seleziona il punto da modificare
-        point_id = st.selectbox("Select a point to edit", df.index)
-        if lat_col and lon_col:
+    st.subheader("✏️ Edit Point Coordinates")
+
+    # Seleziona il punto da modificare
+    point_id = st.selectbox("Select a point to edit", df.index)
+
+    if lat_col and lon_col:
+        try:
             # Permetti di selezionare la colonna corretta se l'auto-detect ha sbagliato
             lat_col = st.selectbox("Select Latitude Column", df.columns, index=df.columns.get_loc(lat_col))
             lon_col = st.selectbox("Select Longitude Column", df.columns, index=df.columns.get_loc(lon_col))
-            except Exception as e:
-                st.error(f"Error updating coordinates: {e}")
+
             # Verifica se le colonne selezionate sono numeriche
-                if not pd.api.types.is_numeric_dtype(df[lat_col]) or not pd.api.types.is_numeric_dtype(df[lon_col]):
-                    st.warning("Selected columns must be numeric.")
-                    return
+            if not pd.api.types.is_numeric_dtype(df[lat_col]) or not pd.api.types.is_numeric_dtype(df[lon_col]):
+                st.warning("Selected columns must be numeric.")
+                return
+            
+            # Prendi i valori attuali delle coordinate
+            old_lat = float(df.at[point_id, lat_col])
+            old_lon = float(df.at[point_id, lon_col])
+
+            # Input per i nuovi valori
+            new_lat = st.number_input("New Latitude", value=old_lat, format="%.6f", key=f"new_lat_{point_id}")
+            new_lon = st.number_input("New Longitude", value=old_lon, format="%.6f", key=f"new_lon_{point_id}")
+
+            # Bottone per aggiornare le coordinate
+            if st.button("Update Coordinates", key=f"update_btn_{point_id}"):
+                df.at[point_id, lat_col] = new_lat
+                df.at[point_id, lon_col] = new_lon
+                st.success(f"✅ Updated point {point_id}: ({new_lat}, {new_lon})")
+                st.experimental_rerun()
+                
+        except Exception as e:
+            st.error(f"Error updating coordinates: {e}")
+
 
 
     st.subheader("Data Plotting")
