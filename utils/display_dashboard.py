@@ -101,13 +101,15 @@ def map_combined_datasets(dataframes, filenames=None):
 
         # Configura la mappa con zoom automatico
         fig.update_layout(
+            autosize=True,
             mapbox=dict(
                 style="open-street-map",
                 center=dict(lat=center_lat, lon=center_lon),
-                zoom=6  
+                zoom=6
             ),
             legend=dict(title="Legenda"),
-            height=800
+            height=800,
+            margin={"r":0,"t":0,"l":0,"b":0}  # Rimuove margini bianchi
         )
 
         st.plotly_chart(fig, use_container_width=True)
