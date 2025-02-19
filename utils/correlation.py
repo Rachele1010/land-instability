@@ -10,6 +10,8 @@ def map_combined_datasets(dataframes):
     includendo il rilevamento automatico e la modifica delle coordinate.
     """
     combined_df = pd.DataFrame(columns=['lat', 'lon', 'info'])
+    
+    # Prima colonna per la visualizzazione della mappa
     with col1:
         for df in dataframes:
             if df is not None:
@@ -39,21 +41,22 @@ def map_combined_datasets(dataframes):
                 else:
                     st.warning("No valid coordinate columns found for mapping.")
                     
-                # Mostra la mappa combinata se ci sono coordinate
-                if not combined_df.empty:
-                    fig = px.scatter_mapbox(
-                        combined_df, 
-                        lat="lat", lon="lon", 
-                        hover_name="info",  # Mostra le info come pop-up
-                        zoom=5, 
-                        height=500
-                    )
-                    fig.update_layout(mapbox_style="open-street-map")
-                    st.plotly_chart(fig, use_container_width=True)
-                else:
-                    st.warning("No valid latitude or longitude data available for map display.")
+        # Mostra la mappa combinata se ci sono coordinate
+        if not combined_df.empty:
+            fig = px.scatter_mapbox(
+                combined_df, 
+                lat="lat", lon="lon", 
+                hover_name="info",  # Mostra le info come pop-up
+                zoom=5, 
+                height=500
+            )
+            fig.update_layout(mapbox_style="open-street-map")
+            st.plotly_chart(fig, use_container_width=True)
+        else:
+            st.warning("No valid latitude or longitude data available for map display.")
+
+    # Seconda colonna per la modifica delle coordinate
     with col2:
-        # Colonna per la modifica delle coordinate
         st.subheader("✏️ Edit Point Coordinates")
     
         for idx, df in enumerate(dataframes):
@@ -89,7 +92,6 @@ def map_combined_datasets(dataframes):
                             st.info("Coordinates are the same as the current ones.")
                     except Exception as e:
                         st.error(f"❌ Error updating coordinates: {e}")
-
 def correlation():
     """Dashboard per la gestione dei file con Drag & Drop."""
     st.header("📊 Data Analysis and Plotting")
