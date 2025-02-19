@@ -14,17 +14,13 @@ def map_combined_datasets(dataframes, filenames=None):
         filenames = [f"Dataset {i+1}" for i in range(len(dataframes))]
 
     combined_df = pd.DataFrame(columns=['lat', 'lon', 'file'])
-
     col1, col2 = st.columns([3, 1])  # Layout: Mappa a sinistra, selectbox a destra
-
     with col1:
         st.subheader("🗺 Data Mapping")
-
         for df, filename in zip(dataframes, filenames):
             if df is None or df.empty:
                 st.warning(f"⚠ Il dataset '{filename}' è vuoto o non caricato correttamente.")
                 continue
-
             # Auto-detect colonne per latitudine e longitudine
             possible_lat_cols = [col for col in df.columns if any(x in col.lower() for x in ["lat", "x"])]
             possible_lon_cols = [col for col in df.columns if any(x in col.lower() for x in ["lon", "y"])]
@@ -32,11 +28,7 @@ def map_combined_datasets(dataframes, filenames=None):
             if not possible_lat_cols or not possible_lon_cols:
                 st.warning(f"⚠ Nessuna colonna lat/lon o x/y trovata in '{filename}'.")
                 continue
-
-            # Permetti di selezionare le colonne corrette
-            lat_col = st.selectbox(f"Seleziona la colonna di latitudine per '{filename}'", possible_lat_cols)
-            lon_col = st.selectbox(f"Seleziona la colonna di longitudine per '{filename}'", possible_lon_cols)
-
+                
             # Prepara il DataFrame per la mappa
             df_map = df[[lat_col, lon_col]].dropna().copy()
             df_map.columns = ["lat", "lon"]
@@ -61,13 +53,11 @@ def map_combined_datasets(dataframes, filenames=None):
 
     with col2:
         st.subheader("✏️ Modifica Coordinate")
-
         if not dataframes:
             st.error("❌ Nessun dataset disponibile per la modifica.")
             st.stop()
 
         dataset_index = st.selectbox("Seleziona il dataset", range(len(filenames)), format_func=lambda i: filenames[i])
-
         df = dataframes[dataset_index]
 
         if df is None or df.empty:
@@ -92,24 +82,8 @@ def map_combined_datasets(dataframes, filenames=None):
 
         # Permetti all'utente di scegliere un punto da modificare
         point_id = st.selectbox("Seleziona un punto da modificare", df.index)
-
-        try:
-            # Prendi i valori attuali delle coordinate
-            old_lat = float(df.at[point_id, lat_col])
-            old_lon = float(df.at[point_id, lon_col])
-
-            new_lat = st.number_input(f"Latitudine (attuale: {old_lat})", value=old_lat)
-            new_lon = st.number_input(f"Longitudine (attuale: {old_lon})", value=old_lon)
-
-            if new_lat != old_lat or new_lon != old_lon:
-                df.at[point_id, lat_col] = new_lat
-                df.at[point_id, lon_col] = new_lon
-                st.success("✅ Coordinate aggiornate con successo!")
-            else:
-                st.info("ℹ️ Nessuna modifica effettuata.")
-
-        except Exception as e:
-            st.error(f"❌ Errore nella modifica delle coordinate: {e}")
+        
+        st.error(f"❌ Errore nella modifica delle coordinate: {e}")
 
 
 def correlation():
