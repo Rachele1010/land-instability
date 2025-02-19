@@ -7,7 +7,7 @@ import plotly.graph_objects as go
 
 def map_combined_datasets(dataframes, filenames=None):
     """
-    Mappa più dataset con coordinate, assegnando simboli e colori diversi.
+    Mappa più dataset con coordinate, assegnando colori diversi e popup con info.
     """
     if filenames is None:
         filenames = [f"Dataset {i+1}" for i in range(len(dataframes))]
@@ -15,8 +15,6 @@ def map_combined_datasets(dataframes, filenames=None):
     combined_df = pd.DataFrame(columns=['lat', 'lon', 'file'])
     col1, col2 = st.columns([3, 1])
 
-    # Simboli diversi per ogni dataset
-    marker_symbols = ["circle", "square", "diamond", "star", "triangle-up", "x"]
     colors = ["red", "blue", "green", "purple", "orange", "pink"]  # Colori per i dataset
 
     with col2:
@@ -63,28 +61,26 @@ def map_combined_datasets(dataframes, filenames=None):
 
                     combined_df = pd.concat([combined_df, df_map], ignore_index=True)
 
-                    # Aggiungi i punti alla mappa con simboli e colori diversi
+                    # Aggiungi i punti alla mappa con popup e colori diversi
                     fig.add_trace(go.Scattermapbox(
                         lat=df_map["lat"],
                         lon=df_map["lon"],
                         mode="markers",
                         marker=dict(
-                            size=15,  # Punti più grandi
-                            symbol=marker_symbols[i % len(marker_symbols)],
+                            size=18,  # Punti più grandi
                             color=colors[i % len(colors)]
                         ),
+                        text=[f"Dataset: {filename}" for _ in range(len(df_map))],
+                        hoverinfo="text",
                         name=filename
                     ))
             except Exception as e:
                 st.warning(f"⚠ Errore con '{filename}': {e}")
-        # Controllo se il DataFrame è vuoto
+        
         if combined_df.empty:
             st.warning("❌ Nessun dato valido per visualizzare la mappa.")
             return
         
-        # Debug: Mostra le prime righe per verificare i dati
-        #st.write("🔍 Anteprima dati per la mappa:", combined_df.head())
-
         # Imposta la mappa
         fig.update_layout(
             mapbox=dict(
@@ -109,18 +105,16 @@ def display_dashboard():
     
     df_list = []
     for uploaded_file in uploaded_files:
-        # Usa la funzione di caricamento e elaborazione dei file
         df = load_file(uploaded_file)  # Carica il file
         if df is not None:
             df = process_file(df)  # Elabora i dati
             df_list.append(df)
 
-    # Creazione dinamica dei controlli e dei grafici
     for idx, df in enumerate(df_list):
         st.subheader(f"Dataset {idx + 1} - {uploaded_files[idx].name}")
 
-        col1, col2, col3 = st.columns([1, 1, 1])  # Tre colonne per X, Y, tipo di grafico
-        col4, col5 = st.columns([1, 2])  # Colonne per tabella e grafico
+        col1, col2, col3 = st.columns([1, 1, 1])
+        col4, col5 = st.columns([1, 2])
 
         with col1:
             x_axis = st.selectbox(f"X Axis {idx + 1}", df.columns.tolist(), key=f"x_axis_{idx}")
@@ -133,10 +127,9 @@ def display_dashboard():
             ], key=f"plot_type_{idx}")
 
         with col4:
-            st.dataframe(df)  # Mostra la tabella
+            st.dataframe(df)
         with col5:
             if not df.empty:
-                create_and_render_plot(df, x_axis, y_axis, plot_type)  # Mostra il grafico
+                create_and_render_plot(df, x_axis, y_axis, plot_type)
 
-    # Mappatura combinata di tutti i dataset caricati
     map_combined_datasets(df_list)
