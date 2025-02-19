@@ -83,17 +83,14 @@ def map_combined_datasets(dataframes, filenames=None):
             return
         
         # Debug: Mostra le prime righe per verificare i dati
-        st.write("🔍 Anteprima dati per la mappa:", combined_df.head())
+        #st.write("🔍 Anteprima dati per la mappa:", combined_df.head())
 
         # Imposta la mappa
         fig.update_layout(
             mapbox=dict(
                 style="open-street-map",
-                zoom=5
-            ),
-            height=800
-        )
-
+                zoom=8),
+            height=800)
         st.plotly_chart(fig, use_container_width=True)
 
 def display_dashboard():
