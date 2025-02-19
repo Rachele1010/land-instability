@@ -77,7 +77,6 @@ def map_combined_datasets(dataframes, filenames=None):
                     ))
             except Exception as e:
                 st.warning(f"⚠ Errore con '{filename}': {e}")
-
         # Controllo se il DataFrame è vuoto
         if combined_df.empty:
             st.warning("❌ Nessun dato valido per visualizzare la mappa.")
@@ -96,9 +95,6 @@ def map_combined_datasets(dataframes, filenames=None):
         )
 
         st.plotly_chart(fig, use_container_width=True)
-
-        except Exception as e:
-            st.error(f"⚠ Errore nella generazione della mappa: {e}")
 
 def display_dashboard():
     """Dashboard per la gestione dei file con Drag & Drop."""
