@@ -5,22 +5,28 @@ from utils.plotting import create_and_render_plot
 from utils.load import load_file, process_file
 import plotly.express as px
 
+import streamlit as st
+import pandas as pd
+import plotly.express as px
+
 def map_combined_datasets(dataframes, filenames=None):
     """
     Mappa più dataset con coordinate, rilevando automaticamente lat/lon o x/y.
-    Mostra un popup con il nome del file e permette di modificare le coordinate.
+    Mostra un popup con il nome del file.
     """
     if filenames is None:
         filenames = [f"Dataset {i+1}" for i in range(len(dataframes))]
 
     combined_df = pd.DataFrame(columns=['lat', 'lon', 'file'])
     col1, col2 = st.columns([3, 1])  # Layout: Mappa a sinistra, selectbox a destra
+
     with col1:
         st.subheader("🗺 Data Mapping")
         for df, filename in zip(dataframes, filenames):
             if df is None or df.empty:
                 st.warning(f"⚠ Il dataset '{filename}' è vuoto o non caricato correttamente.")
                 continue
+
             # Auto-detect colonne per latitudine e longitudine
             possible_lat_cols = [col for col in df.columns if any(x in col.lower() for x in ["lat", "x"])]
             possible_lon_cols = [col for col in df.columns if any(x in col.lower() for x in ["lon", "y"])]
@@ -28,7 +34,11 @@ def map_combined_datasets(dataframes, filenames=None):
             if not possible_lat_cols or not possible_lon_cols:
                 st.warning(f"⚠ Nessuna colonna lat/lon o x/y trovata in '{filename}'.")
                 continue
-                
+            
+            # Selezione delle colonne
+            lat_col = possible_lat_cols[0]  # Prendi la prima colonna trovata
+            lon_col = possible_lon_cols[0]
+
             # Prepara il DataFrame per la mappa
             df_map = df[[lat_col, lon_col]].dropna().copy()
             df_map.columns = ["lat", "lon"]
@@ -52,34 +62,28 @@ def map_combined_datasets(dataframes, filenames=None):
             st.warning("❌ Nessun dato valido per visualizzare la mappa.")
 
     with col2:
-        st.subheader("✏️ Modifica Coordinate")
+        st.subheader("📂 Dataset Caricati")
         if not dataframes:
-            st.error("❌ Nessun dataset disponibile per la modifica.")
-            st.stop()
+            st.error("❌ Nessun dataset disponibile.")
+            return
 
         dataset_index = st.selectbox("Seleziona il dataset", range(len(filenames)), format_func=lambda i: filenames[i])
         df = dataframes[dataset_index]
 
         if df is None or df.empty:
             st.warning("⚠ Il dataset selezionato è vuoto.")
-            st.stop()
+            return
 
         possible_lat_cols = [col for col in df.columns if any(x in col.lower() for x in ["lat", "x"])]
         possible_lon_cols = [col for col in df.columns if any(x in col.lower() for x in ["lon", "y"])]
 
         if not possible_lat_cols or not possible_lon_cols:
-            st.warning("⚠ Nessuna colonna lat/lon trovata per la modifica.")
-            st.stop()
-        # Permetti all'utente di scegliere un punto da modificare
-        point_id = st.selectbox("Seleziona un punto da modificare", df.index)
-        # Lascio scegliere all'utente la colonna corretta
-        lat_col = st.selectbox("Seleziona la colonna di latitudine", possible_lat_cols)
-        lon_col = st.selectbox("Seleziona la colonna di longitudine", possible_lon_cols)
+            st.warning("⚠ Nessuna colonna lat/lon trovata nel dataset.")
+            return
 
-        # Verifica che le colonne selezionate siano numeriche
-        if not pd.api.types.is_numeric_dtype(df[lat_col]) or not pd.api.types.is_numeric_dtype(df[lon_col]):
-            st.warning("❌ Errore nella modifica delle coordinate: {e}")
-            st.stop()
+        # Mostra solo informazioni sui dati disponibili
+        st.write("✅ Il dataset contiene coordinate valide.")
+
 
 
 def correlation():
