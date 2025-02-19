@@ -9,7 +9,7 @@ def visualization_section(df):
         st.warning("No data available for visualization.")
         return
 
-    col1, col2, col3 = st.columns([1, 2, 1])  # 3 colonne: tabella | mappa | modifica coordinate
+    col1, col2, col3 = st.columns([1, 2, 1])  # Tabella | Mappa | Modifica coordinate
 
     with col1:
         st.subheader("📋 Data Table")
@@ -18,32 +18,42 @@ def visualization_section(df):
     with col2:
         st.subheader("🗺 Data Mapping")
 
-        # Selezione dinamica delle colonne lat/lon
-        lat_col = st.selectbox("Select Latitude Column", df.columns, key="lat_select")
-        lon_col = st.selectbox("Select Longitude Column", df.columns, key="lon_select")
+        # Auto-detect delle colonne lat/lon/x/y
+        possible_lat_cols = [col for col in df.columns if any(x in col.lower() for x in ["lat", "x"])]
+        possible_lon_cols = [col for col in df.columns if any(x in col.lower() for x in ["lon", "y"])]
 
-        # Verifica se le colonne selezionate sono numeriche
-        if not pd.api.types.is_numeric_dtype(df[lat_col]) or not pd.api.types.is_numeric_dtype(df[lon_col]):
-            st.warning("Selected columns must be numeric.")
-            return
-        
-        # Conversione e pulizia dati per la mappa
-        df_map = df[[lat_col, lon_col]].dropna()
-        df_map["lat"] = pd.to_numeric(df_map[lat_col], errors="coerce")
-        df_map["lon"] = pd.to_numeric(df_map[lon_col], errors="coerce")
-        df_map = df_map.dropna()
+        # Seleziona le colonne migliori se disponibili
+        lat_col = possible_lat_cols[0] if possible_lat_cols else None
+        lon_col = possible_lon_cols[0] if possible_lon_cols else None
 
-        if not df_map.empty:
-            st.map(df_map[["lat", "lon"]])
+        # Controllo se sono state trovate colonne valide
+        if lat_col and lon_col:
+            df_map = df[[lat_col, lon_col]].dropna()
+            df_map.columns = ["lat", "lon"]
+
+            # Mostra la mappa se ci sono coordinate valide
+            if not df_map.empty:
+                st.map(df_map)
+            else:
+                st.warning("No valid latitude/longitude data to display on the map.")
         else:
-            st.warning("No valid latitude/longitude data to display on the map.")
+            st.warning("No valid coordinate columns found for mapping.")
 
     with col3:
         st.subheader("✏️ Edit Point Coordinates")
 
-        # Seleziona un punto da correggere
-        if not df_map.empty:
-            point_id = st.selectbox("Select a point to edit", df_map.index, key="point_select")
+        if lat_col and lon_col:
+            # Permetti di selezionare la colonna corretta se l'auto-detect ha sbagliato
+            lat_col = st.selectbox("Select Latitude Column", df.columns, index=df.columns.get_loc(lat_col))
+            lon_col = st.selectbox("Select Longitude Column", df.columns, index=df.columns.get_loc(lon_col))
+
+            # Verifica se le colonne selezionate sono numeriche
+            if not pd.api.types.is_numeric_dtype(df[lat_col]) or not pd.api.types.is_numeric_dtype(df[lon_col]):
+                st.warning("Selected columns must be numeric.")
+                return
+
+            # Seleziona il punto da modificare
+            point_id = st.selectbox("Select a point to edit", df.index)
 
             if point_id is not None:
                 try:
@@ -64,6 +74,7 @@ def visualization_section(df):
                         st.experimental_rerun()
                 except Exception as e:
                     st.error(f"Error updating coordinates: {e}")
+
 
     st.subheader("Data Plotting")
     col1, col2, col3 = st.columns(3)
