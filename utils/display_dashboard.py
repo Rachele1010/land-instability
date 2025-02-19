@@ -7,7 +7,7 @@ import plotly.graph_objects as go
 
 def map_combined_datasets(dataframes, filenames=None):
     """
-    Mappa più dataset con coordinate, mostrando popup con il nome del file.
+    Mappa più dataset con coordinate e popups, mostrando tutti i dati correttamente.
     """
     if filenames is None:
         filenames = [f"Dataset {i+1}" for i in range(len(dataframes))]
@@ -44,10 +44,10 @@ def map_combined_datasets(dataframes, filenames=None):
         st.subheader("🗺 Data Mapping")
 
         fig = go.Figure()
-
         all_latitudes = []
         all_longitudes = []
 
+        # Itera su tutti i dataset caricati e li aggiunge alla mappa
         for i, (df, filename) in enumerate(zip(dataframes, filenames)):
             try:
                 lat_col = st.session_state.get(f"lat_{i}")
@@ -62,6 +62,7 @@ def map_combined_datasets(dataframes, filenames=None):
                     df_map["lat"] = pd.to_numeric(df_map["lat"], errors="coerce")
                     df_map["lon"] = pd.to_numeric(df_map["lon"], errors="coerce")
 
+                    # Aggiunge al dataframe combinato
                     combined_df = pd.concat([combined_df, df_map], ignore_index=True)
 
                     all_latitudes.extend(df_map["lat"].tolist())
@@ -72,7 +73,7 @@ def map_combined_datasets(dataframes, filenames=None):
                         lat=df_map["lat"],
                         lon=df_map["lon"],
                         mode="markers+text",
-                        text=df_map["file"],  # Mostra il nome del file nel popup
+                        text=[f"{filename}<br>({lat}, {lon})" for lat, lon in zip(df_map["lat"], df_map["lon"])],  
                         marker=dict(
                             size=15,  # Punti più grandi
                             color=colors[i % len(colors)]
@@ -82,19 +83,19 @@ def map_combined_datasets(dataframes, filenames=None):
             except Exception as e:
                 st.warning(f"⚠ Errore con '{filename}': {e}")
 
-        # Controllo se ci sono dati validi
+        # Se non ci sono dati validi, mostra un messaggio di avviso
         if combined_df.empty:
             st.warning("❌ Nessun dato valido per visualizzare la mappa.")
             return
 
-        # Definizione del centro della mappa basato sui dati
+        # Centro dinamico della mappa basato sui dati
         if all_latitudes and all_longitudes:
             center_lat = sum(all_latitudes) / len(all_latitudes)
             center_lon = sum(all_longitudes) / len(all_longitudes)
         else:
             center_lat, center_lon = 0, 0  # Default se i dati non sono validi
 
-        # Configurazione della mappa
+        # Configurazione della mappa con zoom automatico
         fig.update_layout(
             mapbox=dict(
                 style="open-street-map",
@@ -104,6 +105,7 @@ def map_combined_datasets(dataframes, filenames=None):
             height=800
         )
         st.plotly_chart(fig, use_container_width=True)
+
 
 
 def display_dashboard():
