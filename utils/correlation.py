@@ -5,10 +5,14 @@ from utils.plotting import create_and_render_plot
 from utils.load import load_file, process_file
 import plotly.express as px
 
+import streamlit as st
+import pandas as pd
+import plotly.express as px
+
 def map_combined_datasets(dataframes, filenames=None):
     """
     Mappa più dataset con coordinate, rilevando automaticamente lat/lon o x/y.
-    Mostra un popup con il nome del file e permette di selezionare manualmente le coordinate.
+    Mostra un popup con il nome del file e permette di selezionare manualmente le coordinate nella colonna destra.
     """
     if filenames is None:
         filenames = [f"Dataset {i+1}" for i in range(len(dataframes))]
@@ -16,32 +20,43 @@ def map_combined_datasets(dataframes, filenames=None):
     combined_df = pd.DataFrame(columns=['lat', 'lon', 'file'])
     col1, col2 = st.columns([3, 1])  # Layout: Mappa a sinistra, selectbox a destra
 
-    with col1:
+    with col2:  # Colonna per selezione dataset e coordinate
+        st.subheader("📂 Dataset Caricati")
+        
+        if not dataframes:
+            st.error("❌ Nessun dataset disponibile.")
+            return
+
+        dataset_index = st.selectbox("Seleziona il dataset", range(len(filenames)), format_func=lambda i: filenames[i])
+        df = dataframes[dataset_index]
+        filename = filenames[dataset_index]
+
+        if df is None or df.empty:
+            st.warning("⚠ Il dataset selezionato è vuoto.")
+            return
+
+        # Auto-detect colonne per latitudine e longitudine
+        possible_lat_cols = [col for col in df.columns if any(x in col.lower() for x in ["lat", "x"])]
+        possible_lon_cols = [col for col in df.columns if any(x in col.lower() for x in ["lon", "y"])]
+
+        if not possible_lat_cols or not possible_lon_cols:
+            st.warning(f"⚠ Nessuna colonna lat/lon o x/y trovata in '{filename}'.")
+            return
+
+        # Selezione manuale delle colonne
+        lat_col = st.selectbox("Seleziona la colonna di latitudine", possible_lat_cols, key=f"lat_{filename}")
+        lon_col = st.selectbox("Seleziona la colonna di longitudine", possible_lon_cols, key=f"lon_{filename}")
+
+    with col1:  # Colonna per la mappa
         st.subheader("🗺 Data Mapping")
-        for df, filename in zip(dataframes, filenames):
-            if df is None or df.empty:
-                st.warning(f"⚠ Il dataset '{filename}' è vuoto o non caricato correttamente.")
-                continue
 
-            # Auto-detect colonne per latitudine e longitudine
-            possible_lat_cols = [col for col in df.columns if any(x in col.lower() for x in ["lat", "x"])]
-            possible_lon_cols = [col for col in df.columns if any(x in col.lower() for x in ["lon", "y"])]
+        # Prepara il DataFrame per la mappa
+        df_map = df[[lat_col, lon_col]].dropna().copy()
+        df_map.columns = ["lat", "lon"]
+        df_map["file"] = filename  # Usa il nome del file come info per il popup
 
-            if not possible_lat_cols or not possible_lon_cols:
-                st.warning(f"⚠ Nessuna colonna lat/lon o x/y trovata in '{filename}'.")
-                continue
-
-            # Selezione delle colonne con selectbox
-            lat_col = st.selectbox(f"Seleziona colonna latitudine per '{filename}'", possible_lat_cols, key=f"lat_{filename}")
-            lon_col = st.selectbox(f"Seleziona colonna longitudine per '{filename}'", possible_lon_cols, key=f"lon_{filename}")
-
-            # Prepara il DataFrame per la mappa
-            df_map = df[[lat_col, lon_col]].dropna().copy()
-            df_map.columns = ["lat", "lon"]
-            df_map["file"] = filename  # Usa il nome del file come info per il popup
-
-            # Aggiungi al dataset combinato
-            combined_df = pd.concat([combined_df, df_map], ignore_index=True)
+        # Aggiungi al dataset combinato
+        combined_df = pd.concat([combined_df, df_map], ignore_index=True)
 
         # Mostra la mappa con popups
         if not combined_df.empty:
@@ -57,28 +72,6 @@ def map_combined_datasets(dataframes, filenames=None):
         else:
             st.warning("❌ Nessun dato valido per visualizzare la mappa.")
 
-    with col2:
-        st.subheader("📂 Dataset Caricati")
-        if not dataframes:
-            st.error("❌ Nessun dataset disponibile.")
-            return
-
-        dataset_index = st.selectbox("Seleziona il dataset", range(len(filenames)), format_func=lambda i: filenames[i])
-        df = dataframes[dataset_index]
-
-        if df is None or df.empty:
-            st.warning("⚠ Il dataset selezionato è vuoto.")
-            return
-
-        possible_lat_cols = [col for col in df.columns if any(x in col.lower() for x in ["lat", "x"])]
-        possible_lon_cols = [col for col in df.columns if any(x in col.lower() for x in ["lon", "y"])]
-
-        if not possible_lat_cols or not possible_lon_cols:
-            st.warning("⚠ Nessuna colonna lat/lon trovata nel dataset.")
-            return
-
-        # Mostra solo informazioni sui dati disponibili
-        st.write("✅ Il dataset contiene coordinate valide.")
 
 def correlation():
     """Dashboard per la gestione dei file con Drag & Drop."""
