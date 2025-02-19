@@ -7,7 +7,7 @@ import plotly.graph_objects as go
 
 def map_combined_datasets(dataframes, filenames=None):
     """
-    Mappa più dataset con coordinate e popups, garantendo che tutti i punti vengano plottati correttamente.
+    Mappa più dataset con coordinate e popups, mostrando anche i metadati di ogni punto.
     """
     if filenames is None:
         filenames = [f"Dataset {i+1}" for i in range(len(dataframes))]
@@ -21,8 +21,6 @@ def map_combined_datasets(dataframes, filenames=None):
 
     with col2:
         st.subheader("📂 Dataset Caricati")
-
-        # Creazione di selectbox per ogni dataset
         lat_columns = []
         lon_columns = []
         
@@ -46,17 +44,13 @@ def map_combined_datasets(dataframes, filenames=None):
 
         for i, (df, filename) in enumerate(zip(dataframes, filenames)):
             try:
-                # Recupera le colonne selezionate correttamente
                 lat_col = lat_columns[i]
                 lon_col = lon_columns[i]
 
                 if lat_col and lon_col and lat_col in df.columns and lon_col in df.columns:
-                    df_map = df[[lat_col, lon_col]].dropna().copy()
-                    df_map.columns = ["lat", "lon"]
-                    df_map["file"] = filename
-
-                    df_map["lat"] = pd.to_numeric(df_map["lat"], errors="coerce")
-                    df_map["lon"] = pd.to_numeric(df_map["lon"], errors="coerce")
+                    df_map = df.dropna(subset=[lat_col, lon_col]).copy()
+                    df_map["lat"] = pd.to_numeric(df_map[lat_col], errors="coerce")
+                    df_map["lon"] = pd.to_numeric(df_map[lon_col], errors="coerce")
                     df_map = df_map.dropna()
 
                     if df_map.empty:
@@ -66,6 +60,9 @@ def map_combined_datasets(dataframes, filenames=None):
                     all_latitudes.extend(df_map["lat"].tolist())
                     all_longitudes.extend(df_map["lon"].tolist())
 
+                    # Crea popup con tutti i metadati
+                    popup_info = df_map.apply(lambda row: "<br>".join([f"<b>{col}</b>: {row[col]}" for col in df.columns if col not in [lat_col, lon_col]]), axis=1)
+
                     # Aggiunta punti alla mappa
                     fig.add_trace(go.Scattermapbox(
                         lat=df_map["lat"],
@@ -73,7 +70,8 @@ def map_combined_datasets(dataframes, filenames=None):
                         mode="markers",
                         marker=dict(size=15, color=colors[i % len(colors)]),
                         name=filename,
-                        text=[f"{filename}<br>({lat}, {lon})" for lat, lon in zip(df_map["lat"], df_map["lon"])]
+                        hoverinfo="text",
+                        text=popup_info  # Il popup mostrerà tutti i metadati
                     ))
 
             except Exception as e:
@@ -87,7 +85,7 @@ def map_combined_datasets(dataframes, filenames=None):
         center_lat = sum(all_latitudes) / len(all_latitudes)
         center_lon = sum(all_longitudes) / len(all_longitudes)
 
-        # Configura la mappa con zoom automatico e legenda
+        # Configura la mappa con zoom automatico e popup leggibili
         fig.update_layout(
             mapbox=dict(
                 style="open-street-map",
@@ -95,10 +93,11 @@ def map_combined_datasets(dataframes, filenames=None):
                 zoom=6  
             ),
             legend=dict(title="Legenda"),
-            height=800
+            height=900
         )
 
         st.plotly_chart(fig, use_container_width=True)
+
 
 
 def display_dashboard():
