@@ -3,7 +3,10 @@ import pandas as pd
 import io
 from utils.plotting import create_and_render_plot
 from utils.load import load_file, process_file
-col1, col2 = st.columns([4, 1])
+import streamlit as st
+import pandas as pd
+import plotly.express as px
+
 def map_combined_datasets(dataframes):
     """
     Funzione per mappare più dataset combinati con colonne di latitudine e longitudine,
@@ -42,7 +45,15 @@ def map_combined_datasets(dataframes):
                     
                     # Mostra la mappa
                     if not df_map.empty:
-                        st.map(df_map)
+                        fig = px.scatter_mapbox(
+                            df_map, 
+                            lat="lat", lon="lon", 
+                            hover_name="info",  # Mostra le info come pop-up
+                            zoom=5, 
+                            height=500
+                        )
+                        fig.update_layout(mapbox_style="open-street-map")
+                        st.plotly_chart(fig, use_container_width=True)
                     else:
                         st.warning("No valid latitude/longitude data to display on the map.")
                 else:
@@ -107,6 +118,7 @@ def map_combined_datasets(dataframes):
                         st.error(f"❌ Error updating coordinates: {e}")
                 else:
                     st.warning("Unable to detect valid coordinate columns for editing.")
+
 
 
 def correlation():
