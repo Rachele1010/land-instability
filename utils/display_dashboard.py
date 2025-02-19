@@ -7,7 +7,7 @@ import plotly.graph_objects as go
 
 def map_combined_datasets(dataframes, filenames=None):
     """
-    Mappa più dataset con coordinate, assegnando colori diversi e popup con info.
+    Mappa più dataset con coordinate, mostrando popup con il nome del file.
     """
     if filenames is None:
         filenames = [f"Dataset {i+1}" for i in range(len(dataframes))]
@@ -45,6 +45,9 @@ def map_combined_datasets(dataframes, filenames=None):
 
         fig = go.Figure()
 
+        all_latitudes = []
+        all_longitudes = []
+
         for i, (df, filename) in enumerate(zip(dataframes, filenames)):
             try:
                 lat_col = st.session_state.get(f"lat_{i}")
@@ -55,39 +58,53 @@ def map_combined_datasets(dataframes, filenames=None):
                     df_map.columns = ["lat", "lon"]
                     df_map["file"] = filename
 
-                    # Conversione forzata a numerico per evitare errori
+                    # Conversione forzata a numerico
                     df_map["lat"] = pd.to_numeric(df_map["lat"], errors="coerce")
                     df_map["lon"] = pd.to_numeric(df_map["lon"], errors="coerce")
 
                     combined_df = pd.concat([combined_df, df_map], ignore_index=True)
 
-                    # Aggiungi i punti alla mappa con popup e colori diversi
+                    all_latitudes.extend(df_map["lat"].tolist())
+                    all_longitudes.extend(df_map["lon"].tolist())
+
+                    # Aggiungi i punti alla mappa con popups
                     fig.add_trace(go.Scattermapbox(
                         lat=df_map["lat"],
                         lon=df_map["lon"],
-                        mode="markers",
+                        mode="markers+text",
+                        text=df_map["file"],  # Mostra il nome del file nel popup
                         marker=dict(
-                            size=18,  # Punti più grandi
+                            size=15,  # Punti più grandi
                             color=colors[i % len(colors)]
                         ),
-                        text=[f"Dataset: {filename}" for _ in range(len(df_map))],
-                        hoverinfo="text",
                         name=filename
                     ))
             except Exception as e:
                 st.warning(f"⚠ Errore con '{filename}': {e}")
-        
+
+        # Controllo se ci sono dati validi
         if combined_df.empty:
             st.warning("❌ Nessun dato valido per visualizzare la mappa.")
             return
-        
-        # Imposta la mappa
+
+        # Definizione del centro della mappa basato sui dati
+        if all_latitudes and all_longitudes:
+            center_lat = sum(all_latitudes) / len(all_latitudes)
+            center_lon = sum(all_longitudes) / len(all_longitudes)
+        else:
+            center_lat, center_lon = 0, 0  # Default se i dati non sono validi
+
+        # Configurazione della mappa
         fig.update_layout(
             mapbox=dict(
                 style="open-street-map",
-                zoom=8),
-            height=800)
+                center=dict(lat=center_lat, lon=center_lon),
+                zoom=6  # Zoom iniziale migliorato
+            ),
+            height=800
+        )
         st.plotly_chart(fig, use_container_width=True)
+
 
 def display_dashboard():
     """Dashboard per la gestione dei file con Drag & Drop."""
