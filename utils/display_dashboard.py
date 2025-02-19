@@ -18,20 +18,16 @@ def visualization_section(df):
     with col2:
         st.subheader("🗺 Data Mapping")
 
-        # Cerca colonne che possono essere usate come coordinate
-        possible_lat_cols = [col for col in df.columns if "lat" in col.lower() or col.lower() == "x"]
-        possible_lon_cols = [col for col in df.columns if "lon" in col.lower() or col.lower() == "y"]
+        # Selezione dinamica delle colonne lat/lon
+        lat_col = st.selectbox("Select Latitude Column", df.columns, key="lat_select")
+        lon_col = st.selectbox("Select Longitude Column", df.columns, key="lon_select")
 
-        # Se non vengono trovate, mostra un errore
-        if not possible_lat_cols or not possible_lon_cols:
-            st.warning("No valid latitude/longitude columns found in the dataset.")
+        # Verifica se le colonne selezionate sono numeriche
+        if not pd.api.types.is_numeric_dtype(df[lat_col]) or not pd.api.types.is_numeric_dtype(df[lon_col]):
+            st.warning("Selected columns must be numeric.")
             return
         
-        # Selezione automatica delle colonne
-        lat_col = possible_lat_cols[0]
-        lon_col = possible_lon_cols[0]
-
-        # Conversione e pulizia dei dati
+        # Conversione e pulizia dati per la mappa
         df_map = df[[lat_col, lon_col]].dropna()
         df_map["lat"] = pd.to_numeric(df_map[lat_col], errors="coerce")
         df_map["lon"] = pd.to_numeric(df_map[lon_col], errors="coerce")
@@ -46,29 +42,28 @@ def visualization_section(df):
         st.subheader("✏️ Edit Point Coordinates")
 
         # Seleziona un punto da correggere
-        point_id = st.selectbox("Select a point to edit", df.index, key="point_select")
+        if not df_map.empty:
+            point_id = st.selectbox("Select a point to edit", df_map.index, key="point_select")
 
-        if point_id is not None:
-            try:
-                old_lat = float(df.at[point_id, lat_col])
-                old_lon = float(df.at[point_id, lon_col])
+            if point_id is not None:
+                try:
+                    old_lat = float(df.at[point_id, lat_col])
+                    old_lon = float(df.at[point_id, lon_col])
 
-                new_lat = st.number_input(
-                    "New Latitude", value=old_lat, format="%.6f", key=f"new_lat_{point_id}"
-                )
-                new_lon = st.number_input(
-                    "New Longitude", value=old_lon, format="%.6f", key=f"new_lon_{point_id}"
-                )
+                    new_lat = st.number_input(
+                        "New Latitude", value=old_lat, format="%.6f", key=f"new_lat_{point_id}"
+                    )
+                    new_lon = st.number_input(
+                        "New Longitude", value=old_lon, format="%.6f", key=f"new_lon_{point_id}"
+                    )
 
-                if st.button("Update Coordinates", key=f"update_btn_{point_id}"):
-                    df.at[point_id, lat_col] = new_lat
-                    df.at[point_id, lon_col] = new_lon
-                    st.success(f"✅ Updated point {point_id}: ({new_lat}, {new_lon})")
-                    st.experimental_rerun()
-            except Exception as e:
-                st.error(f"Error updating coordinates: {e}")
-
-
+                    if st.button("Update Coordinates", key=f"update_btn_{point_id}"):
+                        df.at[point_id, lat_col] = new_lat
+                        df.at[point_id, lon_col] = new_lon
+                        st.success(f"✅ Updated point {point_id}: ({new_lat}, {new_lon})")
+                        st.experimental_rerun()
+                except Exception as e:
+                    st.error(f"Error updating coordinates: {e}")
 
     st.subheader("Data Plotting")
     col1, col2, col3 = st.columns(3)
