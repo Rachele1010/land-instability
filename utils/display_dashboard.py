@@ -7,7 +7,7 @@ import plotly.graph_objects as go
 
 def map_combined_datasets(dataframes, filenames=None):
     """
-    Mappa più dataset con coordinate e popups, mostrando anche i metadati di ogni punto.
+    Mappa più dataset con coordinate e popups, centrando la mappa sui dati caricati o sull'Italia di default.
     """
     if filenames is None:
         filenames = [f"Dataset {i+1}" for i in range(len(dataframes))]
@@ -16,8 +16,11 @@ def map_combined_datasets(dataframes, filenames=None):
         st.error("❌ Nessun dataset disponibile.")
         return
 
-    col1, col2 = st.columns([3, 1])  
+    col1, col2 = st.columns([3, 1])
     colors = ["red", "blue", "green", "purple", "orange", "pink"]
+    
+    # Centro predefinito: Italia
+    default_center = {"lat": 41.8719, "lon": 12.5674}  
 
     with col2:
         st.subheader("📂 Dataset Caricati")
@@ -41,6 +44,7 @@ def map_combined_datasets(dataframes, filenames=None):
         fig = go.Figure()
         all_latitudes = []
         all_longitudes = []
+        first_valid_center = None  # Per salvare il primo dataset valido
 
         for i, (df, filename) in enumerate(zip(dataframes, filenames)):
             try:
@@ -60,6 +64,13 @@ def map_combined_datasets(dataframes, filenames=None):
                     all_latitudes.extend(df_map["lat"].tolist())
                     all_longitudes.extend(df_map["lon"].tolist())
 
+                    # Imposta il centro della mappa con il primo dataset valido
+                    if first_valid_center is None and not df_map.empty:
+                        first_valid_center = {
+                            "lat": df_map["lat"].iloc[0], 
+                            "lon": df_map["lon"].iloc[0]
+                        }
+
                     # Crea popup con tutti i metadati
                     popup_info = df_map.apply(lambda row: "<br>".join([f"<b>{col}</b>: {row[col]}" for col in df.columns if col not in [lat_col, lon_col]]), axis=1)
 
@@ -71,7 +82,7 @@ def map_combined_datasets(dataframes, filenames=None):
                         marker=dict(size=15, color=colors[i % len(colors)]),
                         name=filename,
                         hoverinfo="text",
-                        text=popup_info  # Il popup mostrerà tutti i metadati
+                        text=popup_info  
                     ))
 
             except Exception as e:
@@ -81,11 +92,14 @@ def map_combined_datasets(dataframes, filenames=None):
             st.warning("❌ Nessun dato valido per visualizzare la mappa.")
             return
 
-        # Centro dinamico della mappa
-        center_lat = sum(all_latitudes) / len(all_latitudes)
-        center_lon = sum(all_longitudes) / len(all_longitudes)
+        # Determina il centro della mappa
+        if first_valid_center:
+            center_lat = first_valid_center["lat"]
+            center_lon = first_valid_center["lon"]
+        else:
+            center_lat, center_lon = default_center["lat"], default_center["lon"]
 
-        # Configura la mappa con zoom automatico e popup leggibili
+        # Configura la mappa con zoom automatico
         fig.update_layout(
             mapbox=dict(
                 style="open-street-map",
@@ -93,7 +107,7 @@ def map_combined_datasets(dataframes, filenames=None):
                 zoom=6  
             ),
             legend=dict(title="Legenda"),
-            height=900
+            height=800
         )
 
         st.plotly_chart(fig, use_container_width=True)
