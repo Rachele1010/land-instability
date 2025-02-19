@@ -55,7 +55,7 @@ def map_combined_datasets(dataframes, filenames=None):
             df_map["file"] = filename
 
             # Debug: Verifica dati prima della conversione
-            st.write(f"📌 **{filename} - Dati prima della conversione:**", df_map.head())
+            #st.write(f"📌 **{filename} - Dati prima della conversione:**", df_map.head())
 
             # Conversione forzata a numerico
             df_map["lat"] = pd.to_numeric(df_map["lat"], errors="coerce")
