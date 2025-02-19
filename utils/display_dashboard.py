@@ -41,7 +41,7 @@ def map_combined_datasets(dataframes, filenames=None):
 
     for i, (df, filename) in enumerate(zip(dataframes, filenames)):
         try:
-            st.write(f"🔍 **Dataset {i+1}: {filename}**")  # Debug per dataset
+            #st.write(f"🔍 **Dataset {i+1}: {filename}**")  # Debug per dataset
 
             # Rileva le colonne corrette (latitudine e longitudine)
             lat_col, lon_col = detect_lat_lon_columns(df)
@@ -62,7 +62,7 @@ def map_combined_datasets(dataframes, filenames=None):
             df_map["lon"] = pd.to_numeric(df_map["lon"], errors="coerce")
 
             # Debug: Verifica dati dopo conversione
-            st.write(f"✅ **{filename} - Dati dopo conversione:**", df_map.head())
+            #st.write(f"✅ **{filename} - Dati dopo conversione:**", df_map.head())
 
             df_map = df_map.dropna()  # Elimina righe con valori non validi
             if df_map.empty:
@@ -89,7 +89,7 @@ def map_combined_datasets(dataframes, filenames=None):
             st.warning(f"⚠ Errore con '{filename}': {e}")
 
     # Debug finale: verificare se combined_df ha dati
-    st.write("📊 **Dati combinati finali:**", combined_df)
+    #st.write("📊 **Dati combinati finali:**", combined_df)
 
     if combined_df.empty:
         st.warning("❌ Nessun dato valido per visualizzare la mappa.")
