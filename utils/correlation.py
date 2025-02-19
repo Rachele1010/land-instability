@@ -10,9 +10,11 @@ def map_combined_datasets(dataframes):
     includendo il rilevamento automatico e la modifica delle coordinate.
     """
     combined_df = pd.DataFrame(columns=['lat', 'lon', 'info'])
-    
-    # Prima colonna per la visualizzazione della mappa
+    col1, col2 = st.columns([3, 1])  # Mappa | Modifica coordinate
+
     with col1:
+        st.subheader("🗺 Data Mapping")
+
         for df in dataframes:
             if df is not None:
                 # Auto-detect delle colonne lat/lon/x/y
@@ -22,26 +24,24 @@ def map_combined_datasets(dataframes):
                 # Seleziona le colonne migliori se disponibili
                 lat_col = possible_lat_cols[0] if possible_lat_cols else None
                 lon_col = possible_lon_cols[0] if possible_lon_cols else None
-                
+
                 if lat_col and lon_col:
-                    # Prepara il DataFrame per la mappa
                     df_map = df[[lat_col, lon_col]].dropna()
                     df_map.columns = ["lat", "lon"]
                     df['info'] = df.iloc[:, 0].astype(str)  # Usa la prima colonna come info per pop-up
-    
-                    # Combina i dati
+                    
+                    # Aggiungi le colonne 'lat', 'lon', 'info' al DataFrame combinato, solo se esistono
                     combined_df = pd.concat([combined_df, df[['lat', 'lon', 'info']]], ignore_index=True)
-    
-                    # Visualizza la mappa
-                    st.subheader("🗺 Data Mapping")
+                    
+                    # Mostra la mappa
                     if not df_map.empty:
-                        st.map(df_map)  # Mostra la mappa di base
+                        st.map(df_map)
                     else:
                         st.warning("No valid latitude/longitude data to display on the map.")
                 else:
                     st.warning("No valid coordinate columns found for mapping.")
-                    
-        # Mostra la mappa combinata se ci sono coordinate
+        
+        # Visualizza la mappa combinata se ci sono coordinate
         if not combined_df.empty:
             fig = px.scatter_mapbox(
                 combined_df, 
@@ -55,34 +55,40 @@ def map_combined_datasets(dataframes):
         else:
             st.warning("No valid latitude or longitude data available for map display.")
 
-    # Seconda colonna per la modifica delle coordinate
     with col2:
         st.subheader("✏️ Edit Point Coordinates")
-    
-        for idx, df in enumerate(dataframes):
+
+        for df in dataframes:
             if df is not None:
                 # Seleziona il punto da modificare
-                point_id = st.selectbox(f"Select a point to edit (Dataset {idx + 1})", df.index)
-    
+                point_id = st.selectbox("Select a point to edit", df.index)
+
+                # Auto-detect lat/lon columns for edit
+                possible_lat_cols = [col for col in df.columns if any(x in col.lower() for x in ["lat", "x"])]
+                possible_lon_cols = [col for col in df.columns if any(x in col.lower() for x in ["lon", "y"])]
+                
+                lat_col = possible_lat_cols[0] if possible_lat_cols else None
+                lon_col = possible_lon_cols[0] if possible_lon_cols else None
+                
                 if lat_col and lon_col:
                     try:
                         # Permetti di selezionare la colonna corretta se l'auto-detect ha sbagliato
                         lat_col = st.selectbox("Select Latitude Column", df.columns, index=df.columns.get_loc(lat_col))
                         lon_col = st.selectbox("Select Longitude Column", df.columns, index=df.columns.get_loc(lon_col))
-    
+
                         # Verifica se le colonne selezionate sono numeriche
                         if not pd.api.types.is_numeric_dtype(df[lat_col]) or not pd.api.types.is_numeric_dtype(df[lon_col]):
                             st.warning("Selected columns must be numeric.")
                             st.stop()
-    
+
                         # Prendi i valori attuali delle coordinate
                         old_lat = float(df.at[point_id, lat_col])
                         old_lon = float(df.at[point_id, lon_col])
-    
+
                         # Inserisci nuove coordinate
                         new_lat = st.number_input(f"Edit Latitude (Current: {old_lat})", value=old_lat)
                         new_lon = st.number_input(f"Edit Longitude (Current: {old_lon})", value=old_lon)
-    
+
                         # Salva le modifiche
                         if new_lat != old_lat or new_lon != old_lon:
                             df.at[point_id, lat_col] = new_lat
@@ -92,6 +98,9 @@ def map_combined_datasets(dataframes):
                             st.info("Coordinates are the same as the current ones.")
                     except Exception as e:
                         st.error(f"❌ Error updating coordinates: {e}")
+                else:
+                    st.warning("Unable to detect valid coordinate columns for editing.")
+
 def correlation():
     """Dashboard per la gestione dei file con Drag & Drop."""
     st.header("📊 Data Analysis and Plotting")
