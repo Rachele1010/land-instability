@@ -8,20 +8,16 @@ def visualization_section(df):
     if df is None or df.empty:
         st.warning("No data available for visualization.")
         return
-
     col1, col2, col3 = st.columns([3, 4, 1])  # Tabella | Mappa | Modifica coordinate
-
     with col1:
         st.subheader("📋 Data Table")
         st.dataframe(df)
-
     with col2:
         st.subheader("🗺 Data Mapping")
 
         # Auto-detect delle colonne lat/lon/x/y
         possible_lat_cols = [col for col in df.columns if any(x in col.lower() for x in ["lat", "x"])]
         possible_lon_cols = [col for col in df.columns if any(x in col.lower() for x in ["lon", "y"])]
-
         # Seleziona le colonne migliori se disponibili
         lat_col = possible_lat_cols[0] if possible_lat_cols else None
         lon_col = possible_lon_cols[0] if possible_lon_cols else None
@@ -59,18 +55,6 @@ def visualization_section(df):
                 # Prendi i valori attuali delle coordinate
                 old_lat = float(df.at[point_id, lat_col])
                 old_lon = float(df.at[point_id, lon_col])
-    
-                # Input per i nuovi valori
-                new_lat = st.number_input("New Latitude", value=old_lat, format="%.6f", key=f"new_lat_{point_id}")
-                new_lon = st.number_input("New Longitude", value=old_lon, format="%.6f", key=f"new_lon_{point_id}")
-    
-                # Bottone per aggiornare le coordinate
-                if st.button("Update Coordinates", key=f"update_btn_{point_id}"):
-                    df.at[point_id, lat_col] = new_lat
-                    df.at[point_id, lon_col] = new_lon
-                    st.success(f"✅ Updated point {point_id}: ({new_lat}, {new_lon})")
-                    st.experimental_rerun()
-    
             except Exception as e:
                 st.error(f"❌ Error updating coordinates: {e}")
 
