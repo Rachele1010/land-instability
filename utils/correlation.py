@@ -49,8 +49,11 @@ def correlation():
     
     df_list = []
     for uploaded_file in uploaded_files:
-        df = pd.read_csv(io.StringIO(uploaded_file.getvalue().decode("utf-8")))
-        df_list.append(df)
+        # Usa la funzione di caricamento e elaborazione dei file
+        df = load_file(uploaded_file)  # Carica il file
+        if df is not None:
+            df = process_file(df)  # Elabora i dati
+            df_list.append(df)
 
     # Creazione dinamica dei controlli e dei grafici
     for idx, df in enumerate(df_list):
@@ -76,6 +79,5 @@ def correlation():
                 create_and_render_plot(df, x_axis, y_axis, plot_type)  # Mostra il grafico
 
     # Mappatura combinata di tutti i dataset caricati
-    #st.subheader("🌍 Combined Map")
+    st.subheader("🌍 Combined Map")
     map_combined_datasets(df_list)
-
