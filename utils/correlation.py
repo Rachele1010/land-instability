@@ -8,6 +8,10 @@ import streamlit as st
 import pandas as pd
 import plotly.express as px
 
+import streamlit as st
+import pandas as pd
+import plotly.express as px
+
 def map_combined_datasets(dataframes):
     """
     Funzione per mappare più dataset combinati con colonne di latitudine e longitudine,
@@ -47,15 +51,19 @@ def map_combined_datasets(dataframes):
                     # Pulisci e verifica che lat e lon siano numerici
                     combined_df['lat'] = pd.to_numeric(combined_df['lat'], errors='coerce')
                     combined_df['lon'] = pd.to_numeric(combined_df['lon'], errors='coerce')
-
-                    # Rimuovi righe con lat/lon non numerici
-                    combined_df = combined_df[combined_df['lat'].notna()]
-                    combined_df = combined_df[combined_df['lon'].notna()]
                     
-                    # Mostra la mappa
-                    if not df_map.empty:
+                    # Rimuovi righe con lat/lon non numerici
+                    combined_df = combined_df.dropna(subset=['lat', 'lon'])
+                    
+                    # Visualizza il DataFrame per il debug
+                    st.write("Combined DataFrame:", combined_df.head())
+                    st.write("DataFrame columns:", combined_df.columns)
+                    st.write("DataFrame dtypes:", combined_df.dtypes)
+
+                    # Visualizza la mappa combinata se ci sono coordinate
+                    if not combined_df.empty:
                         fig = px.scatter_mapbox(
-                            df_map, 
+                            combined_df, 
                             lat="lat", lon="lon", 
                             hover_name="info",  # Mostra le info come pop-up
                             zoom=5, 
@@ -81,54 +89,6 @@ def map_combined_datasets(dataframes):
             st.plotly_chart(fig, use_container_width=True)
         else:
             st.warning("No valid latitude or longitude data available for map display.")
-
-    with col2:
-        st.subheader("✏️ Edit Point Coordinates")
-
-        for df in dataframes:
-            if df is not None:
-                # Seleziona il punto da modificare
-                point_id = st.selectbox("Select a point to edit", df.index)
-
-                # Auto-detect lat/lon columns for edit
-                possible_lat_cols = [col for col in df.columns if any(x in col.lower() for x in ["lat", "x"])]
-                possible_lon_cols = [col for col in df.columns if any(x in col.lower() for x in ["lon", "y"])]
-                
-                lat_col = possible_lat_cols[0] if possible_lat_cols else None
-                lon_col = possible_lon_cols[0] if possible_lon_cols else None
-                
-                if lat_col and lon_col:
-                    try:
-                        # Permetti di selezionare la colonna corretta se l'auto-detect ha sbagliato
-                        lat_col = st.selectbox("Select Latitude Column", df.columns, index=df.columns.get_loc(lat_col))
-                        lon_col = st.selectbox("Select Longitude Column", df.columns, index=df.columns.get_loc(lon_col))
-
-                        # Verifica se le colonne selezionate sono numeriche
-                        if not pd.api.types.is_numeric_dtype(df[lat_col]) or not pd.api.types.is_numeric_dtype(df[lon_col]):
-                            st.warning("Selected columns must be numeric.")
-                            st.stop()
-
-                        # Prendi i valori attuali delle coordinate
-                        old_lat = float(df.at[point_id, lat_col])
-                        old_lon = float(df.at[point_id, lon_col])
-
-                        # Inserisci nuove coordinate
-                        new_lat = st.number_input(f"Edit Latitude (Current: {old_lat})", value=old_lat)
-                        new_lon = st.number_input(f"Edit Longitude (Current: {old_lon})", value=old_lon)
-
-                        # Salva le modifiche
-                        if new_lat != old_lat or new_lon != old_lon:
-                            df.at[point_id, lat_col] = new_lat
-                            df.at[point_id, lon_col] = new_lon
-                            st.success("Coordinates updated successfully!")
-                        else:
-                            st.info("Coordinates are the same as the current ones.")
-                    except Exception as e:
-                        st.error(f"❌ Error updating coordinates: {e}")
-                else:
-                    st.warning("Unable to detect valid coordinate columns for editing.")
-
-
 
 def correlation():
     """Dashboard per la gestione dei file con Drag & Drop."""
