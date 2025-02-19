@@ -3,77 +3,74 @@ import pandas as pd
 from utils.plotting import create_and_render_plot
 from utils.load import load_file, process_file
 
-def visualization_section(df):
-    """Handles the display of data table, map, and coordinate correction."""
-    if df is None or df.empty:
-        st.warning("No data available for visualization.")
-        return
-    col1, col2, col3 = st.columns([3, 4, 1])  # Tabella | Mappa | Modifica coordinate
-    with col1:
-        st.subheader("📋 Data Table")
-        st.dataframe(df)
-    with col2:
-        st.subheader("🗺 Data Mapping")
+def map_combined_datasets(dataframes, filenames=None):
+    """
+    Mappa più dataset con coordinate, rilevando automaticamente lat/lon o x/y.
+    Mostra un popup con il nome del file e permette di selezionare manualmente le coordinate nella colonna destra.
+    """
+    if filenames is None:
+        filenames = [f"Dataset {i+1}" for i in range(len(dataframes))]
 
-        # Auto-detect delle colonne lat/lon/x/y
+    combined_df = pd.DataFrame(columns=['lat', 'lon', 'file'])
+    col1, col2 = st.columns([3, 1])  # Layout: Mappa a sinistra, selectbox a destra
+
+    with col2:  # Colonna per selezione dataset e coordinate
+        st.subheader("📂 Dataset Caricati")
+        
+        if not dataframes:
+            st.error("❌ Nessun dataset disponibile.")
+            return
+
+        dataset_index = st.selectbox("Seleziona il dataset", range(len(filenames)), format_func=lambda i: filenames[i])
+        df = dataframes[dataset_index]
+        filename = filenames[dataset_index]
+
+        if df is None or df.empty:
+            st.warning("⚠ Il dataset selezionato è vuoto.")
+            return
+
+        # Auto-detect colonne per latitudine e longitudine
         possible_lat_cols = [col for col in df.columns if any(x in col.lower() for x in ["lat", "x"])]
         possible_lon_cols = [col for col in df.columns if any(x in col.lower() for x in ["lon", "y"])]
-        # Seleziona le colonne migliori se disponibili
-        lat_col = possible_lat_cols[0] if possible_lat_cols else None
-        lon_col = possible_lon_cols[0] if possible_lon_cols else None
 
-        # Controllo se sono state trovate colonne valide
-        if lat_col and lon_col:
-            df_map = df[[lat_col, lon_col]].dropna()
-            df_map.columns = ["lat", "lon"]
+        if not possible_lat_cols or not possible_lon_cols:
+            st.warning(f"⚠ Nessuna colonna lat/lon o x/y trovata in '{filename}'.")
+            return
 
-            # Mostra la mappa se ci sono coordinate valide
-            if not df_map.empty:
-                st.map(df_map)
-            else:
-                st.warning("No valid latitude/longitude data to display on the map.")
+        # Selezione manuale delle colonne
+        lat_col = st.selectbox("Seleziona la colonna di latitudine", possible_lat_cols, key=f"lat_{filename}")
+        lon_col = st.selectbox("Seleziona la colonna di longitudine", possible_lon_cols, key=f"lon_{filename}")
+
+    with col1:  # Colonna per la mappa
+        st.subheader("🗺 Data Mapping")
+
+        # Prepara il DataFrame per la mappa
+        df_map = df[[lat_col, lon_col]].dropna().copy()
+        df_map.columns = ["lat", "lon"]
+        df_map["file"] = filename  # Usa il nome del file come info per il popup
+
+        # Aggiungi al dataset combinato
+        combined_df = pd.concat([combined_df, df_map], ignore_index=True)
+
+        # Mostra la mappa con popups
+        if not combined_df.empty:
+            fig = px.scatter_mapbox(
+                combined_df, 
+                lat="lat", lon="lon", 
+                hover_name="file",  # Mostra il nome del file nel popup
+                zoom=5, 
+                height=500
+            )
+            fig.update_layout(mapbox_style="open-street-map")
+            st.plotly_chart(fig, use_container_width=True)
         else:
-            st.warning("No valid coordinate columns found for mapping.")
+            st.warning("❌ Nessun dato valido per visualizzare la mappa.")
 
-    with col3:
-        st.subheader("✏️ Edit Point Coordinates")
-    
-        # Seleziona il punto da modificare
-        point_id = st.selectbox("Select a point to edit", df.index)
-    
-        if lat_col and lon_col:
-            try:
-                # Permetti di selezionare la colonna corretta se l'auto-detect ha sbagliato
-                lat_col = st.selectbox("Select Latitude Column", df.columns, index=df.columns.get_loc(lat_col))
-                lon_col = st.selectbox("Select Longitude Column", df.columns, index=df.columns.get_loc(lon_col))
-    
-                # Verifica se le colonne selezionate sono numeriche
-                if not pd.api.types.is_numeric_dtype(df[lat_col]) or not pd.api.types.is_numeric_dtype(df[lon_col]):
-                    st.warning("Selected columns must be numeric.")
-                    st.stop()
-    
-                # Prendi i valori attuali delle coordinate
-                old_lat = float(df.at[point_id, lat_col])
-                old_lon = float(df.at[point_id, lon_col])
-            except Exception as e:
-                st.error(f"❌ Error updating coordinates: {e}")
-
-    st.subheader("Data Plotting")
-    col1, col2, col3 = st.columns(3)
-    with col1:
-        x_axis = st.selectbox("Select X axis", df.columns.tolist(), key=f"x_axis_{df.shape}")
-    with col2:
-        y_axis = st.selectbox("Select Y axis", df.columns.tolist(), key=f"y_axis_{df.shape}")
-    with col3:
-        plot_type = st.selectbox("Select plot type", [
-            "Basic Scatter", "Basic Bar", "Basic Line", "Mixed Line and Bar", 
-            "Calendar Heatmap", "DataZoom"
-        ], key=f"plot_type_{df.shape}")
-    if x_axis and y_axis and plot_type:
-        create_and_render_plot(df, x_axis, y_axis, plot_type)
 
 def display_dashboard():
-    #st.header("File Upload and Management")
+    """Dashboard per la gestione dei file con Drag & Drop."""
+    st.header("📊 Data Analysis and Plotting")
+
     # Sidebar con file uploader
     st.sidebar.header("📂 Upload Files")
     uploaded_files = st.sidebar.file_uploader(
@@ -83,14 +80,37 @@ def display_dashboard():
     if not uploaded_files:
         st.sidebar.info("No files uploaded yet.")
         return
-        
-    if uploaded_files:
-        for uploaded_file in uploaded_files:
-            df = load_file(uploaded_file)
-            if df is not None:
-                df = process_file(df)  # Elabora i dati prima di passarlo alla visualizzazione
-                st.subheader(f"File: {uploaded_file.name}")
-                visualization_section(df)
+    
+    df_list = []
+    for uploaded_file in uploaded_files:
+        # Usa la funzione di caricamento e elaborazione dei file
+        df = load_file(uploaded_file)  # Carica il file
+        if df is not None:
+            df = process_file(df)  # Elabora i dati
+            df_list.append(df)
 
-# Esegui la dashboard
-display_dashboard()
+    # Creazione dinamica dei controlli e dei grafici
+    for idx, df in enumerate(df_list):
+        st.subheader(f"Dataset {idx + 1} - {uploaded_files[idx].name}")
+
+        col1, col2, col3 = st.columns([1, 1, 1])  # Tre colonne per X, Y, tipo di grafico
+        col4, col5 = st.columns([1, 2])  # Colonne per tabella e grafico
+
+        with col1:
+            x_axis = st.selectbox(f"X Axis {idx + 1}", df.columns.tolist(), key=f"x_axis_{idx}")
+        with col2:
+            y_axis = st.selectbox(f"Y Axis {idx + 1}", df.columns.tolist(), key=f"y_axis_{idx}")
+        with col3:
+            plot_type = st.selectbox(f"Plot Type {idx + 1}", [
+                "Basic Scatter", "Basic Bar", "Basic Line", "Mixed Line and Bar", 
+                "Calendar Heatmap", "DataZoom"
+            ], key=f"plot_type_{idx}")
+
+        with col4:
+            st.dataframe(df)  # Mostra la tabella
+        with col5:
+            if not df.empty:
+                create_and_render_plot(df, x_axis, y_axis, plot_type)  # Mostra il grafico
+
+    # Mappatura combinata di tutti i dataset caricati
+    map_combined_datasets(df_list)
