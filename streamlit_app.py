@@ -47,8 +47,8 @@ def main():
     # Verifica cosa è stato selezionato nel menu
     if menu_id == "Dashboard":
         # Carica e mostra l'immagine di copertura centrata
-        cover_image = Image.open('copertina_4ai.png')
-        st.image(cover_image, use_column_width=True)
+        #cover_image = Image.open('copertina_4ai.png')
+        #st.image(cover_image, use_column_width=True)
         # Carica e mostra l'immagine di copertura centrata        
         st.title("Welcome to Downstream - Land Domain")
         # Testo giustificato usando st.markdown e HTML
