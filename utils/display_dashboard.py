@@ -74,7 +74,16 @@ def visualization_section(df):
 
 def display_dashboard():
     #st.header("File Upload and Management")
-    uploaded_files = st.file_uploader("Upload files", accept_multiple_files=True, type=['csv', 'xlsx', 'txt'])
+    # Sidebar con file uploader
+    st.sidebar.header("📂 Upload Files")
+    uploaded_files = st.sidebar.file_uploader(
+        "Drag & Drop your CSV files here", type=['csv', 'xlsx', 'txt'], accept_multiple_files=True
+    )
+
+    if not uploaded_files:
+        st.sidebar.info("No files uploaded yet.")
+        return
+        
     if uploaded_files:
         for uploaded_file in uploaded_files:
             df = load_file(uploaded_file)
