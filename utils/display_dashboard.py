@@ -6,14 +6,17 @@ from utils.load import load_file, process_file
 import streamlit as st
 import pandas as pd
 
+import streamlit as st
+import pandas as pd
+
 def visualization_section(df):
     """Handles the display of data table, map, and coordinate correction."""
     if df is None or df.empty:
         st.warning("No data available for visualization.")
         return
 
-    col1, col2 = st.columns(2)
-    
+    col1, col2, col3 = st.columns([1, 2, 1])  # Aggiunta una colonna per il pop-up
+
     with col1:
         st.subheader("Data Table")
         st.dataframe(df)
@@ -21,39 +24,32 @@ def visualization_section(df):
     with col2:
         st.subheader("Data Mapping")
 
-        # Cerca colonne con lat/lon o x/y
-        lat_col = [col for col in df.columns if "lat" in col.lower()]
-        lon_col = [col for col in df.columns if "lon" in col.lower()]
+        # Dropdown per selezionare le colonne delle coordinate
+        lat_col = st.selectbox("Select Latitude Column", df.columns, key="lat_select")
+        lon_col = st.selectbox("Select Longitude Column", df.columns, key="lon_select")
 
-        if not lat_col or not lon_col:
-            lat_col = [col for col in df.columns if col.lower() in ["x"]]
-            lon_col = [col for col in df.columns if col.lower() in ["y"]]
-
-        # Se troviamo coordinate valide
+        # Verifica che le colonne siano valide
         if lat_col and lon_col:
-            lat_col, lon_col = lat_col[0], lon_col[0]
             df_map = df[[lat_col, lon_col]].dropna()
             df_map.columns = ['lat', 'lon']
             st.map(df_map)
 
-            # Seleziona un punto da correggere
-            st.subheader("Edit Point Coordinates")
-            point_id = st.selectbox("Select a point to edit", df.index)
+    with col3:
+        st.subheader("Edit Point Coordinates")
+        # Seleziona un punto da correggere
+        point_id = st.selectbox("Select a point to edit", df.index, key="point_select")
 
-            if point_id is not None:
-                old_lat, old_lon = df.at[point_id, lat_col], df.at[point_id, lon_col]
+        if point_id is not None:
+            old_lat, old_lon = df.at[point_id, lat_col], df.at[point_id, lon_col]
 
-                new_lat = st.number_input("New Latitude", value=old_lat, format="%.6f")
-                new_lon = st.number_input("New Longitude", value=old_lon, format="%.6f")
+            new_lat = st.number_input("New Latitude", value=old_lat, format="%.6f", key="new_lat")
+            new_lon = st.number_input("New Longitude", value=old_lon, format="%.6f", key="new_lon")
 
-                if st.button("Update Coordinates"):
-                    df.at[point_id, lat_col] = new_lat
-                    df.at[point_id, lon_col] = new_lon
-                    st.success(f"Updated point {point_id}: ({new_lat}, {new_lon})")
-                    st.experimental_rerun()
-
-        else:
-            st.write("No valid coordinate columns ('lat/lon' or 'x/y') found for mapping.")
+            if st.button("Update Coordinates", key="update_btn"):
+                df.at[point_id, lat_col] = new_lat
+                df.at[point_id, lon_col] = new_lon
+                st.success(f"Updated point {point_id}: ({new_lat}, {new_lon})")
+                st.experimental_rerun()
 
 
     st.subheader("Data Plotting")
