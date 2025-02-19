@@ -5,10 +5,6 @@ from utils.plotting import create_and_render_plot
 from utils.load import load_file, process_file
 import plotly.express as px
 
-import streamlit as st
-import pandas as pd
-import plotly.express as px
-
 def map_combined_datasets(dataframes, filenames=None):
     """
     Mappa più dataset con coordinate, rilevando automaticamente lat/lon o x/y.
@@ -37,8 +33,9 @@ def map_combined_datasets(dataframes, filenames=None):
                 st.warning(f"⚠ Nessuna colonna lat/lon o x/y trovata in '{filename}'.")
                 continue
 
-            lat_col = possible_lat_cols[0]
-            lon_col = possible_lon_cols[0]
+            # Permetti di selezionare le colonne corrette
+            lat_col = st.selectbox(f"Seleziona la colonna di latitudine per '{filename}'", possible_lat_cols)
+            lon_col = st.selectbox(f"Seleziona la colonna di longitudine per '{filename}'", possible_lon_cols)
 
             # Prepara il DataFrame per la mappa
             df_map = df[[lat_col, lon_col]].dropna().copy()
@@ -67,7 +64,7 @@ def map_combined_datasets(dataframes, filenames=None):
 
         if not dataframes:
             st.error("❌ Nessun dataset disponibile per la modifica.")
-            return
+            st.stop()
 
         dataset_index = st.selectbox("Seleziona il dataset", range(len(filenames)), format_func=lambda i: filenames[i])
 
@@ -75,39 +72,45 @@ def map_combined_datasets(dataframes, filenames=None):
 
         if df is None or df.empty:
             st.warning("⚠ Il dataset selezionato è vuoto.")
-            return
+            st.stop()
 
         possible_lat_cols = [col for col in df.columns if any(x in col.lower() for x in ["lat", "x"])]
         possible_lon_cols = [col for col in df.columns if any(x in col.lower() for x in ["lon", "y"])]
 
         if not possible_lat_cols or not possible_lon_cols:
             st.warning("⚠ Nessuna colonna lat/lon trovata per la modifica.")
-            return
+            st.stop()
 
-        lat_col = possible_lat_cols[0]
-        lon_col = possible_lon_cols[0]
+        # Lascio scegliere all'utente la colonna corretta
+        lat_col = st.selectbox("Seleziona la colonna di latitudine", possible_lat_cols)
+        lon_col = st.selectbox("Seleziona la colonna di longitudine", possible_lon_cols)
 
+        # Verifica che le colonne selezionate siano numeriche
+        if not pd.api.types.is_numeric_dtype(df[lat_col]) or not pd.api.types.is_numeric_dtype(df[lon_col]):
+            st.warning("⚠ Le colonne selezionate devono contenere solo valori numerici.")
+            st.stop()
+
+        # Permetti all'utente di scegliere un punto da modificare
         point_id = st.selectbox("Seleziona un punto da modificare", df.index)
 
-        if lat_col and lon_col:
-            try:
-                # Permetti di selezionare la colonna corretta se l'auto-detect ha sbagliato
-                lat_col = st.selectbox("Select Latitude Column", df.columns, index=df.columns.get_loc(lat_col))
-                lon_col = st.selectbox("Select Longitude Column", df.columns, index=df.columns.get_loc(lon_col))
-    
-                # Verifica se le colonne selezionate sono numeriche
-                if not pd.api.types.is_numeric_dtype(df[lat_col]) or not pd.api.types.is_numeric_dtype(df[lon_col]):
-                    st.warning("Selected columns must be numeric.")
-                    st.stop()
-    
-                # Prendi i valori attuali delle coordinate
-                old_lat = float(df.at[point_id, lat_col])
-                old_lon = float(df.at[point_id, lon_col])
+        try:
+            # Prendi i valori attuali delle coordinate
+            old_lat = float(df.at[point_id, lat_col])
+            old_lon = float(df.at[point_id, lon_col])
+
+            new_lat = st.number_input(f"Latitudine (attuale: {old_lat})", value=old_lat)
+            new_lon = st.number_input(f"Longitudine (attuale: {old_lon})", value=old_lon)
+
+            if new_lat != old_lat or new_lon != old_lon:
+                df.at[point_id, lat_col] = new_lat
+                df.at[point_id, lon_col] = new_lon
+                st.success("✅ Coordinate aggiornate con successo!")
             else:
                 st.info("ℹ️ Nessuna modifica effettuata.")
 
         except Exception as e:
             st.error(f"❌ Errore nella modifica delle coordinate: {e}")
+
 
 def correlation():
     """Dashboard per la gestione dei file con Drag & Drop."""
