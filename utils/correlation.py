@@ -89,17 +89,20 @@ def map_combined_datasets(dataframes, filenames=None):
 
         point_id = st.selectbox("Seleziona un punto da modificare", df.index)
 
-        try:
-            old_lat = float(df.at[point_id, lat_col])
-            old_lon = float(df.at[point_id, lon_col])
-
-            new_lat = st.number_input(f"Latitudine (attuale: {old_lat})", value=old_lat)
-            new_lon = st.number_input(f"Longitudine (attuale: {old_lon})", value=old_lon)
-
-            if new_lat != old_lat or new_lon != old_lon:
-                df.at[point_id, lat_col] = new_lat
-                df.at[point_id, lon_col] = new_lon
-                st.success("✅ Coordinate aggiornate con successo!")
+        if lat_col and lon_col:
+            try:
+                # Permetti di selezionare la colonna corretta se l'auto-detect ha sbagliato
+                lat_col = st.selectbox("Select Latitude Column", df.columns, index=df.columns.get_loc(lat_col))
+                lon_col = st.selectbox("Select Longitude Column", df.columns, index=df.columns.get_loc(lon_col))
+    
+                # Verifica se le colonne selezionate sono numeriche
+                if not pd.api.types.is_numeric_dtype(df[lat_col]) or not pd.api.types.is_numeric_dtype(df[lon_col]):
+                    st.warning("Selected columns must be numeric.")
+                    st.stop()
+    
+                # Prendi i valori attuali delle coordinate
+                old_lat = float(df.at[point_id, lat_col])
+                old_lon = float(df.at[point_id, lon_col])
             else:
                 st.info("ℹ️ Nessuna modifica effettuata.")
 
