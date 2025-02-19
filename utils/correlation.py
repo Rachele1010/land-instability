@@ -3,92 +3,70 @@ import pandas as pd
 import io
 from utils.plotting import create_and_render_plot
 from utils.load import load_file, process_file
-import streamlit as st
-import streamlit as st
-import pandas as pd
 import plotly.express as px
 
-import streamlit as st
-import pandas as pd
-import plotly.express as px
-
-def map_combined_datasets(dataframes):
+def map_combined_datasets(dataframes, filenames):
     """
-    Funzione per mappare più dataset combinati con colonne di latitudine e longitudine,
-    includendo il rilevamento automatico e la modifica delle coordinate.
+    Funzione per mappare più dataset con colonne di latitudine e longitudine,
+    includendo il rilevamento automatico delle coordinate e un popup con il nome del file.
+    
+    Args:
+        dataframes (list of pd.DataFrame): Lista di DataFrame caricati.
+        filenames (list of str): Lista di nomi dei file corrispondenti ai DataFrame.
     """
     combined_df = pd.DataFrame(columns=['lat', 'lon', 'info'])
-    col1, col2 = st.columns([3, 1])  # Mappa | Modifica coordinate
+
+    col1, col2 = st.columns([3, 1])  # Colonna sinistra per la mappa, destra per la selezione del file
 
     with col1:
-        st.subheader("🗺 Data Mapping")
+        st.subheader("🗺 Mappa dei Dati")
 
-        for df in dataframes:
+        for i, df in enumerate(dataframes):
             if df is not None:
-                # Auto-detect delle colonne lat/lon/x/y
+                # Auto-detect delle colonne per le coordinate (lat/lon oppure x/y)
                 possible_lat_cols = [col for col in df.columns if any(x in col.lower() for x in ["lat", "x"])]
                 possible_lon_cols = [col for col in df.columns if any(x in col.lower() for x in ["lon", "y"])]
-                
-                # Seleziona le colonne migliori se disponibili
+
                 lat_col = possible_lat_cols[0] if possible_lat_cols else None
                 lon_col = possible_lon_cols[0] if possible_lon_cols else None
 
-                st.write(f"Detected lat_col: {lat_col}, lon_col: {lon_col}")  # Debugging line
-
                 if lat_col and lon_col:
-                    # Prepara il DataFrame per la mappa
-                    df_map = df[[lat_col, lon_col]].dropna()
-                    df_map.columns = ["lat", "lon"]
-                    df['info'] = df.iloc[:, 0].astype(str)  # Usa la prima colonna come info per pop-up
-                    
-                    # Verifica se le colonne "lat", "lon", e "info" sono nel DataFrame
-                    if 'lat' in df.columns and 'lon' in df.columns and 'info' in df.columns:
-                        # Aggiungi le colonne 'lat', 'lon', 'info' al DataFrame combinato, solo se esistono
-                        combined_df = pd.concat([combined_df, df[['lat', 'lon', 'info']]], ignore_index=True)
-                    else:
-                        st.warning("Required columns 'lat', 'lon', and 'info' are missing from the dataset.")
-                    
-                    # Pulisci e verifica che lat e lon siano numerici
-                    combined_df['lat'] = pd.to_numeric(combined_df['lat'], errors='coerce')
-                    combined_df['lon'] = pd.to_numeric(combined_df['lon'], errors='coerce')
-                    
-                    # Rimuovi righe con lat/lon non numerici
-                    combined_df = combined_df.dropna(subset=['lat', 'lon'])
-                    
-                    # Visualizza il DataFrame per il debug
-                    st.write("Combined DataFrame:", combined_df.head())
-                    st.write("DataFrame columns:", combined_df.columns)
-                    st.write("DataFrame dtypes:", combined_df.dtypes)
+                    df_map = df[[lat_col, lon_col]].dropna().copy()
+                    df_map.columns = ["lat", "lon"]  # Rinomina per uniformità
+                    df_map['info'] = filenames[i]  # Assegna il nome del file come info per il popup
 
-                    # Visualizza la mappa combinata se ci sono coordinate
-                    if not combined_df.empty:
-                        fig = px.scatter_mapbox(
-                            combined_df, 
-                            lat="lat", lon="lon", 
-                            hover_name="info",  # Mostra le info come pop-up
-                            zoom=5, 
-                            height=500
-                        )
-                        fig.update_layout(mapbox_style="carto-positron")
-                        st.plotly_chart(fig, use_container_width=True)
-                    else:
-                        st.warning("No valid latitude/longitude data to display on the map.")
-                else:
-                    st.warning("No valid coordinate columns found for mapping.")
-        
-        # Visualizza la mappa combinata se ci sono coordinate
+                    # Verifica che lat e lon siano numerici
+                    df_map['lat'] = pd.to_numeric(df_map['lat'], errors='coerce')
+                    df_map['lon'] = pd.to_numeric(df_map['lon'], errors='coerce')
+
+                    # Rimuove righe con valori NaN nelle coordinate
+                    df_map = df_map.dropna(subset=['lat', 'lon'])
+
+                    # Unisce al DataFrame combinato
+                    combined_df = pd.concat([combined_df, df_map], ignore_index=True)
+
+        # Visualizza la mappa solo se ci sono dati validi
         if not combined_df.empty:
             fig = px.scatter_mapbox(
                 combined_df, 
                 lat="lat", lon="lon", 
-                hover_name="info",  # Mostra le info come pop-up
+                hover_name="info",  # Mostra il nome del file nel popup
                 zoom=5, 
                 height=500
             )
             fig.update_layout(mapbox_style="carto-positron")
             st.plotly_chart(fig, use_container_width=True)
         else:
-            st.warning("No valid latitude or longitude data available for map display.")
+            st.warning("Nessun dato valido disponibile per la visualizzazione.")
+
+    with col2:
+        st.subheader("📂 Seleziona un Dataset")
+        if filenames:
+            selected_file = st.selectbox("Scegli il dataset da visualizzare", filenames)
+            index = filenames.index(selected_file)
+            st.dataframe(dataframes[index])  # Mostra il DataFrame selezionato
+
+
 
 def correlation():
     """Dashboard per la gestione dei file con Drag & Drop."""
@@ -136,5 +114,4 @@ def correlation():
                 create_and_render_plot(df, x_axis, y_axis, plot_type)  # Mostra il grafico
 
     # Mappatura combinata di tutti i dataset caricati
-    st.subheader("🌍 Combined Map")
     map_combined_datasets(df_list)
