@@ -16,30 +16,30 @@ def map_combined_datasets(dataframes, filenames=None):
     col1, col2 = st.columns([3, 1])  # Layout: Mappa a sinistra, selectbox a destra
 
     with col2:  # Colonna per selezione dataset e coordinate
-    st.subheader("📂 Dataset Caricati")
+        st.subheader("📂 Dataset Caricati")
+        
+        if not dataframes:
+            st.error("❌ Nessun dataset disponibile.")
+            return
     
-    if not dataframes:
-        st.error("❌ Nessun dataset disponibile.")
-        return
-
-    dataset_index = st.selectbox(
-        "Seleziona il dataset", 
-        range(len(filenames)), 
-        format_func=lambda i: filenames[i]
-    )
-    df = dataframes[dataset_index]
-    filename = filenames[dataset_index]
-
-    if df is None or df.empty:
-        st.warning("⚠ Il dataset selezionato è vuoto.")
-        return
-
-    # DEBUG: Mostra tutte le colonne disponibili per capire il problema
-    st.write("🔍 Colonne disponibili nel dataset:", df.columns.tolist())
-
-    # Selezione della colonna di latitudine e longitudine tra **tutte** le colonne
-    lat_col = st.selectbox("Seleziona la colonna di latitudine", df.columns, key=f"lat_{filename}")
-    lon_col = st.selectbox("Seleziona la colonna di longitudine", df.columns, key=f"lon_{filename}")
+        dataset_index = st.selectbox(
+            "Seleziona il dataset", 
+            range(len(filenames)), 
+            format_func=lambda i: filenames[i]
+        )
+        df = dataframes[dataset_index]
+        filename = filenames[dataset_index]
+    
+        if df is None or df.empty:
+            st.warning("⚠ Il dataset selezionato è vuoto.")
+            return
+    
+        # DEBUG: Mostra tutte le colonne disponibili per capire il problema
+        st.write("🔍 Colonne disponibili nel dataset:", df.columns.tolist())
+    
+        # Selezione della colonna di latitudine e longitudine tra **tutte** le colonne
+        lat_col = st.selectbox("Seleziona la colonna di latitudine", df.columns, key=f"lat_{filename}")
+        lon_col = st.selectbox("Seleziona la colonna di longitudine", df.columns, key=f"lon_{filename}")
 
     with col1:  # Colonna per la mappa
         st.subheader("🗺 Data Mapping")
