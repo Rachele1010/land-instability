@@ -5,23 +5,9 @@ from utils.load import load_file, process_file
 import plotly.express as px
 import plotly.graph_objects as go
 
-import streamlit as st
-import pandas as pd
-import plotly.graph_objects as go
-
-def detect_lat_lon_columns(df):
-    """Rileva automaticamente le colonne che rappresentano latitudine e longitudine."""
-    possible_lat_names = ["lat", "latitude", "y"]
-    possible_lon_names = ["lon", "longitude", "x"]
-
-    lat_col = next((col for col in df.columns if col.lower() in possible_lat_names), None)
-    lon_col = next((col for col in df.columns if col.lower() in possible_lon_names), None)
-
-    return lat_col, lon_col
-
 def map_combined_datasets(dataframes, filenames=None):
     """
-    Mappa più dataset con coordinate, mostrando tutti i dati correttamente indipendentemente dai nomi delle colonne.
+    Mappa più dataset con coordinate, permettendo la selezione manuale delle colonne e con legenda.
     """
     if filenames is None:
         filenames = [f"Dataset {i+1}" for i in range(len(dataframes))]
@@ -31,89 +17,93 @@ def map_combined_datasets(dataframes, filenames=None):
         return
 
     combined_df = pd.DataFrame(columns=['lat', 'lon', 'file'])
-    colors = ["red", "blue", "green", "purple", "orange", "pink"]  # Colori per i dataset
+    colors = ["red", "blue", "green", "purple", "orange", "pink"]  
 
-    st.subheader("🗺 Data Mapping")
+    col1, col2 = st.columns([3, 1])  
 
-    fig = go.Figure()
-    all_latitudes = []
-    all_longitudes = []
+    with col2:
+        st.subheader("📂 Dataset Caricati")
+        dataset_index = st.selectbox(
+            "Seleziona il dataset per scegliere le coordinate", 
+            range(len(filenames)), 
+            format_func=lambda i: filenames[i]
+        )
 
-    for i, (df, filename) in enumerate(zip(dataframes, filenames)):
-        try:
-            #st.write(f"🔍 **Dataset {i+1}: {filename}**")  # Debug per dataset
+        df = dataframes[dataset_index]
+        filename = filenames[dataset_index]
 
-            # Rileva le colonne corrette (latitudine e longitudine)
-            lat_col, lon_col = detect_lat_lon_columns(df)
+        if df is None or df.empty:
+            st.warning(f"⚠ Il dataset '{filename}' è vuoto.")
+            return
 
-            if not lat_col or not lon_col:
-                st.warning(f"⚠ '{filename}' non ha colonne valide per latitudine/longitudine.")
-                continue
+        lat_col = st.selectbox(f"Colonna latitudine ({filename})", df.columns, key=f"lat_{dataset_index}")
+        lon_col = st.selectbox(f"Colonna longitudine ({filename})", df.columns, key=f"lon_{dataset_index}")
 
-            df_map = df[[lat_col, lon_col]].dropna().copy()
-            df_map.columns = ["lat", "lon"]
-            df_map["file"] = filename
+    with col1:
+        st.subheader("🗺 Data Mapping")
 
-            # Debug: Verifica dati prima della conversione
-            #st.write(f"📌 **{filename} - Dati prima della conversione:**", df_map.head())
+        fig = go.Figure()
+        all_latitudes = []
+        all_longitudes = []
 
-            # Conversione forzata a numerico
-            df_map["lat"] = pd.to_numeric(df_map["lat"], errors="coerce")
-            df_map["lon"] = pd.to_numeric(df_map["lon"], errors="coerce")
+        for i, (df, filename) in enumerate(zip(dataframes, filenames)):
+            try:
+                lat_col = st.session_state.get(f"lat_{i}")
+                lon_col = st.session_state.get(f"lon_{i}")
 
-            # Debug: Verifica dati dopo conversione
-            #st.write(f"✅ **{filename} - Dati dopo conversione:**", df_map.head())
+                if lat_col and lon_col and lat_col in df.columns and lon_col in df.columns:
+                    df_map = df[[lat_col, lon_col]].dropna().copy()
+                    df_map.columns = ["lat", "lon"]
+                    df_map["file"] = filename
 
-            df_map = df_map.dropna()  # Elimina righe con valori non validi
-            if df_map.empty:
-                st.warning(f"⚠ '{filename}' non ha dati validi dopo il cleaning.")
-                continue
+                    df_map["lat"] = pd.to_numeric(df_map["lat"], errors="coerce")
+                    df_map["lon"] = pd.to_numeric(df_map["lon"], errors="coerce")
+                    df_map = df_map.dropna()
 
-            combined_df = pd.concat([combined_df, df_map], ignore_index=True)
+                    if df_map.empty:
+                        st.warning(f"⚠ '{filename}' non ha dati validi dopo il cleaning.")
+                        continue
 
-            all_latitudes.extend(df_map["lat"].tolist())
-            all_longitudes.extend(df_map["lon"].tolist())
+                    combined_df = pd.concat([combined_df, df_map], ignore_index=True)
 
-            fig.add_trace(go.Scattermapbox(
-                lat=df_map["lat"],
-                lon=df_map["lon"],
-                mode="markers+text",
-                text=[f"{filename}<br>({lat}, {lon})" for lat, lon in zip(df_map["lat"], df_map["lon"])],  
-                marker=dict(
-                    size=15,  
-                    color=colors[i % len(colors)]
-                ),
-                name=filename
-            ))
-        except Exception as e:
-            st.warning(f"⚠ Errore con '{filename}': {e}")
+                    all_latitudes.extend(df_map["lat"].tolist())
+                    all_longitudes.extend(df_map["lon"].tolist())
 
-    # Debug finale: verificare se combined_df ha dati
-    #st.write("📊 **Dati combinati finali:**", combined_df)
+                    # Aggiunge i punti con pop-up
+                    fig.add_trace(go.Scattermapbox(
+                        lat=df_map["lat"],
+                        lon=df_map["lon"],
+                        mode="markers",
+                        marker=dict(size=15, color=colors[i % len(colors)]),
+                        name=filename,
+                        text=[f"{filename}<br>({lat}, {lon})" for lat, lon in zip(df_map["lat"], df_map["lon"])]
+                    ))
+            except Exception as e:
+                st.warning(f"⚠ Errore con '{filename}': {e}")
 
-    if combined_df.empty:
-        st.warning("❌ Nessun dato valido per visualizzare la mappa.")
-        return
+        if combined_df.empty:
+            st.warning("❌ Nessun dato valido per visualizzare la mappa.")
+            return
 
-    # Centro dinamico della mappa
-    if all_latitudes and all_longitudes:
-        center_lat = sum(all_latitudes) / len(all_latitudes)
-        center_lon = sum(all_longitudes) / len(all_longitudes)
-    else:
-        center_lat, center_lon = 0, 0  
+        # Centro dinamico della mappa
+        if all_latitudes and all_longitudes:
+            center_lat = sum(all_latitudes) / len(all_latitudes)
+            center_lon = sum(all_longitudes) / len(all_longitudes)
+        else:
+            center_lat, center_lon = 0, 0  
 
-    # Configurazione della mappa con zoom automatico
-    fig.update_layout(
-        mapbox=dict(
-            style="open-street-map",
-            center=dict(lat=center_lat, lon=center_lon),
-            zoom=6  
-        ),
-        height=800
-    )
+        # Configura la mappa con zoom automatico e legenda
+        fig.update_layout(
+            mapbox=dict(
+                style="open-street-map",
+                center=dict(lat=center_lat, lon=center_lon),
+                zoom=6  
+            ),
+            legend=dict(title="Legenda"),
+            height=800
+        )
 
-    st.plotly_chart(fig, use_container_width=True)
-
+        st.plotly_chart(fig, use_container_width=True)
 
 def display_dashboard():
     """Dashboard per la gestione dei file con Drag & Drop."""
