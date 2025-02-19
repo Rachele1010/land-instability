@@ -12,34 +12,58 @@ def visualization_section(df):
     col1, col2, col3 = st.columns([1, 2, 1])  # 3 colonne: tabella | mappa | modifica coordinate
 
     with col1:
-        st.subheader("Data Table")
+        st.subheader("📋 Data Table")
         st.dataframe(df)
 
     with col2:
-        st.subheader("Data Mapping")
+        st.subheader("🗺 Data Mapping")
 
-        # Dropdown per selezionare le colonne delle coordinate
-        lat_col = st.selectbox("Select Latitude Column", df.columns, key="lat_select")
-        lon_col = st.selectbox("Select Longitude Column", df.columns, key="lon_select")
+        # Cerca colonne che possono essere usate come coordinate
+        possible_lat_cols = [col for col in df.columns if "lat" in col.lower() or col.lower() == "x"]
+        possible_lon_cols = [col for col in df.columns if "lon" in col.lower() or col.lower() == "y"]
 
-        # Verifica che le colonne siano valide
-        if lat_col and lon_col:
+        # Se non vengono trovate, mostra un errore
+        if not possible_lat_cols or not possible_lon_cols:
+            st.warning("No valid latitude/longitude columns found in the dataset.")
+            return
+        
+        # Selezione automatica delle colonne
+        lat_col = possible_lat_cols[0]
+        lon_col = possible_lon_cols[0]
+
+        # Conversione e pulizia dei dati
+        df_map = df[[lat_col, lon_col]].dropna()
+        df_map["lat"] = pd.to_numeric(df_map[lat_col], errors="coerce")
+        df_map["lon"] = pd.to_numeric(df_map[lon_col], errors="coerce")
+        df_map = df_map.dropna()
+
+        if not df_map.empty:
+            st.map(df_map[["lat", "lon"]])
+        else:
+            st.warning("No valid latitude/longitude data to display on the map.")
+
+    with col3:
+        st.subheader("✏️ Edit Point Coordinates")
+
+        # Seleziona un punto da correggere
+        point_id = st.selectbox("Select a point to edit", df.index, key="point_select")
+
+        if point_id is not None:
             try:
-                df_map = df[[lat_col, lon_col]].dropna()
+                old_lat = float(df.at[point_id, lat_col])
+                old_lon = float(df.at[point_id, lon_col])
 
-                # Converti le colonne in float, ignorando errori
-                df_map["lat"] = pd.to_numeric(df_map[lat_col], errors="coerce")
-                df_map["lon"] = pd.to_numeric(df_map[lon_col], errors="coerce")
+                new_lat = st.number_input("New Latitude", value=old_lat, format="%.6f", key="new_lat")
+                new_lon = st.number_input("New Longitude", value=old_lon, format="%.6f", key="new_lon")
 
-                # Rimuovi eventuali valori NaN generati dalla conversione
-                df_map = df_map.dropna()
-
-                if not df_map.empty:
-                    st.map(df_map[["lat", "lon"]])
-                else:
-                    st.warning("No valid latitude/longitude data to display on the map.")
+                if st.button("Update Coordinates", key="update_btn"):
+                    df.at[point_id, lat_col] = new_lat
+                    df.at[point_id, lon_col] = new_lon
+                    st.success(f"✅ Updated point {point_id}: ({new_lat}, {new_lon})")
+                    st.experimental_rerun()
             except Exception as e:
-                st.error(f"Error processing map data: {e}")
+                st.error(f"Error updating coordinates: {e}")
+
 
     with col3:
         st.subheader("Edit Point Coordinates")
