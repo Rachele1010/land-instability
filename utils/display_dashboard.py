@@ -4,28 +4,29 @@ from utils.plotting import create_and_render_plot
 from utils.load import load_file, process_file
 import plotly.express as px
 
+import streamlit as st
+import pandas as pd
+import plotly.express as px
+
 def map_combined_datasets(dataframes, filenames=None):
     """
-    Mappa più dataset con coordinate, rilevando automaticamente lat/lon o x/y.
-    Ogni dataset ha un colore e un simbolo differente.
+    Mappa più dataset con coordinate, assegnando simboli e colori diversi.
     """
     if filenames is None:
         filenames = [f"Dataset {i+1}" for i in range(len(dataframes))]
 
     combined_df = pd.DataFrame(columns=['lat', 'lon', 'file', 'symbol'])
+    col1, col2 = st.columns([3, 1])  
 
-    col1, col2 = st.columns([3, 1])  # Layout: Mappa a sinistra, selezione dataset a destra
-
-    # Diversi simboli per i dataset
     marker_symbols = ["circle", "square", "diamond", "star", "triangle-up", "x"]
 
-    with col2:  
+    with col2:
         st.subheader("📂 Dataset Caricati")
 
         if not dataframes:
             st.error("❌ Nessun dataset disponibile.")
             return
-        
+
         dataset_index = st.selectbox(
             "Seleziona il dataset per scegliere le coordinate", 
             range(len(filenames)), 
@@ -39,14 +40,12 @@ def map_combined_datasets(dataframes, filenames=None):
             st.warning(f"⚠ Il dataset '{filename}' è vuoto.")
             return
 
-        # Selezione manuale delle colonne lat/lon
         lat_col = st.selectbox(f"Colonna latitudine ({filename})", df.columns, key=f"lat_{dataset_index}")
         lon_col = st.selectbox(f"Colonna longitudine ({filename})", df.columns, key=f"lon_{dataset_index}")
 
-    with col1:  
+    with col1:
         st.subheader("🗺 Data Mapping")
 
-        # Unisce i dataset con colori e simboli diversi
         for i, (df, filename) in enumerate(zip(dataframes, filenames)):
             try:
                 lat_col = st.session_state.get(f"lat_{i}")
@@ -56,28 +55,40 @@ def map_combined_datasets(dataframes, filenames=None):
                     df_map = df[[lat_col, lon_col]].dropna().copy()
                     df_map.columns = ["lat", "lon"]
                     df_map["file"] = filename
-                    df_map["symbol"] = marker_symbols[i % len(marker_symbols)]  # Assegna simboli diversi ciclicamente
+                    df_map["symbol"] = marker_symbols[i % len(marker_symbols)]
+
+                    # Conversione forzata a numerico per evitare errori
+                    df_map["lat"] = pd.to_numeric(df_map["lat"], errors="coerce")
+                    df_map["lon"] = pd.to_numeric(df_map["lon"], errors="coerce")
+
                     combined_df = pd.concat([combined_df, df_map], ignore_index=True)
             except Exception as e:
                 st.warning(f"⚠ Errore con '{filename}': {e}")
 
-        # Mostra la mappa con colori e simboli distinti
-        if not combined_df.empty:
+        # Controllo se il DataFrame è vuoto
+        if combined_df.empty:
+            st.warning("❌ Nessun dato valido per visualizzare la mappa.")
+            return
+        
+        # Debug: Mostra le prime righe per verificare i dati
+        st.write("🔍 Anteprima dati per la mappa:", combined_df.head())
+
+        # Creazione della mappa
+        try:
             fig = px.scatter_mapbox(
                 combined_df, 
                 lat="lat", lon="lon", 
-                color="file",  # Differenzia i punti per dataset (colore)
-                symbol="symbol",  # Cambia il simbolo per dataset
+                color="file",  
+                symbol="symbol",  
                 hover_name="file",  
                 zoom=5, 
                 height=800,
-                size_max=15  # Aumenta la dimensione massima dei punti
+                size_max=15  
             )
             fig.update_layout(mapbox_style="open-street-map")
             st.plotly_chart(fig, use_container_width=True)
-        else:
-            st.warning("❌ Nessun dato valido per visualizzare la mappa.")
-
+        except Exception as e:
+            st.error(f"⚠ Errore nella generazione della mappa: {e}")
 
 def display_dashboard():
     """Dashboard per la gestione dei file con Drag & Drop."""
