@@ -35,7 +35,7 @@ def map_combined_datasets(dataframes, filenames=None):
             return
     
         # DEBUG: Mostra tutte le colonne disponibili per capire il problema
-        st.write("🔍 Colonne disponibili nel dataset:", df.columns.tolist())
+        #st.write("🔍 Colonne disponibili nel dataset:", df.columns.tolist())
     
         # Selezione della colonna di latitudine e longitudine tra **tutte** le colonne
         lat_col = st.selectbox("Seleziona la colonna di latitudine", df.columns, key=f"lat_{filename}")
@@ -59,7 +59,7 @@ def map_combined_datasets(dataframes, filenames=None):
                 lat="lat", lon="lon", 
                 hover_name="file",  # Mostra il nome del file nel popup
                 zoom=5, 
-                height=500
+                height=800
             )
             fig.update_layout(mapbox_style="open-street-map")
             st.plotly_chart(fig, use_container_width=True)
