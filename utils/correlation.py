@@ -25,13 +25,20 @@ def map_combined_datasets(dataframes):
                 lat_col = possible_lat_cols[0] if possible_lat_cols else None
                 lon_col = possible_lon_cols[0] if possible_lon_cols else None
 
+                st.write(f"Detected lat_col: {lat_col}, lon_col: {lon_col}")  # Debugging line
+
                 if lat_col and lon_col:
+                    # Prepara il DataFrame per la mappa
                     df_map = df[[lat_col, lon_col]].dropna()
                     df_map.columns = ["lat", "lon"]
                     df['info'] = df.iloc[:, 0].astype(str)  # Usa la prima colonna come info per pop-up
                     
-                    # Aggiungi le colonne 'lat', 'lon', 'info' al DataFrame combinato, solo se esistono
-                    combined_df = pd.concat([combined_df, df[['lat', 'lon', 'info']]], ignore_index=True)
+                    # Verifica se le colonne "lat", "lon", e "info" sono nel DataFrame
+                    if 'lat' in df.columns and 'lon' in df.columns and 'info' in df.columns:
+                        # Aggiungi le colonne 'lat', 'lon', 'info' al DataFrame combinato, solo se esistono
+                        combined_df = pd.concat([combined_df, df[['lat', 'lon', 'info']]], ignore_index=True)
+                    else:
+                        st.warning("Required columns 'lat', 'lon', and 'info' are missing from the dataset.")
                     
                     # Mostra la mappa
                     if not df_map.empty:
@@ -100,6 +107,7 @@ def map_combined_datasets(dataframes):
                         st.error(f"❌ Error updating coordinates: {e}")
                 else:
                     st.warning("Unable to detect valid coordinate columns for editing.")
+
 
 def correlation():
     """Dashboard per la gestione dei file con Drag & Drop."""
