@@ -4,6 +4,7 @@ import io
 from utils.plotting import create_and_render_plot
 from utils.load import load_file, process_file
 import streamlit as st
+import streamlit as st
 import pandas as pd
 import plotly.express as px
 
@@ -43,6 +44,14 @@ def map_combined_datasets(dataframes):
                     else:
                         st.warning("Required columns 'lat', 'lon', and 'info' are missing from the dataset.")
                     
+                    # Pulisci e verifica che lat e lon siano numerici
+                    combined_df['lat'] = pd.to_numeric(combined_df['lat'], errors='coerce')
+                    combined_df['lon'] = pd.to_numeric(combined_df['lon'], errors='coerce')
+
+                    # Rimuovi righe con lat/lon non numerici
+                    combined_df = combined_df[combined_df['lat'].notna()]
+                    combined_df = combined_df[combined_df['lon'].notna()]
+                    
                     # Mostra la mappa
                     if not df_map.empty:
                         fig = px.scatter_mapbox(
@@ -52,7 +61,7 @@ def map_combined_datasets(dataframes):
                             zoom=5, 
                             height=500
                         )
-                        fig.update_layout(mapbox_style="open-street-map")
+                        fig.update_layout(mapbox_style="carto-positron")
                         st.plotly_chart(fig, use_container_width=True)
                     else:
                         st.warning("No valid latitude/longitude data to display on the map.")
@@ -68,7 +77,7 @@ def map_combined_datasets(dataframes):
                 zoom=5, 
                 height=500
             )
-            fig.update_layout(mapbox_style="open-street-map")
+            fig.update_layout(mapbox_style="carto-positron")
             st.plotly_chart(fig, use_container_width=True)
         else:
             st.warning("No valid latitude or longitude data available for map display.")
