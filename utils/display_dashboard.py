@@ -7,14 +7,17 @@ import plotly.express as px
 def map_combined_datasets(dataframes, filenames=None):
     """
     Mappa più dataset con coordinate, rilevando automaticamente lat/lon o x/y.
-    Ogni dataset ha un colore diverso.
+    Ogni dataset ha un colore e un simbolo differente.
     """
     if filenames is None:
         filenames = [f"Dataset {i+1}" for i in range(len(dataframes))]
 
-    combined_df = pd.DataFrame(columns=['lat', 'lon', 'file'])
+    combined_df = pd.DataFrame(columns=['lat', 'lon', 'file', 'symbol'])
 
     col1, col2 = st.columns([3, 1])  # Layout: Mappa a sinistra, selezione dataset a destra
+
+    # Diversi simboli per i dataset
+    marker_symbols = ["circle", "square", "diamond", "star", "triangle-up", "x"]
 
     with col2:  
         st.subheader("📂 Dataset Caricati")
@@ -43,7 +46,7 @@ def map_combined_datasets(dataframes, filenames=None):
     with col1:  
         st.subheader("🗺 Data Mapping")
 
-        # Unisce i dataset con colori diversi
+        # Unisce i dataset con colori e simboli diversi
         for i, (df, filename) in enumerate(zip(dataframes, filenames)):
             try:
                 lat_col = st.session_state.get(f"lat_{i}")
@@ -53,19 +56,22 @@ def map_combined_datasets(dataframes, filenames=None):
                     df_map = df[[lat_col, lon_col]].dropna().copy()
                     df_map.columns = ["lat", "lon"]
                     df_map["file"] = filename
+                    df_map["symbol"] = marker_symbols[i % len(marker_symbols)]  # Assegna simboli diversi ciclicamente
                     combined_df = pd.concat([combined_df, df_map], ignore_index=True)
             except Exception as e:
                 st.warning(f"⚠ Errore con '{filename}': {e}")
 
-        # Mostra la mappa con colori diversi per dataset
+        # Mostra la mappa con colori e simboli distinti
         if not combined_df.empty:
             fig = px.scatter_mapbox(
                 combined_df, 
                 lat="lat", lon="lon", 
-                color="file",  # Differenzia i punti per dataset
+                color="file",  # Differenzia i punti per dataset (colore)
+                symbol="symbol",  # Cambia il simbolo per dataset
                 hover_name="file",  
                 zoom=5, 
-                height=800
+                height=800,
+                size_max=15  # Aumenta la dimensione massima dei punti
             )
             fig.update_layout(mapbox_style="open-street-map")
             st.plotly_chart(fig, use_container_width=True)
