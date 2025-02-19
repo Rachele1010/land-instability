@@ -70,20 +70,16 @@ def map_combined_datasets(dataframes, filenames=None):
         if not possible_lat_cols or not possible_lon_cols:
             st.warning("⚠ Nessuna colonna lat/lon trovata per la modifica.")
             st.stop()
-
+        # Permetti all'utente di scegliere un punto da modificare
+        point_id = st.selectbox("Seleziona un punto da modificare", df.index)
         # Lascio scegliere all'utente la colonna corretta
         lat_col = st.selectbox("Seleziona la colonna di latitudine", possible_lat_cols)
         lon_col = st.selectbox("Seleziona la colonna di longitudine", possible_lon_cols)
 
         # Verifica che le colonne selezionate siano numeriche
         if not pd.api.types.is_numeric_dtype(df[lat_col]) or not pd.api.types.is_numeric_dtype(df[lon_col]):
-            st.warning("⚠ Le colonne selezionate devono contenere solo valori numerici.")
+            st.warning("❌ Errore nella modifica delle coordinate: {e}")
             st.stop()
-
-        # Permetti all'utente di scegliere un punto da modificare
-        point_id = st.selectbox("Seleziona un punto da modificare", df.index)
-        
-        st.error(f"❌ Errore nella modifica delle coordinate: {e}")
 
 
 def correlation():
