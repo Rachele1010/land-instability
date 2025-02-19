@@ -66,6 +66,7 @@ def main():
         The case studies are presented below. Through the Dashboard system it is possible to query and view the data currently available for instability monitoring.
         </div>
         """, unsafe_allow_html=True)
+        st.subheader("Visualization and Plotting data")
         display_dashboard()
         st.stop()
 #################################################################################################################################################################################################################
