@@ -53,10 +53,14 @@ def visualization_section(df):
                 old_lat = float(df.at[point_id, lat_col])
                 old_lon = float(df.at[point_id, lon_col])
 
-                new_lat = st.number_input("New Latitude", value=old_lat, format="%.6f", key="new_lat")
-                new_lon = st.number_input("New Longitude", value=old_lon, format="%.6f", key="new_lon")
+                new_lat = st.number_input(
+                    "New Latitude", value=old_lat, format="%.6f", key=f"new_lat_{point_id}"
+                )
+                new_lon = st.number_input(
+                    "New Longitude", value=old_lon, format="%.6f", key=f"new_lon_{point_id}"
+                )
 
-                if st.button("Update Coordinates", key="update_btn"):
+                if st.button("Update Coordinates", key=f"update_btn_{point_id}"):
                     df.at[point_id, lat_col] = new_lat
                     df.at[point_id, lon_col] = new_lon
                     st.success(f"✅ Updated point {point_id}: ({new_lat}, {new_lon})")
@@ -64,27 +68,6 @@ def visualization_section(df):
             except Exception as e:
                 st.error(f"Error updating coordinates: {e}")
 
-
-    with col3:
-        st.subheader("Edit Point Coordinates")
-
-        # Seleziona un punto da correggere
-        point_id = st.selectbox("Select a point to edit", df.index, key="point_select")
-
-        if point_id is not None:
-            try:
-                old_lat, old_lon = df.at[point_id, lat_col], df.at[point_id, lon_col]
-
-                new_lat = st.number_input("New Latitude", value=float(old_lat), format="%.6f", key="new_lat")
-                new_lon = st.number_input("New Longitude", value=float(old_lon), format="%.6f", key="new_lon")
-
-                if st.button("Update Coordinates", key="update_btn"):
-                    df.at[point_id, lat_col] = new_lat
-                    df.at[point_id, lon_col] = new_lon
-                    st.success(f"Updated point {point_id}: ({new_lat}, {new_lon})")
-                    st.experimental_rerun()
-            except Exception as e:
-                st.error(f"Error updating coordinates: {e}")
 
 
     st.subheader("Data Plotting")
