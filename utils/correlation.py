@@ -40,7 +40,7 @@ def correlation():
     # Sidebar con file uploader
     st.sidebar.header("📂 Upload Files")
     uploaded_files = st.sidebar.file_uploader(
-        "Drag & Drop your CSV files here", type=["csv"], accept_multiple_files=True
+        "Drag & Drop your CSV files here", type=['csv', 'xlsx', 'txt'], accept_multiple_files=True
     )
 
     if not uploaded_files:
