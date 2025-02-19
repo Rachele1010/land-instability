@@ -48,21 +48,21 @@ def main():
         # Carica e mostra l'immagine di copertura centrata        
         st.title("Welcome to Downstream - Land Domain")
         # Testo giustificato usando st.markdown e HTML
-        st.markdown(
-        """
-        <div style="text-align: justify; font-size: 20px;">
-        ITINERIS - Italian Integrated Environmental Research Infrastructures System is a project funded by EU - 
-        Next Generation EU PNRR- Mission 4 “Education and Research” - Component 2: “From research to business” - 
-        Investment 3.1: “Fund for the realisation of an integrated system of research and innovation infrastructures”.
-        ITINERIS coordinates a network of national nodes from 22 Research Infrastructures, as ATLaS (Advanced Technologies for Landslides).
-        ATLaS is a research infrastructure established aiming to develop leading-edge methodologies (Mission)
-        for the prevention and management of ground instabilities. 
-        Downstream VRE - Land Domain proposes the main aim to provide scientific and openly accessible digital data on environmental observations.
-        The Itineris project has allowed the application of monitoring systems in different sites distributed in the Italian national territory.
-        The case studies are presented below. Through the Dashboard system it is possible to query and view the data currently available for instability monitoring.
-        </div>
-        """, unsafe_allow_html=True)
-        st.subheader("Visualization and Plotting data")
+        #st.markdown(
+        #"""
+        #<div style="text-align: justify; font-size: 20px;">
+        #ITINERIS - Italian Integrated Environmental Research Infrastructures System is a project funded by EU - 
+        #Next Generation EU PNRR- Mission 4 “Education and Research” - Component 2: “From research to business” - 
+        #Investment 3.1: “Fund for the realisation of an integrated system of research and innovation infrastructures”.
+        #ITINERIS coordinates a network of national nodes from 22 Research Infrastructures, as ATLaS (Advanced Technologies for Landslides).
+        #ATLaS is a research infrastructure established aiming to develop leading-edge methodologies (Mission)
+        #for the prevention and management of ground instabilities. 
+        #Downstream VRE - Land Domain proposes the main aim to provide scientific and openly accessible digital data on environmental observations.
+        #The Itineris project has allowed the application of monitoring systems in different sites distributed in the Italian national territory.
+        #The case studies are presented below. Through the Dashboard system it is possible to query and view the data currently available for instability monitoring.
+        #</div>
+        #""", unsafe_allow_html=True)
+        #st.subheader("Visualization and Plotting data")
         display_dashboard()
         st.stop()
 #################################################################################################################################################################################################################
