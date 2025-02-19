@@ -3,36 +3,92 @@ import pandas as pd
 import io
 from utils.plotting import create_and_render_plot
 from utils.load import load_file, process_file
-
+col1, col2 = st.columns([4, 1])
 def map_combined_datasets(dataframes):
     """
-    Funzione per mappare più dataset combinati con colonne di latitudine e longitudine.
+    Funzione per mappare più dataset combinati con colonne di latitudine e longitudine,
+    includendo il rilevamento automatico e la modifica delle coordinate.
     """
     combined_df = pd.DataFrame(columns=['lat', 'lon', 'info'])
-
-    for df in dataframes:
-        if df is not None:
-            lat_col = [col for col in df.columns if "lat" in col.lower()]
-            lon_col = [col for col in df.columns if "lon" in col.lower()]
-            info_col = df.columns[0]  # Usa la prima colonna come info di default (puoi personalizzarlo)
-            
-            if lat_col and lon_col:
-                df = df.rename(columns={lat_col[0]: 'lat', lon_col[0]: 'lon'})
-                df['info'] = df[info_col].astype(str)  # Usa una colonna per il pop-up
-                combined_df = pd.concat([combined_df, df[['lat', 'lon', 'info']]], ignore_index=True)
-
-    if not combined_df.empty:
-        fig = px.scatter_mapbox(
-            combined_df, 
-            lat="lat", lon="lon", 
-            hover_name="info",  # Mostra le info come pop-up
-            zoom=5, 
-            height=500
-        )
-        fig.update_layout(mapbox_style="open-street-map")
-        st.plotly_chart(fig, use_container_width=True)
-    else:
-        st.warning("No valid latitude or longitude data available for map display.")
+    with col1:
+        for df in dataframes:
+            if df is not None:
+                # Auto-detect delle colonne lat/lon/x/y
+                possible_lat_cols = [col for col in df.columns if any(x in col.lower() for x in ["lat", "x"])]
+                possible_lon_cols = [col for col in df.columns if any(x in col.lower() for x in ["lon", "y"])]
+                
+                # Seleziona le colonne migliori se disponibili
+                lat_col = possible_lat_cols[0] if possible_lat_cols else None
+                lon_col = possible_lon_cols[0] if possible_lon_cols else None
+                
+                if lat_col and lon_col:
+                    # Prepara il DataFrame per la mappa
+                    df_map = df[[lat_col, lon_col]].dropna()
+                    df_map.columns = ["lat", "lon"]
+                    df['info'] = df.iloc[:, 0].astype(str)  # Usa la prima colonna come info per pop-up
+    
+                    # Combina i dati
+                    combined_df = pd.concat([combined_df, df[['lat', 'lon', 'info']]], ignore_index=True)
+    
+                    # Visualizza la mappa
+                    st.subheader("🗺 Data Mapping")
+                    if not df_map.empty:
+                        st.map(df_map)  # Mostra la mappa di base
+                    else:
+                        st.warning("No valid latitude/longitude data to display on the map.")
+                else:
+                    st.warning("No valid coordinate columns found for mapping.")
+                    
+                # Mostra la mappa combinata se ci sono coordinate
+                if not combined_df.empty:
+                    fig = px.scatter_mapbox(
+                        combined_df, 
+                        lat="lat", lon="lon", 
+                        hover_name="info",  # Mostra le info come pop-up
+                        zoom=5, 
+                        height=500
+                    )
+                    fig.update_layout(mapbox_style="open-street-map")
+                    st.plotly_chart(fig, use_container_width=True)
+                else:
+                    st.warning("No valid latitude or longitude data available for map display.")
+    with col2:
+        # Colonna per la modifica delle coordinate
+        st.subheader("✏️ Edit Point Coordinates")
+    
+        for idx, df in enumerate(dataframes):
+            if df is not None:
+                # Seleziona il punto da modificare
+                point_id = st.selectbox(f"Select a point to edit (Dataset {idx + 1})", df.index)
+    
+                if lat_col and lon_col:
+                    try:
+                        # Permetti di selezionare la colonna corretta se l'auto-detect ha sbagliato
+                        lat_col = st.selectbox("Select Latitude Column", df.columns, index=df.columns.get_loc(lat_col))
+                        lon_col = st.selectbox("Select Longitude Column", df.columns, index=df.columns.get_loc(lon_col))
+    
+                        # Verifica se le colonne selezionate sono numeriche
+                        if not pd.api.types.is_numeric_dtype(df[lat_col]) or not pd.api.types.is_numeric_dtype(df[lon_col]):
+                            st.warning("Selected columns must be numeric.")
+                            st.stop()
+    
+                        # Prendi i valori attuali delle coordinate
+                        old_lat = float(df.at[point_id, lat_col])
+                        old_lon = float(df.at[point_id, lon_col])
+    
+                        # Inserisci nuove coordinate
+                        new_lat = st.number_input(f"Edit Latitude (Current: {old_lat})", value=old_lat)
+                        new_lon = st.number_input(f"Edit Longitude (Current: {old_lon})", value=old_lon)
+    
+                        # Salva le modifiche
+                        if new_lat != old_lat or new_lon != old_lon:
+                            df.at[point_id, lat_col] = new_lat
+                            df.at[point_id, lon_col] = new_lon
+                            st.success("Coordinates updated successfully!")
+                        else:
+                            st.info("Coordinates are the same as the current ones.")
+                    except Exception as e:
+                        st.error(f"❌ Error updating coordinates: {e}")
 
 def correlation():
     """Dashboard per la gestione dei file con Drag & Drop."""
