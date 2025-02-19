@@ -50,8 +50,8 @@ def visualization_section(df):
                 df.at[point_id, lon_col] = new_lon
                 st.success(f"Updated point {point_id}: ({new_lat}, {new_lon})")
                 st.experimental_rerun()
-                else:
-            st.write("No valid coordinate columns ('lat/lon' or 'x/y') found for mapping.")
+            else:
+                st.write("No valid coordinate columns ('lat/lon' or 'x/y') found for mapping.")
 
 
     st.subheader("Data Plotting")
