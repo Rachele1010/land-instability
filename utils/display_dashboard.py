@@ -47,13 +47,12 @@ def visualization_section(df):
             # Permetti di selezionare la colonna corretta se l'auto-detect ha sbagliato
             lat_col = st.selectbox("Select Latitude Column", df.columns, index=df.columns.get_loc(lat_col))
             lon_col = st.selectbox("Select Longitude Column", df.columns, index=df.columns.get_loc(lon_col))
-
+            except Exception as e:
+                st.error(f"Error updating coordinates: {e}")
             # Verifica se le colonne selezionate sono numeriche
-            if not pd.api.types.is_numeric_dtype(df[lat_col]) or not pd.api.types.is_numeric_dtype(df[lon_col]):
-                st.warning("Selected columns must be numeric.")
-                return
-                except Exception as e:
-                    st.error(f"Error updating coordinates: {e}")
+                if not pd.api.types.is_numeric_dtype(df[lat_col]) or not pd.api.types.is_numeric_dtype(df[lon_col]):
+                    st.warning("Selected columns must be numeric.")
+                    return
 
 
     st.subheader("Data Plotting")
