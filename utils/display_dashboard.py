@@ -178,73 +178,73 @@ def display_dashboard():
             with col5:
                 if not df.empty:
                     create_and_render_plot(df, x_axis, y_axis, plot_type)
-        if len(df_list) > 1:
-            selected_files = st.multiselect("Seleziona i file da combinare", filenames, default=filenames)
+    if len(df_list) > 1:
+        selected_files = st.multiselect("Seleziona i file da combinare", filenames, default=filenames)
 
-            if selected_files:
-                selected_indices = [filenames.index(f) for f in selected_files]
-                common_columns = set(df_list[selected_indices[0]].columns)
-                
-                # Trova colonne comuni tra tutti i file selezionati
-                for i in selected_indices[1:]:
-                    common_columns.intersection_update(df_list[i].columns)
+        if selected_files:
+            selected_indices = [filenames.index(f) for f in selected_files]
+            common_columns = set(df_list[selected_indices[0]].columns)
+            
+            # Trova colonne comuni tra tutti i file selezionati
+            for i in selected_indices[1:]:
+                common_columns.intersection_update(df_list[i].columns)
 
-                if common_columns:
-                    common_columns = list(common_columns)
+            if common_columns:
+                common_columns = list(common_columns)
 
-                    col1, col2, col3 = st.columns(3)
-                    with col1:
-                        combined_x_axis = st.selectbox("X Axis", common_columns, key="combined_x")
-                    with col2:
-                        combined_y_axis = st.selectbox("Y Axis", common_columns, key="combined_y")
-                    with col3:
-                        combined_plot_type = st.selectbox("Plot Type", [
-                            "Scatter", "Line", "Bar", "Heatmap"
-                        ], key="combined_plot")
+                col1, col2, col3 = st.columns(3)
+                with col1:
+                    combined_x_axis = st.selectbox("X Axis", common_columns, key="combined_x")
+                with col2:
+                    combined_y_axis = st.selectbox("Y Axis", common_columns, key="combined_y")
+                with col3:
+                    combined_plot_type = st.selectbox("Plot Type", [
+                        "Scatter", "Line", "Bar", "Heatmap"
+                    ], key="combined_plot")
 
-                    # Creazione del grafico combinato
-                    fig = go.Figure()
-                    colors = ["red", "blue", "green", "purple", "orange", "pink"]
+                # Creazione del grafico combinato
+                fig = go.Figure()
+                colors = ["red", "blue", "green", "purple", "orange", "pink"]
 
-                    for i, idx in enumerate(selected_indices):
-                        df = df_list[idx]
-                        df = df.dropna(subset=[combined_x_axis, combined_y_axis])
-                        
-                        if not df.empty:
-                            df[combined_x_axis] = pd.to_numeric(df[combined_x_axis], errors="coerce")
-                            df[combined_y_axis] = pd.to_numeric(df[combined_y_axis], errors="coerce")
-                            df = df.dropna()
+                for i, idx in enumerate(selected_indices):
+                    df = df_list[idx]
+                    df = df.dropna(subset=[combined_x_axis, combined_y_axis])
+                    
+                    if not df.empty:
+                        df[combined_x_axis] = pd.to_numeric(df[combined_x_axis], errors="coerce")
+                        df[combined_y_axis] = pd.to_numeric(df[combined_y_axis], errors="coerce")
+                        df = df.dropna()
 
-                            color = colors[i % len(colors)]
+                        color = colors[i % len(colors)]
 
-                            if combined_plot_type == "Scatter":
-                                fig.add_trace(go.Scatter(
-                                    x=df[combined_x_axis], y=df[combined_y_axis], 
-                                    mode="markers", marker=dict(color=color),
-                                    name=filenames[idx]
-                                ))
-                            elif combined_plot_type == "Line":
-                                fig.add_trace(go.Scatter(
-                                    x=df[combined_x_axis], y=df[combined_y_axis], 
-                                    mode="lines", line=dict(color=color),
-                                    name=filenames[idx]
-                                ))
-                            elif combined_plot_type == "Bar":
-                                fig.add_trace(go.Bar(
-                                    x=df[combined_x_axis], y=df[combined_y_axis], 
-                                    marker=dict(color=color),
-                                    name=filenames[idx]
-                                ))
-                            elif combined_plot_type == "Heatmap":
-                                fig.add_trace(go.Heatmap(
-                                    z=df[combined_y_axis], x=df[combined_x_axis], 
-                                    colorscale="Viridis",
-                                    name=filenames[idx]
-                                ))
+                        if combined_plot_type == "Scatter":
+                            fig.add_trace(go.Scatter(
+                                x=df[combined_x_axis], y=df[combined_y_axis], 
+                                mode="markers", marker=dict(color=color),
+                                name=filenames[idx]
+                            ))
+                        elif combined_plot_type == "Line":
+                            fig.add_trace(go.Scatter(
+                                x=df[combined_x_axis], y=df[combined_y_axis], 
+                                mode="lines", line=dict(color=color),
+                                name=filenames[idx]
+                            ))
+                        elif combined_plot_type == "Bar":
+                            fig.add_trace(go.Bar(
+                                x=df[combined_x_axis], y=df[combined_y_axis], 
+                                marker=dict(color=color),
+                                name=filenames[idx]
+                            ))
+                        elif combined_plot_type == "Heatmap":
+                            fig.add_trace(go.Heatmap(
+                                z=df[combined_y_axis], x=df[combined_x_axis], 
+                                colorscale="Viridis",
+                                name=filenames[idx]
+                            ))
 
-                    fig.update_layout(title="Grafico combinato", xaxis_title=combined_x_axis, yaxis_title=combined_y_axis)
-                    st.plotly_chart(fig, use_container_width=True)
-                else:
-                    st.warning("❌ Nessuna colonna in comune tra i file selezionati.")
+                fig.update_layout(title="Grafico combinato", xaxis_title=combined_x_axis, yaxis_title=combined_y_axis)
+                st.plotly_chart(fig, use_container_width=True)
+            else:
+                st.warning("❌ Nessuna colonna in comune tra i file selezionati.")
 
 
