@@ -5,6 +5,7 @@ import plotly.graph_objects as go
 import re
 from utils.plotting import create_and_render_plot
 from utils.load import load_file, process_file
+import uuid  # Importiamo per generare chiavi uniche
 
 def sanitize_filename(filename):
     """Rimuove caratteri speciali e spazi, rendendo il nome del file sicuro per Streamlit."""
@@ -34,19 +35,21 @@ def map_combined_datasets(dataframes, filenames=None):
             detected_lon_col = next((col for col in coordinate_variants["lon"] if col in df.columns), None)
             with st.expander(f"File: {filenames[i]}"):
                 safe_filename = sanitize_filename(filenames[i])  
-                unique_key = f"{safe_filename}_{i}"  # Chiave univoca
-
+                unique_id = uuid.uuid4().hex  # UUID per rendere la chiave unica
+            
                 lat_col = st.selectbox(
                     f"Latitudine ({filenames[i]})",
                     df.columns,
                     index=df.columns.get_loc(detected_lat_col) if detected_lat_col in df.columns else 0,
-                    key=f"lat_{unique_key}")
+                    key=f"lat_{safe_filename}_{i}_{unique_id}"  # Aggiunto UUID
+                )
+            
                 lon_col = st.selectbox(
                     f"Longitudine ({filenames[i]})",
                     df.columns,
                     index=df.columns.get_loc(detected_lon_col) if detected_lon_col in df.columns else 1,
-                    key=f"lon_{unique_key}")
-
+                    key=f"lon_{safe_filename}_{i}_{unique_id}"  # Aggiunto UUID
+                )
             lat_columns.append(lat_col)
             lon_columns.append(lon_col)
     
