@@ -13,33 +13,25 @@ def sanitize_filename(filename):
 def map_combined_datasets(dataframes, filenames=None):
     if filenames is None:
         filenames = [f"Dataset {i+1}" for i in range(len(dataframes))]
-
     if not dataframes:
         st.error("❌ Nessun dataset disponibile.")
         return
-
     col1, col2 = st.columns([3, 1])
     colors = ["red", "blue", "green", "purple", "orange", "pink"]
-
     default_center = {"lat": 41.8719, "lon": 12.5674}  
-
     coordinate_variants = {
         "lat": ["lat", "latitude", "Latitudine", "y"],
         "lon": ["lon", "longitude", "Longitudine", "x"]
     }
-
     with col2:
-        st.subheader("📂 Dataset Caricati")
+        #st.subheader("📂 Dataset Caricati")
         lat_columns, lon_columns = [], []
-        
         for i, df in enumerate(dataframes):
             if df is None or df.empty:
                 st.warning(f"⚠ Il dataset '{filenames[i]}' è vuoto.")
                 continue
-
             detected_lat_col = next((col for col in coordinate_variants["lat"] if col in df.columns), None)
             detected_lon_col = next((col for col in coordinate_variants["lon"] if col in df.columns), None)
-
             with st.expander(f"File: {filenames[i]}"):
                 safe_filename = sanitize_filename(filenames[i])  
                 unique_key = f"{safe_filename}_{i}"  # Chiave univoca
@@ -48,29 +40,24 @@ def map_combined_datasets(dataframes, filenames=None):
                     f"Latitudine ({filenames[i]})",
                     df.columns,
                     index=df.columns.get_loc(detected_lat_col) if detected_lat_col in df.columns else 0,
-                    key=f"lat_{unique_key}"
-                )
+                    key=f"lat_{unique_key}")
                 lon_col = st.selectbox(
                     f"Longitudine ({filenames[i]})",
                     df.columns,
                     index=df.columns.get_loc(detected_lon_col) if detected_lon_col in df.columns else 1,
-                    key=f"lon_{unique_key}"
-                )
+                    key=f"lon_{unique_key}")
 
             lat_columns.append(lat_col)
             lon_columns.append(lon_col)
     
     with col1:
         st.subheader("🗺 Data Mapping")
-
         fig = go.Figure()
         all_latitudes, all_longitudes = [], []
         first_valid_center = None
-
         for i, (df, filename) in enumerate(zip(dataframes, filenames)):
             try:
                 lat_col, lon_col = lat_columns[i], lon_columns[i]
-
                 if lat_col in df.columns and lon_col in df.columns:
                     df_map = df.dropna(subset=[lat_col, lon_col]).copy()
                     df_map["lat"] = pd.to_numeric(df_map[lat_col], errors="coerce")
