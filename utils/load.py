@@ -76,6 +76,7 @@ def load_and_display_file(uploaded_file):
         # Recupera il dataframe dalla sessione e visualizzalo
         df = st.session_state.get(file_name)
         if df is not None:
+            st.subheader(f"File: {file_name}")  # Mostra il nome del file
             st.dataframe(df)  # Mostra il dataframe
             return df
 
@@ -84,14 +85,11 @@ def load_and_display_file(uploaded_file):
         st.error(f"Errore durante il parsing del file CSV: {e}")
     except Exception as e:
         st.error(f"Errore: {e}")
-        
+
 # Interfaccia utente
-#st.title("Carica e visualizza il file")
 uploaded_file = st.file_uploader("Carica il tuo file (CSV, TXT, Excel)", type=["csv", "txt", "xlsx"])
 
 if uploaded_file is not None:
     load_and_display_file(uploaded_file)
 else:
     st.info("Nessun file caricato.")
-
-
