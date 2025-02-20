@@ -141,14 +141,17 @@ def display_dashboard():
         return
     
     df_list = []
+    filenames = []  # Lista dei nomi dei file
+
     for uploaded_file in uploaded_files:
         df = load_file(uploaded_file)  # Carica il file
         if df is not None:
             df = process_file(df)  # Elabora i dati
             df_list.append(df)
+            filenames.append(uploaded_file.name)  # Aggiungi il nome del file alla lista filenames
 
     for idx, df in enumerate(df_list):
-        st.subheader(f"Dataset {idx + 1} - {uploaded_files[idx].name}")
+        st.subheader(f"Dataset {idx + 1} - {filenames[idx]}")
 
         col1, col2, col3 = st.columns([1, 1, 1])
         col4, col5 = st.columns([1, 2])
@@ -169,4 +172,6 @@ def display_dashboard():
             if not df.empty:
                 create_and_render_plot(df, x_axis, y_axis, plot_type)
 
-    map_combined_datasets(df_list, filenames)
+    # Passa sia df_list che filenames alla funzione map_combined_datasets
+    map_combined_datasets(df_list, filenames)  # Ora filenames è definito
+
