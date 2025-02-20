@@ -6,9 +6,6 @@ import plotly.express as px
 import plotly.graph_objects as go
 
 def map_combined_datasets(dataframes, filenames=None):
-    """
-    Mappa più dataset con coordinate e popups, centrando la mappa sui dati caricati o sull'Italia di default.
-    """
     if filenames is None:
         filenames = [f"Dataset {i+1}" for i in range(len(dataframes))]
 
@@ -18,8 +15,7 @@ def map_combined_datasets(dataframes, filenames=None):
 
     col1, col2 = st.columns([3, 1])
     colors = ["red", "blue", "green", "purple", "orange", "pink"]
-    
-    # Centro predefinito: Italia
+
     default_center = {"lat": 41.8719, "lon": 12.5674}  
 
     coordinate_variants = {
@@ -29,20 +25,19 @@ def map_combined_datasets(dataframes, filenames=None):
 
     with col2:
         st.subheader("📂 Dataset Caricati")
-        lat_columns = []
-        lon_columns = []
+        lat_columns, lon_columns = [], []
         
         for i, df in enumerate(dataframes):
             if df is None or df.empty:
                 st.warning(f"⚠ Il dataset '{filenames[i]}' è vuoto.")
                 continue
-            
-            detected_lat_col = next((col for col in coordinate_variants["lat"] if col in df.columns), df.columns[0])
-            detected_lon_col = next((col for col in coordinate_variants["lon"] if col in df.columns), df.columns[1])
+
+            detected_lat_col = next((col for col in coordinate_variants["lat"] if col in df.columns), None)
+            detected_lon_col = next((col for col in coordinate_variants["lon"] if col in df.columns), None)
 
             with st.expander(f"File: {filenames[i]}"):
-                lat_col = st.selectbox(f"Seleziona colonna latitudine", df.columns, index=df.columns.get_loc(detected_lat_col) if detected_lat_col in df.columns else 0, key=f"lat_{i}")
-                lon_col = st.selectbox(f"Seleziona colonna longitudine", df.columns, index=df.columns.get_loc(detected_lon_col) if detected_lon_col in df.columns else 1, key=f"lon_{i}")
+                lat_col = st.selectbox(f"Latitudine", df.columns, index=df.columns.get_loc(detected_lat_col) if detected_lat_col else 0, key=f"lat_{i}")
+                lon_col = st.selectbox(f"Longitudine", df.columns, index=df.columns.get_loc(detected_lon_col) if detected_lon_col else 1, key=f"lon_{i}")
 
             lat_columns.append(lat_col)
             lon_columns.append(lon_col)
@@ -51,16 +46,14 @@ def map_combined_datasets(dataframes, filenames=None):
         st.subheader("🗺 Data Mapping")
 
         fig = go.Figure()
-        all_latitudes = []
-        all_longitudes = []
-        first_valid_center = None  # Per salvare il primo dataset valido
+        all_latitudes, all_longitudes = [], []
+        first_valid_center = None
 
         for i, (df, filename) in enumerate(zip(dataframes, filenames)):
             try:
-                lat_col = lat_columns[i]
-                lon_col = lon_columns[i]
+                lat_col, lon_col = lat_columns[i], lon_columns[i]
 
-                if lat_col and lon_col and lat_col in df.columns and lon_col in df.columns:
+                if lat_col in df.columns and lon_col in df.columns:
                     df_map = df.dropna(subset=[lat_col, lon_col]).copy()
                     df_map["lat"] = pd.to_numeric(df_map[lat_col], errors="coerce")
                     df_map["lon"] = pd.to_numeric(df_map[lon_col], errors="coerce")
@@ -73,25 +66,15 @@ def map_combined_datasets(dataframes, filenames=None):
                     all_latitudes.extend(df_map["lat"].tolist())
                     all_longitudes.extend(df_map["lon"].tolist())
 
-                    # Imposta il centro della mappa con il primo dataset valido
                     if first_valid_center is None and not df_map.empty:
-                        first_valid_center = {
-                            "lat": df_map["lat"].iloc[0], 
-                            "lon": df_map["lon"].iloc[0]
-                        }
+                        first_valid_center = {"lat": df_map["lat"].iloc[0], "lon": df_map["lon"].iloc[0]}
 
-                    # Creazione popup con tutte le informazioni del punto
                     popup_info = df_map.apply(lambda row: "<br>".join([f"<b>{col}</b>: {row[col]}" for col in df.columns]), axis=1)
 
-                    # Aggiunta punti alla mappa con popup
                     fig.add_trace(go.Scattermapbox(
-                        lat=df_map["lat"],
-                        lon=df_map["lon"],
-                        mode="markers",
-                        marker=dict(size=15, color=colors[i % len(colors)]),
-                        name=filename,
-                        hoverinfo="text",
-                        text=popup_info  # Mostra tutte le informazioni nel popup
+                        lat=df_map["lat"], lon=df_map["lon"],
+                        mode="markers", marker=dict(size=15, color=colors[i % len(colors)]),
+                        name=filename, hoverinfo="text", text=popup_info
                     ))
             
             except Exception as e:
@@ -101,24 +84,11 @@ def map_combined_datasets(dataframes, filenames=None):
             st.warning("❌ Nessun dato valido per visualizzare la mappa.")
             return
 
-        # Determina il centro della mappa
-        if first_valid_center:
-            center_lat = first_valid_center["lat"]
-            center_lon = first_valid_center["lon"]
-        else:
-            center_lat, center_lon = default_center["lat"], default_center["lon"]
+        center_lat, center_lon = (first_valid_center or default_center).values()
 
-        # Configura la mappa con zoom automatico
         fig.update_layout(
-            autosize=True,
-            mapbox=dict(
-                style="open-street-map",
-                center=dict(lat=center_lat, lon=center_lon),
-                zoom=6
-            ),
-            legend=dict(title="Legenda"),
-            height=800,
-            margin={"r":0,"t":0,"l":0,"b":0}  # Rimuove margini bianchi
+            autosize=True, mapbox=dict(style="open-street-map", center=dict(lat=center_lat, lon=center_lon), zoom=6),
+            height=800, margin={"r":0, "t":0, "l":0, "b":0}
         )
 
         st.plotly_chart(fig, use_container_width=True)
