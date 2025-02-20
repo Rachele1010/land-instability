@@ -141,5 +141,5 @@ def display_dashboard():
 
 
     # Passa sia df_list che filenames alla funzione map_combined_datasets
-    map_combined_datasets(df_list, filenames)  # Ora filenames è definito
+    #map_combined_datasets(df_list, filenames)  # Ora filenames è definito
 
