@@ -93,54 +93,33 @@ def map_combined_datasets(dataframes, filenames=None):
 
         st.plotly_chart(fig, use_container_width=True)
 
-
-
-
 def display_dashboard():
-    """Dashboard per la gestione dei file con Drag & Drop."""
-    st.header("📊 Data Analysis and Plotting")
-
-    # Sidebar con file uploader
     st.sidebar.header("📂 Upload Files")
-    uploaded_files = st.sidebar.file_uploader(
-        "Drag & Drop your CSV files here", type=['csv', 'xlsx', 'txt'], accept_multiple_files=True
-    )
+    uploaded_files = st.sidebar.file_uploader("Carica i tuoi file CSV/XLSX", type=['csv', 'xlsx', 'txt'], accept_multiple_files=True)
 
     if not uploaded_files:
         st.sidebar.info("No files uploaded yet.")
         return
-    
-    df_list = []
-    filenames = []  # Lista dei nomi dei file
 
+    df_list, filenames = [], []
     for uploaded_file in uploaded_files:
-        df = load_file(uploaded_file)  # Carica il file
+        df = load_file(uploaded_file)
         if df is not None:
-            df = process_file(df)  # Elabora i dati
+            df = process_file(df)
             df_list.append(df)
-            filenames.append(uploaded_file.name)  # Aggiungi il nome del file alla lista filenames
+            filenames.append(uploaded_file.name)
 
-    for idx, df in enumerate(df_list):
-        st.subheader(f"Dataset {idx + 1} - {filenames[idx]}")
+    tab1, tab2 = st.tabs(["🌍 Map Generator", "📊 Statistics"])
 
-        col1, col2, col3 = st.columns([1, 1, 1])
-        col4, col5 = st.columns([1, 2])
+    with tab1:
+        map_combined_datasets(df_list, filenames)
 
-        with col1:
-            x_axis = st.selectbox(f"X Axis {idx + 1}", df.columns.tolist(), key=f"x_axis_{idx}")
-        with col2:
-            y_axis = st.selectbox(f"Y Axis {idx + 1}", df.columns.tolist(), key=f"y_axis_{idx}")
-        with col3:
-            plot_type = st.selectbox(f"Plot Type {idx + 1}", [
-                "Basic Scatter", "Basic Bar", "Basic Line", "Mixed Line and Bar", 
-                "Calendar Heatmap", "DataZoom"
-            ], key=f"plot_type_{idx}")
-
-        with col4:
-            st.dataframe(df)
-        with col5:
-            if not df.empty:
-                create_and_render_plot(df, x_axis, y_axis, plot_type)
+    with tab2:
+        for i, df in enumerate(df_list):
+            st.subheader(f"📈 Dataset {i+1} - {filenames[i]}")
+            x_axis = st.selectbox("X Axis", df.columns, key=f"x_{i}")
+            y_axis = st.selectbox("Y Axis", df.columns, key=f"y_{i}")
+            create_and_render_plot(df, x_axis, y_axis, "Basic Line")
 
     # Passa sia df_list che filenames alla funzione map_combined_datasets
     map_combined_datasets(df_list, filenames)  # Ora filenames è definito
