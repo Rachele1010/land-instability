@@ -4,7 +4,6 @@ import plotly.graph_objects as go
 from utils.plotting import create_and_render_plot
 from utils.load import load_file, process_file
 
-
 def map_combined_datasets(dataframes, filenames=None):
     """
     Mappa più dataset con coordinate e popups, centrando la mappa sui dati caricati o sull'Italia di default.
@@ -40,30 +39,29 @@ def map_combined_datasets(dataframes, filenames=None):
             detected_lat_col = next((col for col in coordinate_variants["lat"] if col in df.columns), df.columns[0])
             detected_lon_col = next((col for col in coordinate_variants["lon"] if col in df.columns), df.columns[1])
 
-        with st.expander("", expanded=True):  
-            col_file, col_toggle = st.columns([4, 1])  # Creiamo due colonne, una più larga per il titolo, una più piccola per il toggle
-            with col_file:
-                st.markdown(f"**File: {filenames[i]}**")  # Titolo del file
-            with col_toggle:
-                toggle_status = st.toggle("🔄", key=f"toggle_{i}")  # Toggle accanto al nome del file
-        
-            # Selectbox per latitudine e longitudine
-            lat_col = st.selectbox(
-                f"Seleziona colonna latitudine",
-                df.columns,
-                index=df.columns.get_loc(detected_lat_col) if detected_lat_col in df.columns else 0,
-                key=f"lat_{i}"
-            )
-            lon_col = st.selectbox(
-                f"Seleziona colonna longitudine",
-                df.columns,
-                index=df.columns.get_loc(detected_lon_col) if detected_lon_col in df.columns else 1,
-                key=f"lon_{i}"
-            )
-        
-                    
-        lat_columns.append(lat_col)
-        lon_columns.append(lon_col)
+            with st.expander("", expanded=True):  
+                col_file, col_toggle = st.columns([4, 1])  # Due colonne: una larga per il titolo, una piccola per il toggle
+                with col_file:
+                    st.markdown(f"**File: {filenames[i]}**")  # Titolo del file
+                with col_toggle:
+                    toggle_status = st.toggle("🔄", key=f"toggle_{i}")  # Toggle accanto al nome del file
+            
+                # Selectbox per latitudine e longitudine
+                lat_col = st.selectbox(
+                    f"Seleziona colonna latitudine",
+                    df.columns,
+                    index=df.columns.get_loc(detected_lat_col) if detected_lat_col in df.columns else 0,
+                    key=f"lat_{i}"
+                )
+                lon_col = st.selectbox(
+                    f"Seleziona colonna longitudine",
+                    df.columns,
+                    index=df.columns.get_loc(detected_lon_col) if detected_lon_col in df.columns else 1,
+                    key=f"lon_{i}"
+                )
+
+                lat_columns.append(lat_col)
+                lon_columns.append(lon_col)
     
     with col1:
         st.subheader("🗺 Data Mapping")
@@ -140,6 +138,7 @@ def map_combined_datasets(dataframes, filenames=None):
         )
 
         st.plotly_chart(fig, use_container_width=True)
+
 
 
 def display_dashboard():
