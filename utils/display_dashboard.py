@@ -22,24 +22,29 @@ def map_combined_datasets(dataframes, filenames=None):
     # Centro predefinito: Italia
     default_center = {"lat": 41.8719, "lon": 12.5674}  
 
+    coordinate_variants = {
+        "lat": ["lat", "latitude", "Latitudine", "y"],
+        "lon": ["lon", "longitude", "Longitudine", "x"]
+    }
+
     with col2:
         st.subheader("📂 Dataset Caricati")
         lat_columns = []
         lon_columns = []
-        info_columns = []  # Colonne aggiuntive per il popup
         
         for i, df in enumerate(dataframes):
             if df is None or df.empty:
                 st.warning(f"⚠ Il dataset '{filenames[i]}' è vuoto.")
                 continue
             
-            lat_col = st.selectbox(f"Colonna latitudine ({filenames[i]})", df.columns, key=f"lat_{i}")
-            lon_col = st.selectbox(f"Colonna longitudine ({filenames[i]})", df.columns, key=f"lon_{i}")
-            info_col = st.multiselect(f"Seleziona colonne info ({filenames[i]})", df.columns, key=f"info_{i}")
+            detected_lat_col = next((col for col in coordinate_variants["lat"] if col in df.columns), None)
+            detected_lon_col = next((col for col in coordinate_variants["lon"] if col in df.columns), None)
+
+            lat_col = st.selectbox(f"Colonna latitudine ({filenames[i]})", df.columns, index=df.columns.get_loc(detected_lat_col) if detected_lat_col else 0, key=f"lat_{i}")
+            lon_col = st.selectbox(f"Colonna longitudine ({filenames[i]})", df.columns, index=df.columns.get_loc(detected_lon_col) if detected_lon_col else 0, key=f"lon_{i}")
 
             lat_columns.append(lat_col)
             lon_columns.append(lon_col)
-            info_columns.append(info_col)
     
     with col1:
         st.subheader("🗺 Data Mapping")
@@ -53,7 +58,6 @@ def map_combined_datasets(dataframes, filenames=None):
             try:
                 lat_col = lat_columns[i]
                 lon_col = lon_columns[i]
-                info_col = info_columns[i]
 
                 if lat_col and lon_col and lat_col in df.columns and lon_col in df.columns:
                     df_map = df.dropna(subset=[lat_col, lon_col]).copy()
@@ -75,10 +79,7 @@ def map_combined_datasets(dataframes, filenames=None):
                             "lon": df_map["lon"].iloc[0]
                         }
 
-                    # Crea popup con le colonne selezionate
-                    popup_info = df_map.apply(lambda row: "<br>".join([f"<b>{col}</b>: {row[col]}" for col in info_col]), axis=1)
-
-                    # Aggiunta punti alla mappa
+                    # Aggiunta punti alla mappa con popup
                     fig.add_trace(go.Scattermapbox(
                         lat=df_map["lat"],
                         lon=df_map["lon"],
@@ -86,7 +87,7 @@ def map_combined_datasets(dataframes, filenames=None):
                         marker=dict(size=15, color=colors[i % len(colors)]),
                         name=filename,
                         hoverinfo="text",
-                        text=popup_info  
+                        text=filename  # Semplice popup con il nome del dataset
                     ))
             
             except Exception as e:
@@ -117,9 +118,6 @@ def map_combined_datasets(dataframes, filenames=None):
         )
 
         st.plotly_chart(fig, use_container_width=True)
-
-
-
 
 def display_dashboard():
     """Dashboard per la gestione dei file con Drag & Drop."""
