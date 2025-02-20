@@ -4,6 +4,7 @@ import streamlit as st
 
 class WebUI:
     def __init__(self):
+        st.set_page_config(layout="wide", page_title="Land instability", page_icon="🌍", initial_sidebar_state="auto")
         #st.set_page_config(page_title="maps4FS", page_icon="🚜", layout="wide")
         (
             generator_tab,
