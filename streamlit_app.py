@@ -64,10 +64,5 @@ def main():
             "📊 Statistics",
         ])
 
-        with generator_tab:
-            display_dashboard()
-
-        with statistics_tab:
-            show_statistics()
 if __name__ == "__main__":
     main()
