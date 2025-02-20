@@ -1,7 +1,9 @@
 import streamlit as st
 # Importa tutte le funzioni dalla cartella "Function"
-st.set_page_config(layout="wide", page_title="Land instability", page_icon="🌍", initial_sidebar_state="auto")
-st.set_page_config(page_title="maps4FS", page_icon="🚜", layout="wide")
+#st.set_page_config(layout="wide", page_title="Land instability", page_icon="🌍", initial_sidebar_state="auto")
+def __init__(self):
+        st.set_page_config(layout="wide", page_title="Land instability", page_icon="🌍", initial_sidebar_state="auto")
+        #st.set_page_config(page_title="maps4FS", page_icon="🚜", layout="wide")
         (
             generator_tab,
             statistics_tab,
@@ -23,6 +25,7 @@ st.set_page_config(page_title="maps4FS", page_icon="🚜", layout="wide")
                 "📝 FAQ",
             ]
         )
+
         with generator_tab:
             self.generator = GeneratorUI()
 
