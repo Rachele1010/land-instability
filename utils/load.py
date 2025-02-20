@@ -65,14 +65,16 @@ def process_file(df):
 def load_and_display_file(uploaded_file):
     """Carica e visualizza il file."""
     try:
-        if uploaded_file not in st.session_state:
+        file_name = uploaded_file.name  # Ottieni il nome del file
+        # Se il file non è già stato caricato nella sessione, caricalo e memorizzalo
+        if file_name not in st.session_state:
             df = load_file(uploaded_file)  # Carica il file
             if df is not None:
                 df = process_file(df)  # Elabora i dati
-                st.session_state[uploaded_file] = df  # Memorizza il dataframe in session_state
+                st.session_state[file_name] = df  # Memorizza il dataframe in session_state
 
         # Recupera il dataframe dalla sessione e visualizzalo
-        df = st.session_state.get(uploaded_file)
+        df = st.session_state.get(file_name)
         if df is not None:
             st.dataframe(df)  # Mostra il dataframe
             return df
@@ -91,4 +93,5 @@ if uploaded_file is not None:
     load_and_display_file(uploaded_file)
 else:
     st.info("Nessun file caricato.")
+
 
