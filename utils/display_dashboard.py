@@ -1,11 +1,10 @@
 import streamlit as st
 import pandas as pd
-import plotly.express as px
 import plotly.graph_objects as go
+import uuid
 import re
 from utils.plotting import create_and_render_plot
 from utils.load import load_file, process_file
-import uuid  # Importiamo per generare chiavi uniche
 
 def sanitize_filename(filename):
     """Rimuove caratteri speciali e spazi, rendendo il nome del file sicuro per Streamlit."""
@@ -14,53 +13,65 @@ def sanitize_filename(filename):
 def map_combined_datasets(dataframes, filenames=None):
     if filenames is None:
         filenames = [f"Dataset {i+1}" for i in range(len(dataframes))]
+    
     if not dataframes:
         st.error("❌ Nessun dataset disponibile.")
         return
+
     col1, col2 = st.columns([3, 1])
     colors = ["red", "blue", "green", "purple", "orange", "pink"]
-    default_center = {"lat": 41.8719, "lon": 12.5674}  
+    default_center = {"lat": 41.8719, "lon": 12.5674}  # Coordinate di default (Italia)
+    
+    # Varianti di nomi di colonne per latitudine e longitudine
     coordinate_variants = {
         "lat": ["lat", "latitude", "Latitudine", "y"],
         "lon": ["lon", "longitude", "Longitudine", "x"]
     }
+
     with col2:
-        #st.subheader("📂 Dataset Caricati")
         lat_columns, lon_columns = [], []
         for i, df in enumerate(dataframes):
             if df is None or df.empty:
                 st.warning(f"⚠ Il dataset '{filenames[i]}' è vuoto.")
                 continue
+
             detected_lat_col = next((col for col in coordinate_variants["lat"] if col in df.columns), None)
             detected_lon_col = next((col for col in coordinate_variants["lon"] if col in df.columns), None)
+            
             with st.expander(f"File: {filenames[i]}"):
                 safe_filename = sanitize_filename(filenames[i])  
                 unique_id = uuid.uuid4().hex  # UUID per rendere la chiave unica
-            
+
+                # Seleziona la colonna di latitudine
                 lat_col = st.selectbox(
                     f"Latitudine ({filenames[i]})",
                     df.columns,
                     index=df.columns.get_loc(detected_lat_col) if detected_lat_col in df.columns else 0,
-                    key=f"lat_{safe_filename}_{i}_{unique_id}"  # Aggiunto UUID
+                    key=f"lat_{safe_filename}_{i}_{unique_id}"  # Aggiungi UUID
                 )
-            
+                
+                # Seleziona la colonna di longitudine
                 lon_col = st.selectbox(
                     f"Longitudine ({filenames[i]})",
                     df.columns,
                     index=df.columns.get_loc(detected_lon_col) if detected_lon_col in df.columns else 1,
-                    key=f"lon_{safe_filename}_{i}_{unique_id}"  # Aggiunto UUID
+                    key=f"lon_{safe_filename}_{i}_{unique_id}"  # Aggiungi UUID
                 )
+            
             lat_columns.append(lat_col)
             lon_columns.append(lon_col)
-    
+
     with col1:
         st.subheader("🗺 Data Mapping")
+
         fig = go.Figure()
         all_latitudes, all_longitudes = [], []
         first_valid_center = None
+
         for i, (df, filename) in enumerate(zip(dataframes, filenames)):
             try:
                 lat_col, lon_col = lat_columns[i], lon_columns[i]
+
                 if lat_col in df.columns and lon_col in df.columns:
                     df_map = df.dropna(subset=[lat_col, lon_col]).copy()
                     df_map["lat"] = pd.to_numeric(df_map[lat_col], errors="coerce")
@@ -84,7 +95,7 @@ def map_combined_datasets(dataframes, filenames=None):
                         mode="markers", marker=dict(size=15, color=colors[i % len(colors)]),
                         name=filename, hoverinfo="text", text=popup_info
                     ))
-            
+
             except Exception as e:
                 st.warning(f"⚠ Errore con '{filename}': {e}")
 
@@ -95,7 +106,8 @@ def map_combined_datasets(dataframes, filenames=None):
         center_lat, center_lon = (first_valid_center or default_center).values()
 
         fig.update_layout(
-            autosize=True, mapbox=dict(style="open-street-map", center=dict(lat=center_lat, lon=center_lon), zoom=6),
+            autosize=True,
+            mapbox=dict(style="open-street-map", center=dict(lat=center_lat, lon=center_lon), zoom=6),
             height=800, margin={"r":0, "t":0, "l":0, "b":0}
         )
 
@@ -129,7 +141,4 @@ def display_dashboard():
             y_axis = st.selectbox("Y Axis", df.columns, key=f"y_{i}")
             create_and_render_plot(df, x_axis, y_axis, "Basic Line")
 
-
-    # Passa sia df_list che filenames alla funzione map_combined_datasets
-    #map_combined_datasets(df_list, filenames)  # Ora filenames è definito
 
