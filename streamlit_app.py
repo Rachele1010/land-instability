@@ -1,39 +1,6 @@
 import streamlit as st
 # Importa tutte le funzioni dalla cartella "Function"
-#st.set_page_config(layout="wide", page_title="Land instability", page_icon="🌍", initial_sidebar_state="auto")
-
-class WebUI:
-    def __init__(self):
-        st.set_page_config(layout="wide", page_title="Land instability", page_icon="🌍", initial_sidebar_state="auto")
-        #st.set_page_config(page_title="maps4FS", page_icon="🚜", layout="wide")
-        (
-            generator_tab,
-            statistics_tab,
-            step_by_step_tab,
-            video_tutorials_tab,
-            coverage_tab,
-            toolbox_tab,
-            knowledge_tab,
-            faq_tab,
-        ) = st.tabs(
-            [
-                "🗺️ Map Generator",
-                "📊 Statistics",
-            ]
-        )
-
-        with generator_tab:
-            self.generator = GeneratorUI()
-
-        with statistics_tab:
-            components.iframe(
-                "https://stats.maps4fs.xyz/public/dashboard/"
-                "f8defe6a-09db-4db1-911f-b6b02075d4b2#refresh=60",
-                height=2500,
-                scrolling=False,
-            )
-
-WebUI()
+st.set_page_config(layout="wide", page_title="Land instability", page_icon="🌍", initial_sidebar_state="auto")
 import hydralit_components as hc
 from PIL import Image
 from utils.display_dashboard import display_dashboard
