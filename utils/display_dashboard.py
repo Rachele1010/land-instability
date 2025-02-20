@@ -129,6 +129,7 @@ def display_dashboard():
             df_list.append(df)
             filenames.append(uploaded_file.name)
 
+    # Create tabs for the map and statistics
     tab1, tab2 = st.tabs(["🌍 Map Generator", "📊 Statistics"])
 
     with tab1:
