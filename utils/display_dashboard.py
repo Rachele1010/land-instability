@@ -62,8 +62,9 @@ def map_combined_datasets(dataframes, filenames=None):
                 )
             with col_toggle_lon:
                 lon_toggle = st.toggle("🔄", key=f"lon_toggle_{i}")
-            lat_columns.append(lat_col)
-            lon_columns.append(lon_col)
+            
+        lat_columns.append(lat_col)
+        lon_columns.append(lon_col)
     
     with col1:
         st.subheader("🗺 Data Mapping")
