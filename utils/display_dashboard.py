@@ -36,8 +36,18 @@ def map_combined_datasets(dataframes, filenames=None):
             detected_lon_col = next((col for col in coordinate_variants["lon"] if col in df.columns), None)
 
             with st.expander(f"File: {filenames[i]}"):
-                lat_col = st.selectbox(f"Latitudine", df.columns, index=df.columns.get_loc(detected_lat_col) if detected_lat_col else 0, key=f"lat_{i}")
-                lon_col = st.selectbox(f"Longitudine", df.columns, index=df.columns.get_loc(detected_lon_col) if detected_lon_col else 1, key=f"lon_{i}")
+                lat_col = st.selectbox(
+                    f"Latitudine ({filenames[i]})",
+                    df.columns,
+                    index=df.columns.get_loc(detected_lat_col) if detected_lat_col else 0,
+                    key=f"lat_{filenames[i]}_{i}"
+                )
+                lon_col = st.selectbox(
+                    f"Longitudine ({filenames[i]})",
+                    df.columns,
+                    index=df.columns.get_loc(detected_lon_col) if detected_lon_col else 1,
+                    key=f"lon_{filenames[i]}_{i}"
+                )
 
             lat_columns.append(lat_col)
             lon_columns.append(lon_col)
