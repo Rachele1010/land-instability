@@ -5,6 +5,10 @@ from utils.load import load_file, process_file
 import plotly.express as px
 import plotly.graph_objects as go
 
+import streamlit as st
+import pandas as pd
+import plotly.graph_objects as go
+
 def map_combined_datasets(dataframes, filenames=None):
     """
     Mappa più dataset con coordinate e popups, centrando la mappa sui dati caricati o sull'Italia di default.
@@ -37,11 +41,11 @@ def map_combined_datasets(dataframes, filenames=None):
                 st.warning(f"⚠ Il dataset '{filenames[i]}' è vuoto.")
                 continue
             
-            detected_lat_col = next((col for col in coordinate_variants["lat"] if col in df.columns), None)
-            detected_lon_col = next((col for col in coordinate_variants["lon"] if col in df.columns), None)
+            detected_lat_col = next((col for col in coordinate_variants["lat"] if col in df.columns), df.columns[0])
+            detected_lon_col = next((col for col in coordinate_variants["lon"] if col in df.columns), df.columns[1])
 
-            lat_col = st.selectbox(f"Colonna latitudine ({filenames[i]})", df.columns, index=df.columns.get_loc(detected_lat_col) if detected_lat_col else 0, key=f"lat_{i}")
-            lon_col = st.selectbox(f"Colonna longitudine ({filenames[i]})", df.columns, index=df.columns.get_loc(detected_lon_col) if detected_lon_col else 0, key=f"lon_{i}")
+            lat_col = st.selectbox(f"Colonna latitudine ({filenames[i]})", df.columns, index=df.columns.get_loc(detected_lat_col) if detected_lat_col in df.columns else 0, key=f"lat_{i}")
+            lon_col = st.selectbox(f"Colonna longitudine ({filenames[i]})", df.columns, index=df.columns.get_loc(detected_lon_col) if detected_lon_col in df.columns else 1, key=f"lon_{i}")
 
             lat_columns.append(lat_col)
             lon_columns.append(lon_col)
@@ -118,6 +122,7 @@ def map_combined_datasets(dataframes, filenames=None):
         )
 
         st.plotly_chart(fig, use_container_width=True)
+
 
 def display_dashboard():
     """Dashboard per la gestione dei file con Drag & Drop."""
