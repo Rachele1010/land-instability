@@ -4,7 +4,7 @@ import streamlit as st
 
 class WebUI:
     def __init__(self):
-        st.set_page_config(page_title="maps4FS", page_icon="🚜", layout="wide")
+        #st.set_page_config(page_title="maps4FS", page_icon="🚜", layout="wide")
         (
             generator_tab,
             statistics_tab,
@@ -18,12 +18,6 @@ class WebUI:
             [
                 "🗺️ Map Generator",
                 "📊 Statistics",
-                "🔢 Step by step",
-                "📹 Video Tutorials",
-                "🌐 Coverage",
-                "🧰 Modder Toolbox",
-                "📖 Knowledge base",
-                "📝 FAQ",
             ]
         )
 
