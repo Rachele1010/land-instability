@@ -1,8 +1,5 @@
 import streamlit as st
 import pandas as pd
-from utils.plotting import create_and_render_plot
-from utils.load import load_file, process_file
-import plotly.express as px
 import plotly.graph_objects as go
 
 def map_combined_datasets(dataframes, filenames=None):
@@ -31,12 +28,13 @@ def map_combined_datasets(dataframes, filenames=None):
         st.subheader("📂 Dataset Caricati")
         lat_columns = []
         lon_columns = []
-        
+
         for i, df in enumerate(dataframes):
             if df is None or df.empty:
                 st.warning(f"⚠ Il dataset '{filenames[i]}' è vuoto.")
                 continue
-            
+
+            # Verifica la presenza delle colonne latitudine e longitudine
             detected_lat_col = next((col for col in coordinate_variants["lat"] if col in df.columns), df.columns[0])
             detected_lon_col = next((col for col in coordinate_variants["lon"] if col in df.columns), df.columns[1])
 
@@ -46,7 +44,7 @@ def map_combined_datasets(dataframes, filenames=None):
 
             lat_columns.append(lat_col)
             lon_columns.append(lon_col)
-    
+
     with col1:
         st.subheader("🗺 Data Mapping")
 
@@ -122,6 +120,7 @@ def map_combined_datasets(dataframes, filenames=None):
         )
 
         st.plotly_chart(fig, use_container_width=True)
+
 
 
 
