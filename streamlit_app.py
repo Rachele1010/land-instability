@@ -77,8 +77,8 @@ def main():
         col1, col2 = st.columns([1, 1])
         with col1:
             st.markdown("For more details about ITINERIS project, click on link -> **[ITINERIS](https://itineris.d4science.org/)**")
-        with col2:
-            st.image(logo_itineris, caption='Copyright © ITINERIS 2023-2024', use_container_width=False)
+         #with col2:
+            #st.image(logo_itineris, caption='Copyright © ITINERIS 2023-2024', use_container_width=False)
 
 if __name__ == "__main__":
     main()
