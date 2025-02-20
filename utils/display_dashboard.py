@@ -26,6 +26,7 @@ def map_combined_datasets(dataframes, filenames=None):
         st.subheader("📂 Dataset Caricati")
         lat_columns = []
         lon_columns = []
+        info_columns = []  # Colonne aggiuntive per il popup
         
         for i, df in enumerate(dataframes):
             if df is None or df.empty:
@@ -34,10 +35,12 @@ def map_combined_datasets(dataframes, filenames=None):
             
             lat_col = st.selectbox(f"Colonna latitudine ({filenames[i]})", df.columns, key=f"lat_{i}")
             lon_col = st.selectbox(f"Colonna longitudine ({filenames[i]})", df.columns, key=f"lon_{i}")
+            info_col = st.multiselect(f"Seleziona colonne info ({filenames[i]})", df.columns, key=f"info_{i}")
 
             lat_columns.append(lat_col)
             lon_columns.append(lon_col)
-
+            info_columns.append(info_col)
+    
     with col1:
         st.subheader("🗺 Data Mapping")
 
@@ -50,6 +53,7 @@ def map_combined_datasets(dataframes, filenames=None):
             try:
                 lat_col = lat_columns[i]
                 lon_col = lon_columns[i]
+                info_col = info_columns[i]
 
                 if lat_col and lon_col and lat_col in df.columns and lon_col in df.columns:
                     df_map = df.dropna(subset=[lat_col, lon_col]).copy()
@@ -71,8 +75,8 @@ def map_combined_datasets(dataframes, filenames=None):
                             "lon": df_map["lon"].iloc[0]
                         }
 
-                    # Crea popup con tutti i metadati
-                    popup_info = df_map.apply(lambda row: "<br>".join([f"<b>{col}</b>: {row[col]}" for col in df.columns if col not in [lat_col, lon_col]]), axis=1)
+                    # Crea popup con le colonne selezionate
+                    popup_info = df_map.apply(lambda row: "<br>".join([f"<b>{col}</b>: {row[col]}" for col in info_col]), axis=1)
 
                     # Aggiunta punti alla mappa
                     fig.add_trace(go.Scattermapbox(
@@ -84,7 +88,7 @@ def map_combined_datasets(dataframes, filenames=None):
                         hoverinfo="text",
                         text=popup_info  
                     ))
-
+            
             except Exception as e:
                 st.warning(f"⚠ Errore con '{filename}': {e}")
 
@@ -113,6 +117,7 @@ def map_combined_datasets(dataframes, filenames=None):
         )
 
         st.plotly_chart(fig, use_container_width=True)
+
 
 
 
