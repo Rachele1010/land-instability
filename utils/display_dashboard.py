@@ -1,9 +1,14 @@
 import streamlit as st
 import pandas as pd
-from utils.plotting import create_and_render_plot
-from utils.load import load_file, process_file
 import plotly.express as px
 import plotly.graph_objects as go
+import re
+from utils.plotting import create_and_render_plot
+from utils.load import load_file, process_file
+
+def sanitize_filename(filename):
+    """Rimuove caratteri speciali e spazi, rendendo il nome del file sicuro per Streamlit."""
+    return re.sub(r'\W+', '_', filename)
 
 def map_combined_datasets(dataframes, filenames=None):
     if filenames is None:
@@ -35,26 +40,21 @@ def map_combined_datasets(dataframes, filenames=None):
             detected_lat_col = next((col for col in coordinate_variants["lat"] if col in df.columns), None)
             detected_lon_col = next((col for col in coordinate_variants["lon"] if col in df.columns), None)
 
-            import re  
-
-            # Puliamo il nome del file per evitare problemi con il key
-            def sanitize_filename(filename):
-                return re.sub(r'\W+', '_', filename)  # Sostituisce caratteri non alfanumerici con "_"
-            
             with st.expander(f"File: {filenames[i]}"):
-                safe_filename = sanitize_filename(filenames[i])  # Genera un nome pulito e sicuro per il key
-                
+                safe_filename = sanitize_filename(filenames[i])  
+                unique_key = f"{safe_filename}_{i}"  # Chiave univoca
+
                 lat_col = st.selectbox(
                     f"Latitudine ({filenames[i]})",
                     df.columns,
-                    index=df.columns.get_loc(detected_lat_col) if detected_lat_col else 0,
-                    key=f"lat_{safe_filename}_{i}"
+                    index=df.columns.get_loc(detected_lat_col) if detected_lat_col in df.columns else 0,
+                    key=f"lat_{unique_key}"
                 )
                 lon_col = st.selectbox(
                     f"Longitudine ({filenames[i]})",
                     df.columns,
-                    index=df.columns.get_loc(detected_lon_col) if detected_lon_col else 1,
-                    key=f"lon_{safe_filename}_{i}"
+                    index=df.columns.get_loc(detected_lon_col) if detected_lon_col in df.columns else 1,
+                    key=f"lon_{unique_key}"
                 )
 
             lat_columns.append(lat_col)
@@ -138,6 +138,7 @@ def display_dashboard():
             x_axis = st.selectbox("X Axis", df.columns, key=f"x_{i}")
             y_axis = st.selectbox("Y Axis", df.columns, key=f"y_{i}")
             create_and_render_plot(df, x_axis, y_axis, "Basic Line")
+
 
     # Passa sia df_list che filenames alla funzione map_combined_datasets
     map_combined_datasets(df_list, filenames)  # Ora filenames è definito
