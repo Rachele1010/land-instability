@@ -16,7 +16,7 @@ def map_combined_datasets(dataframes, filenames=None):
         st.error("❌ Nessun dataset disponibile.")
         return
 
-    col1, col2 = st.columns([3, 1])
+    col1, col2 = st.columns([5, 1])
     colors = ["red", "blue", "green", "purple", "orange", "pink"]
     
     # Centro predefinito: Italia
