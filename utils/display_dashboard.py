@@ -40,10 +40,28 @@ def map_combined_datasets(dataframes, filenames=None):
             detected_lat_col = next((col for col in coordinate_variants["lat"] if col in df.columns), df.columns[0])
             detected_lon_col = next((col for col in coordinate_variants["lon"] if col in df.columns), df.columns[1])
 
-            with st.expander(f"File: {filenames[i]}"):
-                lat_col = st.selectbox(f"Seleziona colonna latitudine", df.columns, index=df.columns.get_loc(detected_lat_col) if detected_lat_col in df.columns else 0, key=f"lat_{i}")
-                lon_col = st.selectbox(f"Seleziona colonna longitudine", df.columns, index=df.columns.get_loc(detected_lon_col) if detected_lon_col in df.columns else 1, key=f"lon_{i}")
-
+        with st.expander(f"File: {filenames[i]}"):
+            col_lat, col_toggle_lat = st.columns([4, 1])
+            with col_lat:
+                lat_col = st.selectbox(
+                    f"Seleziona colonna latitudine",
+                    df.columns,
+                    index=df.columns.get_loc(detected_lat_col) if detected_lat_col in df.columns else 0,
+                    key=f"lat_{i}"
+                )
+            with col_toggle_lat:
+                lat_toggle = st.toggle("🔄", key=f"lat_toggle_{i}")
+        
+            col_lon, col_toggle_lon = st.columns([4, 1])
+            with col_lon:
+                lon_col = st.selectbox(
+                    f"Seleziona colonna longitudine",
+                    df.columns,
+                    index=df.columns.get_loc(detected_lon_col) if detected_lon_col in df.columns else 1,
+                    key=f"lon_{i}"
+                )
+            with col_toggle_lon:
+                lon_toggle = st.toggle("🔄", key=f"lon_toggle_{i}")
             lat_columns.append(lat_col)
             lon_columns.append(lon_col)
     
