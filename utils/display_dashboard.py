@@ -169,4 +169,4 @@ def display_dashboard():
             if not df.empty:
                 create_and_render_plot(df, x_axis, y_axis, plot_type)
 
-    map_combined_datasets(df_list)
+    map_combined_datasets(df_list, filenames)
