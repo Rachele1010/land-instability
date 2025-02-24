@@ -23,8 +23,8 @@ def map_combined_datasets(dataframes, filenames=None):
     default_center = {"lat": 41.8719, "lon": 12.5674}  
 
     coordinate_variants = {
-        "lat": ["lat", "latitude", "Latitudine", "y"],
-        "lon": ["lon", "longitude", "Longitudine", "x"]
+        "lat": ["lat", "latitude", "Latitudine", "y", "Y"],
+        "lon": ["lon", "longitude", "Longitudine", "x", "X"]
     }
 
     with col2:
