@@ -12,23 +12,7 @@ def map_combined_datasets(dataframes, filenames=None):
         filenames = [f"Dataset {i+1}" for i in range(len(dataframes))]
 
     if not dataframes:
-        st.error("❌ Nessun dataset disponibile.")
-        return
-import streamlit as st
-import pandas as pd
-import plotly.graph_objects as go
-from utils.plotting import create_and_render_plot
-from utils.load import load_file, process_file
-
-def map_combined_datasets(dataframes, filenames=None):
-    """
-    Mappa più dataset con coordinate e popups, centrando la mappa sui dati caricati o sull'Italia di default.
-    """
-    if filenames is None:
-        filenames = [f"Dataset {i+1}" for i in range(len(dataframes))]
-
-    if not dataframes:
-        st.error("❌ Nessun dataset disponibile.")
+        st.error("❌ No available datasets.")
         return
 
     col1, col2 = st.columns([5, 1])
@@ -53,6 +37,11 @@ def map_combined_datasets(dataframes, filenames=None):
             
             detected_lat_col = next((col for col in coordinate_variants["lat"] if col in df.columns), None)
             detected_lon_col = next((col for col in coordinate_variants["lon"] if col in df.columns), None)
+
+            if detected_lat_col is None:
+                detected_lat_col = "y" if "y" in df.columns else "Y" if "Y" in df.columns else None
+            if detected_lon_col is None:
+                detected_lon_col = "x" if "x" in df.columns else "X" if "X" in df.columns else None
 
             if detected_lat_col is None or detected_lon_col is None:
                 st.warning(f"⚠ Il dataset '{filenames[i]}' non ha colonne di latitudine o longitudine riconosciute.")
@@ -128,6 +117,7 @@ def map_combined_datasets(dataframes, filenames=None):
         )
 
         st.plotly_chart(fig, use_container_width=True)
+
 
 def display_dashboard():
     st.header("Data Analysis and Plotting")
