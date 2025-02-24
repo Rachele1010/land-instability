@@ -4,7 +4,6 @@ import plotly.graph_objects as go
 from utils.plotting import create_and_render_plot
 from utils.load import load_file, process_file
 
-
 def map_combined_datasets(dataframes, filenames=None):
     """
     Mappa più dataset con coordinate e popups, centrando la mappa sui dati caricati o sull'Italia di default.
