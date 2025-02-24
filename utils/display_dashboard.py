@@ -109,9 +109,9 @@ def map_combined_datasets(dataframes, filenames=None):
             mapbox=dict(
                 style="open-street-map",
                 center=dict(lat=center_lat, lon=center_lon),
-                zoom=3
+                zoom=5
             ),
-            legend=dict(title="Legenda", x=1.05, y=1.5),
+            legend=dict(title="Legenda", x=1.05, y=0),
             height=800,
             margin={"r":0,"t":0,"l":0,"b":0}
         )
