@@ -150,7 +150,7 @@ def display_dashboard():
     with tab2:
         st.subheader("📈 Data Plotting")
         for idx, df in enumerate(df_list):
-            st.subheader(f"Dataset {idx + 1} - {filenames[idx]}")
+            st.caption(f"Dataset {idx + 1} - {filenames[idx]}")
             col1, col2, col3 = st.columns([1, 1, 1])
             col4, col5 = st.columns([1, 2])
             with col1:
