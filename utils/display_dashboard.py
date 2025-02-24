@@ -28,7 +28,7 @@ def map_combined_datasets(dataframes, filenames=None):
     }
 
     with col2:
-        st.subheader("📂 Dataset Caricati")
+        st.subheader("📂 Datasets")
         lat_columns = []
         lon_columns = []
         
@@ -67,7 +67,7 @@ def map_combined_datasets(dataframes, filenames=None):
                     df_map = df_map.dropna()
 
                     if df_map.empty:
-                        st.warning(f"⚠ '{filename}' non ha dati validi dopo il cleaning.")
+                        st.warning(f"⚠ '{filename}' no valid data after cleaning.")
                         continue
 
                     all_latitudes.extend(df_map["lat"].tolist())
@@ -95,10 +95,10 @@ def map_combined_datasets(dataframes, filenames=None):
                     ))
             
             except Exception as e:
-                st.warning(f"⚠ Errore con '{filename}': {e}")
+                st.warning(f"⚠ Error '{filename}': {e}")
 
         if not all_latitudes or not all_longitudes:
-            st.warning("❌ Nessun dato valido per visualizzare la mappa.")
+            st.warning("❌ No valid data to display the map.")
             return
 
         # Determina il centro della mappa
