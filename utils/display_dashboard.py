@@ -122,9 +122,9 @@ def map_combined_datasets(dataframes, filenames=None):
 
 def display_dashboard():
     st.header("Data Analysis and Plotting")
-    st.write("Here you can upload and view your data on map and plot. Choose the chart format," 
-             "correlate and implement simple expeditious analysis. There is no data loading limit. "
-             "Use the side window to upload your files and on the dashboard will appear the various products: map and statistics.")
+    st.write("Here you can upload and view your data on map and plot. 
+             "Use the side window to upload your files and on the dashboard will appear the various products: *🌍 Map Generator and 📊 Statistics."
+             "Choose the chart format, correlate and implement simple expeditious analysis. There is no data loading limit. ")
     st.sidebar.header("📂 Upload Files")
     uploaded_files = st.sidebar.file_uploader("Drag & Drop your CSV files here", type=['csv', 'xlsx', 'txt'], accept_multiple_files=True)
 
