@@ -126,7 +126,7 @@ def map_combined_datasets(dataframes, filenames=None):
 def display_dashboard():
     """Dashboard per la gestione dei file con Drag & Drop."""
     st.header("Data Analysis and Plotting")
-    st.write("Here you can upload and view your data on map and plot. Choose the chart format," 
+    st.text("Here you can upload and view your data on map and plot. Choose the chart format," 
              "correlate and implement simple expeditious analysis. There is no data loading limit. "
              "Use the side window to upload your files and on the dashboard will appear the various products: map and statistics."
     # Sidebar con file uploader
