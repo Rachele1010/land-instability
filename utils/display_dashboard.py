@@ -53,16 +53,6 @@ def map_combined_datasets(dataframes, filenames=None):
             
             lat_columns.append(lat_col)
             lon_columns.append(lon_col)
-        
-        st.subheader("Legenda")
-        st.markdown("""
-        - 🔴 Dataset 1
-        - 🔵 Dataset 2
-        - 🟢 Dataset 3
-        - 🟣 Dataset 4
-        - 🟠 Dataset 5
-        - 🎀 Dataset 6
-        """)
     
     with col1:
         st.subheader("🗺 Data Mapping")
@@ -121,11 +111,13 @@ def map_combined_datasets(dataframes, filenames=None):
                 center=dict(lat=center_lat, lon=center_lon),
                 zoom=6
             ),
+            legend=dict(title="Legenda", x=0, y=-0.1),
             height=800,
             margin={"r":0,"t":0,"l":0,"b":0}
         )
 
         st.plotly_chart(fig, use_container_width=True)
+
 
 
 def display_dashboard():
