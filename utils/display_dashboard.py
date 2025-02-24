@@ -4,12 +4,6 @@ import plotly.graph_objects as go
 from utils.plotting import create_and_render_plot
 from utils.load import load_file, process_file
 
-import streamlit as st
-import pandas as pd
-import plotly.graph_objects as go
-from utils.plotting import create_and_render_plot
-from utils.load import load_file, process_file
-
 def map_combined_datasets(dataframes, filenames=None):
     """
     Mappa più dataset con coordinate e popups, centrando la mappa sui dati caricati o sull'Italia di default.
@@ -59,6 +53,16 @@ def map_combined_datasets(dataframes, filenames=None):
             
             lat_columns.append(lat_col)
             lon_columns.append(lon_col)
+        
+        st.subheader("Legenda")
+        st.markdown("""
+        - 🔴 Dataset 1
+        - 🔵 Dataset 2
+        - 🟢 Dataset 3
+        - 🟣 Dataset 4
+        - 🟠 Dataset 5
+        - 🎀 Dataset 6
+        """)
     
     with col1:
         st.subheader("🗺 Data Mapping")
@@ -117,12 +121,12 @@ def map_combined_datasets(dataframes, filenames=None):
                 center=dict(lat=center_lat, lon=center_lon),
                 zoom=6
             ),
-            legend=dict(title="Legenda", x=0, y=-0.1),
             height=800,
             margin={"r":0,"t":0,"l":0,"b":0}
         )
 
         st.plotly_chart(fig, use_container_width=True)
+
 
 def display_dashboard():
     st.header("Data Analysis and Plotting")
