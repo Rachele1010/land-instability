@@ -55,5 +55,5 @@ def Statistics(df_list, filenames):
                 with col4:
                     plot_type = st.selectbox("Scegli il tipo di grafico", ["line", "bar", "scatter", "pie", "heatmap", "radar"], key=f"plot_type_{idx}_merge")
                 
-        plot_echarts(df_list_selected, x_axes, y_axes, selected_datasets, plot_type)
+            plot_echarts(df_list_selected, x_axes, y_axes, selected_datasets, plot_type)
 
