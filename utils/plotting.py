@@ -1,6 +1,7 @@
 import streamlit as st
 import plotly.express as px
 import plotly.graph_objects as go
+from streamlit_echarts import st_echarts
 @st.cache_data
 
 def create_basic_bar_chart(df, x, y):
