@@ -1,7 +1,13 @@
 import pandas as pd
 import streamlit as st
 from streamlit_echarts import st_echarts
-
+def convert_unix_to_datetime(df):
+    """Converte colonne con timestamp Unix in formato leggibile."""
+    for col in df.columns:
+        if pd.api.types.is_numeric_dtype(df[col]):  # Se è numerica
+            if df[col].min() > 1_000_000_000:  # Probabile Unix timestamp
+                df[col] = pd.to_datetime(df[col], unit='s').dt.strftime('%d/%m/%Y %H:%M')
+    return df
 def plot_echarts(df, x_axis, y_axis, plot_type):
     """Genera un grafico interattivo usando Streamlit ECharts."""
     
