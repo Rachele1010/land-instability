@@ -82,7 +82,8 @@ def Statistics(df_list, filenames):
                         } for df, y_axis, name in y_axes
                     ]
                 }
-                st_echarts(options=options, height="500px")
+                st_echarts(options=options, height="500px", key="merged_chart")
+
             else:
                 st.warning("I dataset selezionati non hanno colonne in comune, impossibile fare il merge.")
         else:
