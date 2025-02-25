@@ -79,7 +79,7 @@ def Statistics(df_list, filenames):
         for idx, df in enumerate(df_list):
             df = convert_unix_to_datetime(df)
             st.caption(f"**Dataset {idx + 1} - {filenames[idx]}**")
-            col1, col2, col3 = st.columns(4)
+            col1, col2, col3, col4 = st.columns(4)
 
             with col1:
                 x_axis = st.selectbox(f"X Axis {idx + 1}", df.columns.tolist(), key=f"x_axis_{idx}")
