@@ -60,6 +60,33 @@ def create_datazoom_chart(df, x, y):
     fig = px.bar(df, x=x, y=y, title="Data Zoom Chart")
     fig.update_layout(xaxis_rangeslider_visible=True)
     return fig
+    
+def create_pie_chart(df, values_col, names_col):
+    fig = px.pie(df, values=values_col, names=names_col, title="Pie Chart")
+    return fig
+# Funzione per rendere il grafico a torta con eCharts
+
+def render_pie_chart(df, values_col, names_col):
+    data = df[[values_col, names_col]].to_dict(orient='records')
+    options = {
+        "title": {"text": "Dati Personalizzati", "left": "center"},
+        "tooltip": {"trigger": "item"},
+        "legend": {"orient": "vertical", "left": "left"},
+        "series": [{
+            "name": "Dati",
+            "type": "pie",
+            "radius": "50%",
+            "data": data,
+            "emphasis": {
+                "itemStyle": {
+                    "shadowBlur": 10,
+                    "shadowOffsetX": 0,
+                    "shadowColor": "rgba(0, 0, 0, 0.5)"
+                }
+            }
+        }]
+    }
+    st_echarts(options=options, height="500px")
 
 # Funzione per creare e visualizzare i grafici
 def create_and_render_plot(df, x_axis, y_axis, plot_type):
@@ -79,6 +106,10 @@ def create_and_render_plot(df, x_axis, y_axis, plot_type):
         y_axis_line = st.selectbox("Select Line Y axis", df.columns.tolist(), key=f"y_axis_line_{x_axis}")
         y_axis_bar = st.selectbox("Select Bar Y axis", df.columns.tolist(), key=f"y_axis_bar_{x_axis}")
         chart = create_mixed_line_and_bar_chart(df, x_axis, y_axis_line, y_axis_bar)
+    elif plot_type == "Pie":
+        chart = create_pie_chart(df, x_axis, y_axis)
+    elif plot_type == "Pie Chart (eCharts)":
+        chart =  render_pie_chart(df, y_axis, x_axis)
         return chart
     st.plotly_chart(chart, use_container_width=True)
     st.stop
