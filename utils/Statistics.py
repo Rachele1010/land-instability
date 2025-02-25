@@ -9,26 +9,21 @@ def convert_unix_to_datetime(df):
                 df[col] = pd.to_datetime(df[col], unit='s').dt.strftime('%d/%m/%Y %H:%M')
     return df
 def plot_echarts(df, x_axis, y_axis, plot_type):
-    """Genera un grafico interattivo usando Streamlit ECharts."""
+    """Genera un grafico interattivo usando Streamlit ECharts, ignorando i dati errati."""
 
-    # Verifica che y_axis sia una stringa e sia presente nel dataframe
-    if not isinstance(y_axis, str):
-        st.error("❗ Errore: y_axis non è una stringa valida.")
-        return
-    
-    if y_axis not in df.columns:
-        st.error(f"❗ Errore: La colonna '{y_axis}' non è presente nel dataset.")
-        return
-    
-    # Pulizia dati: rimuove NaN e converte tipi di dati
+    # Se y_axis non è una stringa o non è nel DataFrame, esci senza errore
+    if not isinstance(y_axis, str) or y_axis not in df.columns:
+        return  
+
+    # Rimuove i dati non validi senza crashare
     df = df[[x_axis, y_axis]].dropna()
-    df[x_axis] = df[x_axis].astype(str)  # Converte asse X in stringhe
-    df[y_axis] = pd.to_numeric(df[y_axis], errors='coerce')  # Converte asse Y in numerico
+    df[x_axis] = df[x_axis].astype(str)  # Converti X in stringhe
+    df[y_axis] = pd.to_numeric(df[y_axis], errors='coerce')  # Converti Y in numerico, sostituendo errori con NaN
+    df = df.dropna()  # Rimuovi eventuali NaN generati
 
-    # Controllo se dopo la pulizia il dataset è vuoto
-    if df[y_axis].isna().all():
-        st.warning(f"⚠️ La colonna '{y_axis}' non contiene valori numerici validi.")
-        return
+    # Se dopo la pulizia non ci sono dati validi, esci senza errore
+    if df.empty:
+        return  
 
     try:
         options = {
@@ -39,14 +34,13 @@ def plot_echarts(df, x_axis, y_axis, plot_type):
             "series": [{
                 "name": y_axis,
                 "type": plot_type,
-                "data": df[y_axis].dropna().tolist(),
+                "data": df[y_axis].tolist(),
                 "smooth": True if plot_type == "line" else False,
             }],
         }
-        
         st_echarts(options=options, height="500px")
-    except Exception as e:
-        st.error(f"⚠️ Errore durante la creazione del grafico: {e}")
+    except Exception:
+        return  # Se qualcosa va storto, salta semplicemente
 
 def Statistics(df_list, filenames):
     """Visualizza dataset individuali e permette il merge con ECharts."""
