@@ -1,20 +1,4 @@
-from streamlit_echarts import st_echarts
-import streamlit as st
 import pandas as pd
-
-def convert_unix_to_datetime(df):
-    """Converte colonne con timestamp Unix in formato leggibile."""
-    for col in df.columns:
-        if pd.api.types.is_numeric_dtype(df[col]):  # Se è numerica
-            if df[col].min() > 1_000_000_000:  # Probabile Unix timestamp
-                df[col] = pd.to_datetime(df[col], unit='s').dt.strftime('%d/%m/%Y %H:%M')
-    return df
-
-def plot_echarts(df, x_axis, y_axis, plot_type):
-    """Genera un grafico ECharts evitando errori di dati."""
-    if df.empty or x_axis not in df.columns or y_axis not in df.columns:
-        st.error(f"Errore: Colonne non valide. x_axis: {x_axis}, y_axis: {y_axis}")
-        returnimport pandas as pd
 import streamlit as st
 from streamlit_echarts import st_echarts
 
@@ -107,4 +91,5 @@ def Statistics(df_list, filenames):
                 st.warning("⚠️ I dataset selezionati non hanno colonne in comune, impossibile fare il merge.")
         else:
             st.info("ℹ️ Seleziona almeno un dataset per procedere.")
+
 
