@@ -10,14 +10,24 @@ def convert_unix_to_datetime(df):
     return df
 def plot_echarts(df, x_axis, y_axis, plot_type):
     """Genera un grafico interattivo usando Streamlit ECharts."""
+
+    # Verifica che y_axis sia una stringa e sia presente nel dataframe
+    if not isinstance(y_axis, str):
+        st.error("❗ Errore: y_axis non è una stringa valida.")
+        return
+    
+    if y_axis not in df.columns:
+        st.error(f"❗ Errore: La colonna '{y_axis}' non è presente nel dataset.")
+        return
     
     # Pulizia dati: rimuove NaN e converte tipi di dati
     df = df[[x_axis, y_axis]].dropna()
-    df[x_axis] = df[x_axis].astype(str)
-    df[y_axis] = pd.to_numeric(df[y_axis], errors='coerce').dropna()
+    df[x_axis] = df[x_axis].astype(str)  # Converte asse X in stringhe
+    df[y_axis] = pd.to_numeric(df[y_axis], errors='coerce')  # Converte asse Y in numerico
 
-    if df.empty:
-        st.warning("❗ Il dataset selezionato è vuoto dopo la pulizia. Seleziona un'altra colonna.")
+    # Controllo se dopo la pulizia il dataset è vuoto
+    if df[y_axis].isna().all():
+        st.warning(f"⚠️ La colonna '{y_axis}' non contiene valori numerici validi.")
         return
 
     try:
@@ -29,7 +39,7 @@ def plot_echarts(df, x_axis, y_axis, plot_type):
             "series": [{
                 "name": y_axis,
                 "type": plot_type,
-                "data": df[y_axis].tolist(),
+                "data": df[y_axis].dropna().tolist(),
                 "smooth": True if plot_type == "line" else False,
             }],
         }
