@@ -44,12 +44,11 @@ def Statistics(df_list, filenames):
     col1, col2 = st.columns(2)
     
     with col1:
-        if st.button("🔄 Merge Datasets"):
-            st.session_state["show_individual_plots"] = False
-    with col2:
         if st.button("📊 Single Plot"):
             st.session_state["show_individual_plots"] = True
-    
+    with col2:
+        if st.button("🔄 Merge Datasets"):
+            st.session_state["show_individual_plots"] = False
     if st.session_state["show_individual_plots"]:
         for idx, df in enumerate(df_list):
             df = convert_unix_to_datetime(df)
@@ -62,10 +61,12 @@ def Statistics(df_list, filenames):
                 y_axis = st.selectbox(f"Y Axis {idx + 1}", df.columns.tolist(), key=f"y_axis_{idx}")
             with col3:
                 plot_type = st.selectbox(f"Plot Type {idx + 1}", ["line", "bar", "scatter", "pie", "heatmap", "radar", "candlestick"], key=f"plot_type_{idx}")
-            
-            st.dataframe(df)
-            if not df.empty:
-                plot_echarts([df], [x_axis], [y_axis], [filenames[idx]], plot_type)
+            col1, col2 = st.columns([1,2])
+            with col1:
+                st.dataframe(df)
+            with col2:    
+                if not df.empty:
+                    plot_echarts([df], [x_axis], [y_axis], [filenames[idx]], plot_type)
     else:
         st.subheader("📊 Merge Multiple Datasets")
         col1, col2, col3, col4 = st.columns(4)
