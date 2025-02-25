@@ -12,7 +12,7 @@ def map_combined_datasets(dataframes, filenames=None):
         filenames = [f"Dataset {i+1}" for i in range(len(dataframes))]
 
     if not dataframes:
-        st.error("❌ Nessun dataset disponibile.")
+        st.error("❌ No available datasets.")
         return
 
     col1, col2 = st.columns([5, 1])
@@ -32,7 +32,7 @@ def map_combined_datasets(dataframes, filenames=None):
         
         for i, df in enumerate(dataframes):
             if df is None or df.empty:
-                st.warning(f"⚠ Il dataset '{filenames[i]}' è vuoto.")
+                st.warning(f"⚠ Il dataset '{filenames[i]}' is empty.")
                 continue
             
             detected_lat_col = next((col for col in coordinate_variants["lat"] if col in df.columns), None)
@@ -44,7 +44,7 @@ def map_combined_datasets(dataframes, filenames=None):
                 detected_lon_col = "x" if "x" in df.columns else "X" if "X" in df.columns else None
 
             if detected_lat_col is None or detected_lon_col is None:
-                st.warning(f"⚠ Il dataset '{filenames[i]}' non ha colonne di latitudine o longitudine riconosciute.")
+                st.warning(f"⚠ Dataset '{filenames[i]}' hasn't lat and lon.")
                 continue
             
             with st.expander(f"File: {filenames[i]}"):
