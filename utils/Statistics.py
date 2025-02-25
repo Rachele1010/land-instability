@@ -9,6 +9,8 @@ def convert_unix_to_datetime(df):
             df[col] = pd.to_datetime(df[col], unit='s').dt.strftime('%d/%m/%Y %H:%M')
     return df
 
+import uuid  # Importiamo il modulo per generare chiavi uniche
+
 def plot_echarts(df_list, x_axes, y_axes, dataset_names, plot_type):
     """Genera un grafico ECharts con più dataset senza richiedere colonne comuni."""
     
@@ -27,11 +29,10 @@ def plot_echarts(df_list, x_axes, y_axes, dataset_names, plot_type):
         ],
     }
     
-    # Genera una chiave univoca basata sul nome del dataset e sull'indice
-    unique_key = f"echarts_{plot_type}_{'_'.join(dataset_names)}_{len(df_list)}"
+    # Creazione di una chiave univoca con uuid
+    unique_key = f"echarts_{plot_type}_{'_'.join(dataset_names)}_{uuid.uuid4().hex}"
     
     st_echarts(options=options, height="500px", key=unique_key)
-
 
 def Statistics(df_list, filenames):
     """Gestisce la visualizzazione e il merge dei dataset."""
