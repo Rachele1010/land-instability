@@ -51,7 +51,7 @@ def Statistics(df_list, filenames):
             with col2:
                 y_axis = st.selectbox(f"Y Axis {idx + 1}", df.columns.tolist(), key=f"y_axis_{idx}")
             with col3:
-                plot_type = st.selectbox(f"Plot Type {idx + 1}", ["line", "bar", "scatter", "pie", "heatmap", "radar"], key=f"plot_type_{idx}")
+                plot_type = st.selectbox(f"Plot Type {idx + 1}", ["line", "bar", "scatter", "pie", "Customized Pie", "heatmap", "radar"], key=f"plot_type_{idx}")
 
             st.dataframe(df)
 
@@ -76,7 +76,7 @@ def Statistics(df_list, filenames):
                 for i, name in enumerate(selected_datasets):
                     y_axes.append(st.selectbox(f"Y Axis per {name}", df_list_selected[i].columns.tolist(), key=f"y_axis_merge_{i}"))
             with col4:
-                plot_type = st.selectbox("Scegli il tipo di grafico", ["line", "bar", "scatter", "pie", "heatmap", "radar"], key="plot_type_merge")
+                plot_type = st.selectbox("Scegli il tipo di grafico", ["line", "bar", "scatter", "pie", "Customized Pie", "heatmap", "radar"], key="plot_type_merge")
 
             # Mostra il grafico unificato
             plot_echarts(df_list_selected, x_axes, y_axes, selected_datasets, plot_type)
