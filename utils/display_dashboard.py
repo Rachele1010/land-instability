@@ -33,35 +33,35 @@ def display_dashboard():
         map_combined_datasets(df_list, filenames)
     
     with tab2:
-    st.subheader("📈 Data Plotting")
-
-    # Opzione per selezionare più dataset per merge
-    selected_datasets = st.multiselect("Seleziona i dataset da unire", filenames, default=filenames)
-
-    if selected_datasets:
-        merged_dfs = [df_list[filenames.index(name)] for name in selected_datasets]
-
-        # Verifica che abbiano almeno una colonna in comune
-        common_columns = set(merged_dfs[0].columns)
-        for df in merged_dfs[1:]:
-            common_columns.intersection_update(df.columns)
-
-        if common_columns:
-            x_axis = st.selectbox("Seleziona la colonna X comune", list(common_columns))
-            y_axes = []
-            for idx, df in enumerate(merged_dfs):
-                y_axis = st.selectbox(f"Seleziona colonna Y per {selected_datasets[idx]}", df.columns.tolist(), key=f"y_axis_{idx}")
-                y_axes.append((df, y_axis, selected_datasets[idx]))  # Salviamo anche il nome del dataset
-
-            # Creare un grafico combinato
-            fig = go.Figure()
-            for df, y_axis, name in y_axes:
-                fig.add_trace(go.Scatter(x=df[x_axis], y=df[y_axis], mode='lines+markers', name=name))
-
-            fig.update_layout(title="Grafico combinato", xaxis_title=x_axis, yaxis_title="Valori")
-            st.plotly_chart(fig, use_container_width=True)
+        st.subheader("📈 Data Plotting")
+    
+        # Opzione per selezionare più dataset per merge
+        selected_datasets = st.multiselect("Seleziona i dataset da unire", filenames, default=filenames)
+    
+        if selected_datasets:
+            merged_dfs = [df_list[filenames.index(name)] for name in selected_datasets]
+    
+            # Verifica che abbiano almeno una colonna in comune
+            common_columns = set(merged_dfs[0].columns)
+            for df in merged_dfs[1:]:
+                common_columns.intersection_update(df.columns)
+    
+            if common_columns:
+                x_axis = st.selectbox("Seleziona la colonna X comune", list(common_columns))
+                y_axes = []
+                for idx, df in enumerate(merged_dfs):
+                    y_axis = st.selectbox(f"Seleziona colonna Y per {selected_datasets[idx]}", df.columns.tolist(), key=f"y_axis_{idx}")
+                    y_axes.append((df, y_axis, selected_datasets[idx]))  # Salviamo anche il nome del dataset
+    
+                # Creare un grafico combinato
+                fig = go.Figure()
+                for df, y_axis, name in y_axes:
+                    fig.add_trace(go.Scatter(x=df[x_axis], y=df[y_axis], mode='lines+markers', name=name))
+    
+                fig.update_layout(title="Grafico combinato", xaxis_title=x_axis, yaxis_title="Valori")
+                st.plotly_chart(fig, use_container_width=True)
+            else:
+                st.warning("I dataset selezionati non hanno colonne in comune, impossibile fare il merge.")
         else:
-            st.warning("I dataset selezionati non hanno colonne in comune, impossibile fare il merge.")
-    else:
-        st.info("Seleziona almeno un dataset per procedere.")
-
+            st.info("Seleziona almeno un dataset per procedere.")
+    
