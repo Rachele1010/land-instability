@@ -53,8 +53,7 @@ def Statistics(df_list, filenames):
                 with col3:
                     y_axes = [st.selectbox(f"Colonna Y per {name}", df.columns.tolist(), key=f"y_axis_merge_{i}") for i, (df, name) in enumerate(zip(df_list_selected, selected_datasets))]
                 with col4:
-                    plot_type = st.selectbox("Scegli il tipo di grafico", ["line", "bar", "scatter"], key="plot_type_merge")
-                if st.button("📊 Genera Grafico Merge"):
-                    plot_echarts(df_list_selected, x_axes, y_axes, selected_datasets, plot_type)
-            else:
-                st.info("ℹ️ Seleziona almeno un dataset per procedere.")
+                    plot_type = st.selectbox("Scegli il tipo di grafico", ["line", "bar", "scatter", "pie", "heatmap", "radar"], key=f"plot_type_{idx}_merge")
+                
+        plot_echarts(df_list_selected, x_axes, y_axes, selected_datasets, plot_type)
+
