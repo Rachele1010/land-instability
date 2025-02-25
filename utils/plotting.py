@@ -106,7 +106,7 @@ def create_and_render_plot(df, x_axis, y_axis, plot_type):
         y_axis_bar = st.selectbox("Select Bar Y axis", df.columns.tolist(), key=f"y_axis_bar_{x_axis}")
         chart = create_mixed_line_and_bar_chart(df, x_axis, y_axis_line, y_axis_bar)
     elif plot_type == "Pie Chart (Bokeh)":
-    st.write(f"✅ Chiamata render_pie_chart_bokeh con {y_axis} e {x_axis}")
-    render_pie_chart_bokeh(df, y_axis, x_axis)
+        st.write(f"✅ Chiamata render_pie_chart_bokeh con {y_axis} e {x_axis}")
+        render_pie_chart_bokeh(df, y_axis, x_axis)
     return
 
