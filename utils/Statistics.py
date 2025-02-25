@@ -11,6 +11,7 @@ def convert_unix_to_datetime(df):
 
 def plot_echarts(df_list, x_axes, y_axes, dataset_names, plot_type):
     """Genera un grafico ECharts con più dataset senza richiedere colonne comuni."""
+    
     options = {
         "title": {"text": f"{plot_type.capitalize()} Chart"},
         "tooltip": {"trigger": "axis"},
@@ -25,7 +26,12 @@ def plot_echarts(df_list, x_axes, y_axes, dataset_names, plot_type):
             for i, (df, y) in enumerate(zip(df_list, y_axes))
         ],
     }
-    st_echarts(options=options, height="500px", key=f"echarts_{plot_type}_{dataset_names}")
+    
+    # Genera una chiave univoca basata sul nome del dataset e sull'indice
+    unique_key = f"echarts_{plot_type}_{'_'.join(dataset_names)}_{len(df_list)}"
+    
+    st_echarts(options=options, height="500px", key=unique_key)
+
 
 def Statistics(df_list, filenames):
     """Gestisce la visualizzazione e il merge dei dataset."""
