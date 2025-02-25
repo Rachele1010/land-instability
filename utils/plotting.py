@@ -1,7 +1,10 @@
 import streamlit as st
 import plotly.express as px
 import plotly.graph_objects as go
-from streamlit_echarts import st_echarts
+from bokeh.plotting import figure
+from bokeh.models import ColumnDataSource
+from bokeh.transform import cumsum
+from bokeh.palettes import Category20c
 @st.cache_data
 
 def create_basic_bar_chart(df, x, y):
@@ -62,32 +65,27 @@ def create_datazoom_chart(df, x, y):
     fig.update_layout(xaxis_rangeslider_visible=True)
     return fig
     
-def create_pie_chart(df, values_col, names_col):
-    fig = px.pie(df, values=values_col, names=names_col, title="Pie Chart")
-    return fig
-# Funzione per rendere il grafico a torta con eCharts
+def render_pie_chart_bokeh(df, values_col, names_col):
+    st.write("🔍 Debug: Dati in ingresso per il Pie Chart (Bokeh)")
+    st.write(df[[names_col, values_col]].head())  # Controllo dati
 
-def render_pie_chart(df, values_col, names_col):
-    data = df[[values_col, names_col]].to_dict(orient='records')
-    options = {
-        "title": {"text": "Dati Personalizzati", "left": "center"},
-        "tooltip": {"trigger": "item"},
-        "legend": {"orient": "vertical", "left": "left"},
-        "series": [{
-            "name": "Dati",
-            "type": "pie",
-            "radius": "50%",
-            "data": data,
-            "emphasis": {
-                "itemStyle": {
-                    "shadowBlur": 10,
-                    "shadowOffsetX": 0,
-                    "shadowColor": "rgba(0, 0, 0, 0.5)"
-                }
-            }
-        }]
-    }
-    st_echarts(options=options, height="500px")
+    df = df[[names_col, values_col]].copy()  
+    df['angle'] = df[values_col] / df[values_col].sum() * 2 * pi  # Converti in angoli
+    df['color'] = Category20c[len(df)]  # Colori automatici
+
+    p = figure(plot_height=500, title="Pie Chart con Bokeh", toolbar_location=None,
+               tools="hover", tooltips="@"+names_col+": @"+values_col, x_range=(-1, 1))
+
+    p.wedge(x=0, y=0, radius=0.8,
+            start_angle=cumsum('angle', include_zero=True), 
+            end_angle=cumsum('angle'),
+            line_color="white", fill_color='color', source=df)
+
+    p.axis.axis_label = None
+    p.axis.visible = False
+    p.grid.grid_line_color = None
+
+    st.bokeh_chart(p, use_container_width=True)
 
 # Funzione per creare e visualizzare i grafici
 def create_and_render_plot(df, x_axis, y_axis, plot_type):
@@ -107,11 +105,8 @@ def create_and_render_plot(df, x_axis, y_axis, plot_type):
         y_axis_line = st.selectbox("Select Line Y axis", df.columns.tolist(), key=f"y_axis_line_{x_axis}")
         y_axis_bar = st.selectbox("Select Bar Y axis", df.columns.tolist(), key=f"y_axis_bar_{x_axis}")
         chart = create_mixed_line_and_bar_chart(df, x_axis, y_axis_line, y_axis_bar)
-    elif plot_type == "Pie Chart":
-        chart = create_pie_chart(df, y_axis, x_axis)  # Inverti gli argomenti
-        st.plotly_chart(chart, use_container_width=True)  
-    elif plot_type == "Pie Chart (eCharts)":
-        st.write(f"Generazione Pie Chart con eCharts per {y_axis} e {x_axis}")
-        render_pie_chart(df, y_axis, x_axis)
+    elif plot_type == "Pie Chart (Bokeh)":
+    st.write(f"✅ Chiamata render_pie_chart_bokeh con {y_axis} e {x_axis}")
+    render_pie_chart_bokeh(df, y_axis, x_axis)
     return
 
