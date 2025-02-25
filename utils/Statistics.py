@@ -2,7 +2,9 @@ import streamlit as st
 import pandas as pd
 import uuid
 from streamlit_echarts import st_echarts
-from streamlit_pyecharts import st_pyecharts
+from pyecharts.charts import Line, Bar, Scatter, Pie
+from pyecharts import options as opts
+from streamlit.components.v1 import html
 from demo_echarts import ST_DEMOS
 from demo_pyecharts import ST_PY_DEMOS
 
@@ -37,6 +39,26 @@ def plot_echarts(df_list, x_axes, y_axes, dataset_names, plot_type):
     options = get_chart_options(plot_type, df_list, x_axes, y_axes, dataset_names)
     unique_key = f"echarts_{plot_type}_{uuid.uuid4().hex}"
     st_echarts(options=options, height="500px", key=unique_key)
+
+# Funzione per generare i grafici con PyeCharts
+def plot_pyecharts(df, x_axis, y_axis, plot_type):
+    x_data = df[x_axis].astype(str).tolist()
+    y_data = df[y_axis].tolist()
+
+    if plot_type == "line":
+        chart = Line().add_xaxis(x_data).add_yaxis(y_axis, y_data).set_global_opts(title_opts=opts.TitleOpts(title="PyeCharts Line Chart"))
+    elif plot_type == "bar":
+        chart = Bar().add_xaxis(x_data).add_yaxis(y_axis, y_data).set_global_opts(title_opts=opts.TitleOpts(title="PyeCharts Bar Chart"))
+    elif plot_type == "scatter":
+        chart = Scatter().add_xaxis(x_data).add_yaxis(y_axis, y_data).set_global_opts(title_opts=opts.TitleOpts(title="PyeCharts Scatter Chart"))
+    elif plot_type == "pie":
+        chart = Pie().add("", [list(z) for z in zip(x_data, y_data)]).set_global_opts(title_opts=opts.TitleOpts(title="PyeCharts Pie Chart"))
+    else:
+        st.error("Tipo di grafico non supportato con PyeCharts")
+        return
+
+    html_code = chart.render_embed()
+    html(html_code, height=500)
 
 # Funzione principale per la visualizzazione dei dataset
 def Statistics(df_list, filenames):
@@ -74,7 +96,7 @@ def Statistics(df_list, filenames):
             with col2:
                 y_axis = st.selectbox(f"Y Axis {idx + 1}", df.columns.tolist(), key=f"y_axis_{idx}")
             with col3:
-                plot_type = st.selectbox(f"Plot Type {idx + 1}", ["line", "bar", "scatter", "pie", "heatmap", "radar", "candlestick"], key=f"plot_type_{idx}")
+                plot_type = st.selectbox(f"Plot Type {idx + 1}", ["line", "bar", "scatter", "pie"], key=f"plot_type_{idx}")
 
             col1, col2 = st.columns([1, 2])
             with col1:
@@ -84,7 +106,7 @@ def Statistics(df_list, filenames):
                     if selected_api == "echarts":
                         plot_echarts([df], [x_axis], [y_axis], [filenames[idx]], plot_type)
                     else:
-                        st_pyecharts(demo())
+                        plot_pyecharts(df, x_axis, y_axis, plot_type)
 
     else:
         st.subheader("📊 Merge Multiple Datasets")
@@ -104,12 +126,13 @@ def Statistics(df_list, filenames):
                 for i, name in enumerate(selected_datasets):
                     y_axes.append(st.selectbox(f"Y Axis {name}", df_list_selected[i].columns.tolist(), key=f"y_axis_merge_{i}"))
             with col4:
-                plot_type = st.selectbox("Scegli il tipo di grafico", ["line", "bar", "scatter", "pie", "heatmap", "radar", "candlestick"], key="plot_type_merge")
+                plot_type = st.selectbox("Scegli il tipo di grafico", ["line", "bar", "scatter", "pie"], key="plot_type_merge")
 
             if selected_api == "echarts":
                 plot_echarts(df_list_selected, x_axes, y_axes, selected_datasets, plot_type)
             else:
-                st_pyecharts(demo())
+                for i, df in enumerate(df_list_selected):
+                    plot_pyecharts(df, x_axes[i], y_axes[i], plot_type)
 
     # Eseguire il grafico della demo selezionata
     demo()
