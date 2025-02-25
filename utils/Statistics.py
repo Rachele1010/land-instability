@@ -43,14 +43,18 @@ def Statistics(df_list, filenames):
                 plot_echarts([df], [x_axis], [y_axis], [filenames[idx]], plot_type)
     else:
         st.subheader("📊 Merge Multiple Datasets")
-        selected_datasets = st.multiselect("Seleziona i dataset da plottare insieme", filenames, default=filenames)
-        if selected_datasets:
-            df_list_selected = [df_list[filenames.index(name)] for name in selected_datasets]
-            x_axes = [st.selectbox(f"Colonna X per {name}", df.columns.tolist(), key=f"x_axis_merge_{i}") for i, (df, name) in enumerate(zip(df_list_selected, selected_datasets))]
-            y_axes = [st.selectbox(f"Colonna Y per {name}", df.columns.tolist(), key=f"y_axis_merge_{i}") for i, (df, name) in enumerate(zip(df_list_selected, selected_datasets))]
-            plot_type = st.selectbox("Scegli il tipo di grafico", ["line", "bar", "scatter"], key="plot_type_merge")
-            if st.button("📊 Genera Grafico Merge"):
-                plot_echarts(df_list_selected, x_axes, y_axes, selected_datasets, plot_type)
-        else:
-            st.info("ℹ️ Seleziona almeno un dataset per procedere.")
-
+        col1, col2, col3, col4 = st.columns([1, 1, 1, 1])
+        with col1:
+            selected_datasets = st.multiselect("Seleziona i dataset da plottare insieme", filenames, default=filenames)
+            if selected_datasets:
+                df_list_selected = [df_list[filenames.index(name)] for name in selected_datasets]
+                with col2:
+                    x_axes = [st.selectbox(f"Colonna X per {name}", df.columns.tolist(), key=f"x_axis_merge_{i}") for i, (df, name) in enumerate(zip(df_list_selected, selected_datasets))]
+                with col3:
+                    y_axes = [st.selectbox(f"Colonna Y per {name}", df.columns.tolist(), key=f"y_axis_merge_{i}") for i, (df, name) in enumerate(zip(df_list_selected, selected_datasets))]
+                with col4:
+                    plot_type = st.selectbox("Scegli il tipo di grafico", ["line", "bar", "scatter"], key="plot_type_merge")
+                if st.button("📊 Genera Grafico Merge"):
+                    plot_echarts(df_list_selected, x_axes, y_axes, selected_datasets, plot_type)
+            else:
+                st.info("ℹ️ Seleziona almeno un dataset per procedere.")
