@@ -11,31 +11,6 @@ def convert_unix_to_datetime(df):
             df[col] = pd.to_datetime(df[col], unit='s').dt.strftime('%d/%m/%Y %H:%M')
     return df
 
-# Funzione per generare le opzioni dei grafici con ECharts
-def get_chart_options(plot_type, df_list, x_axes, y_axes, dataset_names):
-    options = {
-        "title": {"text": f"{plot_type.capitalize()} Chart"},
-        "tooltip": {"trigger": "axis"},
-        "legend": {"data": dataset_names},
-        "xAxis": [{"type": "category", "data": df[x].astype(str).tolist(), "name": dataset_names[i]} for i, (df, x) in enumerate(zip(df_list, x_axes))],
-        "yAxis": {"type": "value"},
-        "series": []
-    }
-
-    for i, (df, y) in enumerate(zip(df_list, y_axes)):
-        series_data = {"name": dataset_names[i], "type": plot_type, "data": df[y].tolist()}
-        if plot_type == "line":
-            series_data["smooth"] = True
-        options["series"].append(series_data)
-
-    return options
-
-# Funzione per generare i grafici con ECharts
-def plot_echarts(df_list, x_axes, y_axes, dataset_names, plot_type):
-    options = get_chart_options(plot_type, df_list, x_axes, y_axes, dataset_names)
-    unique_key = f"echarts_{plot_type}_{uuid.uuid4().hex}"
-    st_echarts(options=options, height="500px", key=unique_key)
-
 # Funzione principale per la visualizzazione dei dataset
 def Statistics(df_list, filenames):
     if "show_individual_plots" not in st.session_state:
@@ -63,15 +38,14 @@ def Statistics(df_list, filenames):
                 y_axis = st.selectbox(f"Y Axis {idx + 1}", df.columns.tolist(), key=f"y_axis_{idx}")
             with col3:
                 # Selezione del grafico disponibile tra le demo di ECharts
-                page_options = list(ST_DEMOS.keys())
-                plot_type = st.selectbox("Scegli un esempio di grafico", page_options)
-                demo, url = ST_DEMOS[plot_type]
+                plot_type = st.selectbox(f"Plot Type {idx + 1}", ["Basic Scatter", "Basic Bar", "Basic Line", "Mixed Line and Bar", 
+                                                                  "Calendar Heatmap", "DataZoom"], key=f"plot_type_{idx}")
 
             col1, col2 = st.columns([1, 2])
             with col1:
                 st.dataframe(df)
             with col2:
-                plot_echarts([df], [x_axis], [y_axis], [filenames[idx]], plot_type)
+                create_and_render_plot(df, x_axis, y_axis, plot_type)
 
     else:
         st.subheader("📊 Merge Multiple Datasets")
@@ -91,12 +65,13 @@ def Statistics(df_list, filenames):
                 for i, name in enumerate(selected_datasets):
                     y_axes.append(st.selectbox(f"Y Axis {name}", df_list_selected[i].columns.tolist(), key=f"y_axis_merge_{i}"))
             with col4:
-                plot_type = st.selectbox("Scegli il tipo di grafico", ["line", "bar", "scatter", "pie"], key="plot_type_merge")
+                plot_type = st.selectbox(f"Plot Type {idx + 1}", ["Basic Scatter", "Basic Bar", "Basic Line", "Mixed Line and Bar", 
+                                                                  "Calendar Heatmap", "DataZoom"], key=f"plot_type_{idx}_merge")
 
-            plot_echarts(df_list_selected, x_axes, y_axes, selected_datasets, plot_type)
+                create_and_render_plot(df, x_axis, y_axis, plot_type)
 
-    # Eseguire il grafico della demo selezionata
-    demo()
+
+
 
 
 
