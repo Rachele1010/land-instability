@@ -79,7 +79,8 @@ def Statistics(df_list, filenames):
             with col2:
                 y_axis = st.selectbox(f"Y Axis {idx + 1}", df.columns.tolist(), key=f"y_axis_{idx}")
             with col3:
-                plot_type = st.selectbox(f"Plot Type {idx + 1}", ["line", "bar", "scatter"], key=f"plot_type_{idx}")
+                plot_type = st.selectbox(f"Plot Type {idx + 1}", ["bar", "boxplot", "calendar", "dataset", "events", "heatmap", "line",
+                                                                  "map", "pictorial_bar","pie","radar","scatter","tre"], key=f"plot_type_{idx}")
             with col4:
                 st.dataframe(df)
             with col5:
@@ -112,12 +113,9 @@ def Statistics(df_list, filenames):
                     merged_df = pd.concat([df.set_index(x_axis)[y_axis].rename(name) for df, y_axis, name in y_axes], axis=1).reset_index()
                     st.dataframe(merged_df)
                 with col2:
-                    for name in merged_df.columns[1:]:
-                        plot_echarts(merged_df, x_axis, name, plot_type)
+                    plot_echarts(merged_df, x_axis, merged_df.columns[1:].tolist(), plot_type)  # Passa tutte le colonne Y
+
             else:
                 st.warning("⚠️ I dataset selezionati non hanno colonne in comune, impossibile fare il merge.")
         else:
             st.info("ℹ️ Seleziona almeno un dataset per procedere.")
-
-
-
