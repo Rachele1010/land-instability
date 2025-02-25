@@ -15,10 +15,19 @@ def plot_echarts(df, x_axis, y_axis, plot_type):
     if not isinstance(y_axis, str) or y_axis not in df.columns:
         return  
 
+    # Se la colonna non è di tipo Series, esci senza errore
+    if not isinstance(df[y_axis], pd.Series):
+        return  
+
     # Rimuove i dati non validi senza crashare
     df = df[[x_axis, y_axis]].dropna()
+
+    # Verifica che la colonna Y abbia dati validi prima della conversione
+    if df[y_axis].empty or df[y_axis].dtype not in [np.int64, np.float64, np.int32, np.float32, 'O']:
+        return  # Se Y è vuoto o non ha un tipo gestibile, esci senza errore
+
     df[x_axis] = df[x_axis].astype(str)  # Converti X in stringhe
-    df[y_axis] = pd.to_numeric(df[y_axis], errors='coerce')  # Converti Y in numerico, sostituendo errori con NaN
+    df[y_axis] = pd.to_numeric(df[y_axis], errors='coerce')  # Converti Y in numerico
     df = df.dropna()  # Rimuovi eventuali NaN generati
 
     # Se dopo la pulizia non ci sono dati validi, esci senza errore
@@ -41,6 +50,7 @@ def plot_echarts(df, x_axis, y_axis, plot_type):
         st_echarts(options=options, height="500px")
     except Exception:
         return  # Se qualcosa va storto, salta semplicemente
+
 
 def Statistics(df_list, filenames):
     """Visualizza dataset individuali e permette il merge con ECharts."""
