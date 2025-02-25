@@ -109,11 +109,9 @@ def create_and_render_plot(df, x_axis, y_axis, plot_type):
         chart = create_mixed_line_and_bar_chart(df, x_axis, y_axis_line, y_axis_bar)
     elif plot_type == "Pie Chart":
         chart = create_pie_chart(df, y_axis, x_axis)  # Inverti gli argomenti
-        st.plotly_chart(chart, use_container_width=True)
-        return
+        st.plotly_chart(chart, use_container_width=True)  
     elif plot_type == "Pie Chart (eCharts)":
-        render_pie_chart(df, y_axis, x_axis)  # Non serve assegnare a "chart"
-        return  # Stop per evitare st.plotly_chart()
+        st.write(f"Generazione Pie Chart con eCharts per {y_axis} e {x_axis}")
+        render_pie_chart(df, y_axis, x_axis)
+    return
 
-    st.plotly_chart(chart, use_container_width=True)
-    st.stop
