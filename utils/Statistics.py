@@ -2,24 +2,20 @@ import streamlit as st
 import pandas as pd
 from streamlit_echarts import st_echarts
 
-def plot_echarts(df, x_axis, y_axes, plot_type):
-    """Genera un grafico ECharts con più variabili e legenda."""
-    if x_axis not in df.columns or any(y not in df.columns for y in y_axes):
-        st.warning("❗ Alcune colonne selezionate non esistono nel dataset.")
-        return  
-    
-    df = df[[x_axis] + y_axes].dropna()
-    df[x_axis] = df[x_axis].astype(str)
-    
+def plot_echarts(df_list, x_axes, y_axes, dataset_names, plot_type):
+    """Genera un grafico ECharts con più dataset senza richiedere colonne comuni."""
     options = {
         "title": {"text": f"{plot_type.capitalize()} Chart"},
         "tooltip": {"trigger": "axis"},
-        "legend": {"data": y_axes},
-        "xAxis": {"type": "category", "data": df[x_axis].tolist()},
+        "legend": {"data": dataset_names},
+        "xAxis": [
+            {"type": "category", "data": df[x].astype(str).tolist(), "name": dataset_names[i]}
+            for i, (df, x) in enumerate(zip(df_list, x_axes))
+        ],
         "yAxis": {"type": "value"},
         "series": [
-            {"name": y, "type": plot_type, "data": df[y].tolist(), "smooth": True if plot_type == "line" else False}
-            for y in y_axes
+            {"name": dataset_names[i], "type": plot_type, "data": df[y].tolist(), "smooth": True if plot_type == "line" else False}
+            for i, (df, y) in enumerate(zip(df_list, y_axes))
         ],
     }
     st_echarts(options=options, height="500px")
@@ -44,24 +40,17 @@ def Statistics(df_list, filenames):
                 plot_type = st.selectbox(f"Plot Type {idx + 1}", ["line", "bar", "scatter", "pie", "heatmap", "radar"], key=f"plot_type_{idx}")
             st.dataframe(df)
             if not df.empty:
-                plot_echarts(df, x_axis, [y_axis], plot_type)
+                plot_echarts([df], [x_axis], [y_axis], [filenames[idx]], plot_type)
     else:
         st.subheader("📊 Merge Multiple Datasets")
-        selected_datasets = st.multiselect("Seleziona i dataset da unire", filenames, default=filenames)
+        selected_datasets = st.multiselect("Seleziona i dataset da plottare insieme", filenames, default=filenames)
         if selected_datasets:
-            merged_dfs = [df_list[filenames.index(name)] for name in selected_datasets]
-            common_columns = set(merged_dfs[0].columns)
-            for df in merged_dfs[1:]:
-                common_columns.intersection_update(df.columns)
-            if common_columns:
-                x_axis = st.selectbox("Seleziona la colonna X comune", list(common_columns), key="merge_x_axis")
-                y_axes = [st.selectbox(f"Colonna Y per {selected_datasets[idx]}", df.columns.tolist(), key=f"y_axis_merge_{idx}") for idx, df in enumerate(merged_dfs)]
-                plot_type = st.selectbox("Scegli il tipo di grafico", ["line", "bar", "scatter"], key="plot_type_merge")
-                if st.button("📊 Genera Grafico Merge"):
-                    merged_df = pd.concat([df.set_index(x_axis)[y].rename(name) for df, y, name in zip(merged_dfs, y_axes, selected_datasets)], axis=1).reset_index()
-                    st.dataframe(merged_df)
-                    plot_echarts(merged_df, x_axis, merged_df.columns[1:].tolist(), plot_type)
-            else:
-                st.warning("⚠️ I dataset selezionati non hanno colonne in comune.")
+            df_list_selected = [df_list[filenames.index(name)] for name in selected_datasets]
+            x_axes = [st.selectbox(f"Colonna X per {name}", df.columns.tolist(), key=f"x_axis_merge_{i}") for i, (df, name) in enumerate(zip(df_list_selected, selected_datasets))]
+            y_axes = [st.selectbox(f"Colonna Y per {name}", df.columns.tolist(), key=f"y_axis_merge_{i}") for i, (df, name) in enumerate(zip(df_list_selected, selected_datasets))]
+            plot_type = st.selectbox("Scegli il tipo di grafico", ["line", "bar", "scatter"], key="plot_type_merge")
+            if st.button("📊 Genera Grafico Merge"):
+                plot_echarts(df_list_selected, x_axes, y_axes, selected_datasets, plot_type)
         else:
             st.info("ℹ️ Seleziona almeno un dataset per procedere.")
+
