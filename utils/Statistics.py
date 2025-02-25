@@ -67,16 +67,6 @@ def Statistics(df_list, filenames):
 
     st.subheader("📈 Data Plotting")
 
-    # Selezione API tra ECharts e PyeCharts (questa volta GLOBALE, non per ogni dataset)
-    api_options = ("echarts", "pyecharts")
-    selected_api = st.selectbox("Scegli l'API preferita:", api_options)
-
-    # Selezione del grafico disponibile tra le demo
-    page_options = list(ST_PY_DEMOS.keys()) if selected_api == "pyecharts" else list(ST_DEMOS.keys())
-    selected_page = st.selectbox("Scegli un esempio di grafico", page_options)
-    demo, url = ST_DEMOS[selected_page] if selected_api == "echarts" else ST_PY_DEMOS[selected_page]
-
-    # Pulsanti di scelta tra "Single Plot" e "Merge Plot"
     col1, col2 = st.columns(2)
     with col1:
         if st.button("📊 Single Plot"):
@@ -89,15 +79,22 @@ def Statistics(df_list, filenames):
         for idx, df in enumerate(df_list):
             df = convert_unix_to_datetime(df)
             st.caption(f"**Dataset {idx + 1} - {filenames[idx]}**")
-            col1, col2, col3 = st.columns(3)
+            col1, col2, col3 = st.columns(4)
 
             with col1:
                 x_axis = st.selectbox(f"X Axis {idx + 1}", df.columns.tolist(), key=f"x_axis_{idx}")
             with col2:
                 y_axis = st.selectbox(f"Y Axis {idx + 1}", df.columns.tolist(), key=f"y_axis_{idx}")
             with col3:
-                plot_type = st.selectbox(f"Plot Type {idx + 1}", ["line", "bar", "scatter", "pie"], key=f"plot_type_{idx}")
-
+                # Selezione API tra ECharts e PyeCharts (questa volta GLOBALE, non per ogni dataset)
+                api_options = ("echarts", "pyecharts")
+                selected_api = st.selectbox("Scegli l'API preferita:", api_options)
+            with col4:
+                # Selezione del grafico disponibile tra le demo
+                page_options = list(ST_PY_DEMOS.keys()) if selected_api == "pyecharts" else list(ST_DEMOS.keys())
+                plot_type = st.selectbox("Scegli un esempio di grafico", page_options)
+                demo, url = ST_DEMOS[plot_type] if selected_api == "echarts" else ST_PY_DEMOS[plot_type]
+            
             col1, col2 = st.columns([1, 2])
             with col1:
                 st.dataframe(df)
