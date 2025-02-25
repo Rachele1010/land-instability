@@ -18,19 +18,22 @@ def plot_echarts(df, x_axis, y_axis, plot_type):
     
     df = df[[x_axis, y_axis]].dropna()
     
-    options = {
-        "title": {"text": f"{plot_type.capitalize()} Chart"},
-        "tooltip": {"trigger": "axis"},
-        "xAxis": {"type": "category", "data": df[x_axis].tolist()},
-        "yAxis": {"type": "value"},
-        "series": [{
-            "name": y_axis,
-            "type": plot_type,
-            "data": df[y_axis].tolist(),
-            "smooth": True if plot_type == "line" else False,
-        }],
-    }
-    st_echarts(options=options, height="500px")
+    try:
+        options = {
+            "title": {"text": f"{plot_type.capitalize()} Chart"},
+            "tooltip": {"trigger": "axis"},
+            "xAxis": {"type": "category", "data": df[x_axis].astype(str).tolist()},
+            "yAxis": {"type": "value"},
+            "series": [{
+                "name": y_axis,
+                "type": plot_type,
+                "data": df[y_axis].tolist(),
+                "smooth": True if plot_type == "line" else False,
+            }],
+        }
+        st_echarts(options=options, height="500px")
+    except Exception as e:
+        st.error(f"Errore durante la creazione del grafico: {e}")
 
 def Statistics(df_list, filenames):
     """Visualizza dataset individuali e permette il merge con ECharts."""
@@ -90,3 +93,4 @@ def Statistics(df_list, filenames):
                 st.warning("I dataset selezionati non hanno colonne in comune, impossibile fare il merge.")
         else:
             st.info("Seleziona almeno un dataset per procedere.")
+
