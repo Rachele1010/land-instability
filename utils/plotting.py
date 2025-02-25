@@ -107,7 +107,7 @@ def create_and_render_plot(df, x_axis, y_axis, plot_type):
         y_axis_line = st.selectbox("Select Line Y axis", df.columns.tolist(), key=f"y_axis_line_{x_axis}")
         y_axis_bar = st.selectbox("Select Bar Y axis", df.columns.tolist(), key=f"y_axis_bar_{x_axis}")
         chart = create_mixed_line_and_bar_chart(df, x_axis, y_axis_line, y_axis_bar)
-    elif plot_type == "Pie":
+    elif plot_type == "Pie Chart":
         chart = create_pie_chart(df, x_axis, y_axis)
     elif plot_type == "Pie Chart (eCharts)":
         chart =  render_pie_chart(df, y_axis, x_axis)
