@@ -48,6 +48,7 @@ rpds-py==0.20.0
 six==1.16.0
 smmap==5.0.1
 soupsieve==2.6
+streamlit-echarts
 streamlit_folium==0.23.0
 tenacity==8.5.0
 toml==0.10.2
