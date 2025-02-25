@@ -6,6 +6,7 @@ from bokeh.models import ColumnDataSource
 from bokeh.transform import cumsum
 from bokeh.palettes import Category20c
 from math import pi
+from itertools import cycle
 @st.cache_data
 
 def create_basic_bar_chart(df, x, y):
@@ -67,29 +68,45 @@ def create_datazoom_chart(df, x, y):
     return fig
     
 def render_pie_chart_bokeh(df, values_col, names_col):
-    st.write("🔍 Debug: Dati in ingresso per il Pie Chart (Bokeh)")
-    st.write(df[[names_col, values_col]].head())  # Controllo dati
+    try:
+        if df.empty:
+            st.error("❌ Errore: Il DataFrame è vuoto. Impossibile generare il grafico.")
+            return
 
-    df = df[[names_col, values_col]].copy()  
-    df['angle'] = df[values_col] / df[values_col].sum() * 2 * pi  # Converti in angoli
-    df['color'] = Category20c[min(len(df), 20)]  # Prendi massimo 20 colori
+        if values_col not in df.columns or names_col not in df.columns:
+            st.error(f"❌ Errore: Le colonne '{values_col}' e '{names_col}' non esistono nel DataFrame.")
+            return
 
-    source = ColumnDataSource(df)
+        df = df[[names_col, values_col]].copy()
+        df.dropna(inplace=True)  # Rimuove valori NaN
+        df = df[df[values_col] > 0]  # Evita problemi con valori negativi o nulli
 
-    fig = figure(plot_height=500, title="Pie Chart con Bokeh", toolbar_location=None,
-                 tools="hover", tooltips=f"@{names_col}: @{values_col}", x_range=(-1, 1))
+        if df.empty:
+            st.error("❌ Errore: Tutti i valori validi sono stati filtrati. Controlla i dati.")
+            return
 
-    fig.wedge(x=0, y=0, radius=0.8,
-              start_angle=cumsum('angle', include_zero=True), 
-              end_angle=cumsum('angle'),
-              line_color="white", fill_color='color', source=source)
+        df['angle'] = df[values_col] / df[values_col].sum() * 2 * pi
 
-    fig.axis.axis_label = None
-    fig.axis.visible = False
-    fig.grid.grid_line_color = None  # ✅ CORRETTO!
+        # 🔹 Assicura che ci siano abbastanza colori, anche per dataset molto grandi
+        colors = list(cycle(Category20c[20]))  # Se il dataset è più grande di 20, ripete i colori
+        df['color'] = colors[:len(df)]  
 
-    st.bokeh_chart(fig, use_container_width=True)
-    return fig
+        source = ColumnDataSource(df)
+
+        fig = figure(plot_height=500, title="Pie Chart con Bokeh", toolbar_location=None,
+                     tools="hover", tooltips=f"@{names_col}: @{values_col}", x_range=(-1, 1))
+
+        fig.wedge(x=0, y=0, radius=0.8,
+                  start_angle=cumsum('angle', include_zero=True), 
+                  end_angle=cumsum('angle'),
+                  line_color="white", fill_color='color', source=source)
+
+        fig.axis.axis_label = None
+        fig.axis.visible = False
+        fig.grid.grid_line_color = None
+
+        st.bokeh_chart(fig, use_container_width=True)
+        return fig
 
 
 # Funzione per creare e visualizzare i grafici
