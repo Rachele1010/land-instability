@@ -3,6 +3,7 @@ import pandas as pd
 import uuid
 from streamlit_echarts import st_echarts
 from demo_echarts import ST_DEMOS  # Solo ECharts
+from utils.plotting import create_and_render_plot
 
 # Funzione per convertire timestamp Unix in datetime
 def convert_unix_to_datetime(df):
