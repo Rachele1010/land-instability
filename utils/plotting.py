@@ -68,48 +68,36 @@ def create_datazoom_chart(df, x, y):
     return fig
     
 def render_pie_chart_bokeh(df, values_col, names_col):
-    try:
-        if df.empty:
+    if df.empty:
             st.error("❌ Errore: Il DataFrame è vuoto. Impossibile generare il grafico.")
             return None
-
-        if values_col not in df.columns or names_col not in df.columns:
+    if values_col not in df.columns or names_col not in df.columns:
             st.error(f"❌ Errore: Le colonne '{values_col}' e '{names_col}' non esistono nel DataFrame.")
             return None  
 
-        df = df[[names_col, values_col]].copy()
-        df.dropna(inplace=True)
-        df = df[df[values_col] > 0]
+    df = df[[names_col, values_col]].copy()
+    df.dropna(inplace=True)
+    df = df[df[values_col] > 0]
+    df['angle'] = df[values_col] / df[values_col].sum() * 2 * pi
+    colors = list(cycle(Category20c[20]))  
+    df['color'] = colors[:len(df)]  
 
-        if df.empty:
-            st.error("❌ Errore: Tutti i valori validi sono stati filtrati. Controlla i dati.")
-            return None  
+    source = ColumnDataSource(df)
 
-        df['angle'] = df[values_col] / df[values_col].sum() * 2 * pi
-        colors = list(cycle(Category20c[20]))  
-        df['color'] = colors[:len(df)]  
-
-        source = ColumnDataSource(df)
-
-        fig = figure(plot_height=500, title="Pie Chart con Bokeh", toolbar_location=None,
+    fig = figure(plot_height=500, title="Pie Chart con Bokeh", toolbar_location=None,
                      tools="hover", tooltips=f"@{names_col}: @{values_col}", x_range=(-1, 1))
 
-        fig.wedge(x=0, y=0, radius=0.8,
+    fig.wedge(x=0, y=0, radius=0.8,
                   start_angle=cumsum('angle', include_zero=True), 
                   end_angle=cumsum('angle'),
                   line_color="white", fill_color='color', source=source)
 
-        fig.axis.axis_label = None
-        fig.axis.visible = False
-        fig.grid.grid_line_color = None
+    fig.axis.axis_label = None
+    fig.axis.visible = False
+    fig.grid.grid_line_color = None
 
-        st.bokeh_chart(fig, use_container_width=True)
-        return fig  
-
-    except Exception as e:
-        st.error("❌ Errore: Non è stato possibile generare il grafico.")
-        st.write("🔍 Dettagli dell'errore (per debugging):", str(e))  # Opzionale
-        return None  
+    st.bokeh_chart(fig, use_container_width=True)
+    return fig  
 
 # Funzione per creare e visualizzare i grafici
 def create_and_render_plot(df, x_axis, y_axis, plot_type):
