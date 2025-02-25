@@ -2,30 +2,40 @@ import pandas as pd
 import streamlit as st
 from streamlit_echarts import st_echarts
 import numpy as np
+import streamlit as st
+import pandas as pd
+import numpy as np
+from streamlit_echarts import st_echarts
+
 def plot_echarts(df, x_axis, y_axis, plot_type):
     """Genera e mostra un grafico ECharts con i dati forniti."""
-    
-    # Controlla se y_axis è una colonna valida
-    if y_axis not in df.columns or not isinstance(df[y_axis], pd.Series):
-        st.warning(f"❗ Colonna '{y_axis}' non valida, impossibile generare il grafico.")
-        return  # Esci senza errore se y_axis non è valido
 
-    # Seleziona solo le colonne necessarie ed elimina valori NaN
+    # Controlla se le colonne esistono
+    if x_axis not in df.columns or y_axis not in df.columns:
+        st.warning(f"❗ Colonne '{x_axis}' o '{y_axis}' non trovate nel dataset.")
+        return  
+
+    # Seleziona solo le colonne necessarie
     df = df[[x_axis, y_axis]].dropna()
 
-    # Converte X in stringa per evitare problemi con l'asse X
+    # Controlla se la colonna Y è numerica
+    if not pd.api.types.is_numeric_dtype(df[y_axis]):
+        st.warning(f"❗ La colonna '{y_axis}' non è numerica, impossibile generare il grafico.")
+        return  
+
+    # Converte la colonna X in stringa
     df[x_axis] = df[x_axis].astype(str)
 
-    # Converte la colonna Y in numerico, sostituendo errori con NaN
+    # Converte Y in numerico (forza errore a NaN se necessario)
     df[y_axis] = pd.to_numeric(df[y_axis], errors='coerce')
 
-    # Rimuove righe con NaN dopo la conversione
+    # Rimuove righe con valori NaN
     df = df.dropna()
 
-    # Se il DataFrame è vuoto dopo la pulizia, esci senza errore
+    # Se il DataFrame è vuoto dopo la pulizia, interrompi senza errore
     if df.empty:
         st.warning(f"❗ Nessun dato valido per il grafico '{plot_type}' con X='{x_axis}' e Y='{y_axis}'.")
-        return
+        return  
 
     # Configurazione del grafico
     options = {
@@ -46,6 +56,7 @@ def plot_echarts(df, x_axis, y_axis, plot_type):
         st_echarts(options=options, height="500px")
     except Exception as e:
         st.error(f"❌ Errore durante la creazione del grafico: {e}")
+
 
 def Statistics(df_list, filenames):
     """Visualizza dataset individuali e permette il merge con ECharts."""
