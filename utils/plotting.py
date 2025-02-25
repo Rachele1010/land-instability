@@ -5,6 +5,7 @@ from bokeh.plotting import figure
 from bokeh.models import ColumnDataSource
 from bokeh.transform import cumsum
 from bokeh.palettes import Category20c
+from math import pi
 @st.cache_data
 
 def create_basic_bar_chart(df, x, y):
