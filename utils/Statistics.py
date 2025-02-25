@@ -64,7 +64,7 @@ def Statistics(df_list, filenames):
                 y_axis = st.selectbox(f"Y Axis {idx + 1}", df.columns.tolist(), key=f"y_axis_{idx}")
             with col3:
                 plot_type = st.selectbox(f"Plot Type {idx + 1}", ["line", "bar", "scatter", "pie", "heatmap", "radar"], key=f"plot_type_{idx}")
-            col1, col2 = st.columns(2)
+            col1, col2 = st.columns([1, 2])
             with col1:
                 st.dataframe(df)
             with col2:
