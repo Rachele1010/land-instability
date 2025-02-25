@@ -1,19 +1,19 @@
 import streamlit as st
 import pandas as pd
-from streamlit_echarts import st_echarts
 import uuid
+from streamlit_echarts import st_echarts
+from demo_echarts import ST_DEMOS
+from demo_pyecharts import ST_PY_DEMOS
 
 # Funzione per convertire timestamp Unix in datetime
 def convert_unix_to_datetime(df):
-    """Converte colonne con timestamp Unix in formato leggibile."""
     for col in df.columns:
-        if pd.api.types.is_numeric_dtype(df[col]) and (df[col].between(1e9, 2e9)).all():
+        if pd.api.types.is_numeric_dtype(df[col]) and df[col].between(1e9, 2e9).all():
             df[col] = pd.to_datetime(df[col], unit='s').dt.strftime('%d/%m/%Y %H:%M')
     return df
 
-# Funzione per generare opzioni dei grafici
+# Funzione per generare le opzioni dei grafici
 def get_chart_options(plot_type, df_list, x_axes, y_axes, dataset_names):
-    """Genera le opzioni per il grafico in base al tipo selezionato."""
     options = {
         "title": {"text": f"{plot_type.capitalize()} Chart"},
         "tooltip": {"trigger": "axis"},
@@ -33,21 +33,43 @@ def get_chart_options(plot_type, df_list, x_axes, y_axes, dataset_names):
 
 # Funzione per generare i grafici
 def plot_echarts(df_list, x_axes, y_axes, dataset_names, plot_type):
-    """Crea un grafico ECharts con identificatori unici per evitare errori."""
     options = get_chart_options(plot_type, df_list, x_axes, y_axes, dataset_names)
     unique_key = f"echarts_{plot_type}_{uuid.uuid4().hex}"
     st_echarts(options=options, height="500px", key=unique_key)
 
-# Funzione principale per gestire i dataset e la visualizzazione
+# Funzione principale per la visualizzazione dei dataset
 def Statistics(df_list, filenames):
-    """Gestisce la visualizzazione e il merge dei dataset."""
-    
-    # Stato iniziale della vista
     if "show_individual_plots" not in st.session_state:
         st.session_state["show_individual_plots"] = True
 
     st.subheader("📈 Data Plotting")
-    
+
+    # Selezione API tra ECharts e PyeCharts
+    api_options = ("echarts", "pyecharts")
+    selected_api = st.selectbox("Scegli l'API preferita:", api_options)
+
+    # Selezione del grafico disponibile tra le demo
+    page_options = (
+        list(ST_PY_DEMOS.keys()) if selected_api == "pyecharts" else list(ST_DEMOS.keys())
+    )
+    selected_page = st.selectbox("Scegli un esempio di grafico", page_options)
+    demo, url = (
+        ST_DEMOS[selected_page] if selected_api == "echarts" else ST_PY_DEMOS[selected_page]
+    )
+
+    if selected_api == "echarts":
+        st.caption(
+            """ECharts demos are extracted from https://echarts.apache.org/examples/en/index.html, 
+            by copying/formatting the 'option' json object into st_echarts.
+            Convert the JSON specs to Python Dicts for visualization."""
+        )
+    if selected_api == "pyecharts":
+        st.caption(
+            """Pyecharts demos are extracted from https://github.com/pyecharts/pyecharts-gallery,
+            by copying the pyecharts object into st_pyecharts. 
+            Pyecharts uses ECharts 4 underneath, which affects theming differences."""
+        )
+
     # Pulsanti di scelta tra "Single Plot" e "Merge Plot"
     col1, col2 = st.columns(2)
     with col1:
@@ -58,7 +80,6 @@ def Statistics(df_list, filenames):
             st.session_state["show_individual_plots"] = False
 
     if st.session_state["show_individual_plots"]:
-        # ---- Modalità "Single Plot" ----
         for idx, df in enumerate(df_list):
             df = convert_unix_to_datetime(df)
             st.caption(f"**Dataset {idx + 1} - {filenames[idx]}**")
@@ -79,7 +100,6 @@ def Statistics(df_list, filenames):
                     plot_echarts([df], [x_axis], [y_axis], [filenames[idx]], plot_type)
 
     else:
-        # ---- Modalità "Merge Datasets" ----
         st.subheader("📊 Merge Multiple Datasets")
         col1, col2, col3, col4 = st.columns(4)
 
@@ -99,8 +119,11 @@ def Statistics(df_list, filenames):
             with col4:
                 plot_type = st.selectbox("Scegli il tipo di grafico", ["line", "bar", "scatter", "pie", "heatmap", "radar", "candlestick"], key="plot_type_merge")
 
-            # Creazione del grafico unificato
             plot_echarts(df_list_selected, x_axes, y_axes, selected_datasets, plot_type)
+
+    # Eseguire il grafico della demo selezionata
+    demo()
+
 
 
 
