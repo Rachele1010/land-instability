@@ -64,11 +64,12 @@ def Statistics(df_list, filenames):
                 y_axis = st.selectbox(f"Y Axis {idx + 1}", df.columns.tolist(), key=f"y_axis_{idx}")
             with col3:
                 plot_type = st.selectbox(f"Plot Type {idx + 1}", ["line", "bar", "scatter", "pie", "heatmap", "radar"], key=f"plot_type_{idx}")
-
-            st.dataframe(df)
-
-            if not df.empty:
-                plot_echarts([df], [x_axis], [y_axis], [filenames[idx]], plot_type)
+            col1, col2 = st.columns(2)
+            with col1:
+                st.dataframe(df)
+            with col2:
+                if not df.empty:
+                    plot_echarts([df], [x_axis], [y_axis], [filenames[idx]], plot_type)
 
     # ---- Modalità Merge Plot ----
     elif st.session_state["plot_mode"] == "merge":
