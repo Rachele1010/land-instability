@@ -71,8 +71,7 @@ def Statistics(df_list, filenames):
             with col1:
                 st.dataframe(df)
             with col2:
-                if not df.empty:
-                    plot_echarts([df], [x_axis], [y_axis], [filenames[idx]], plot_type)
+                plot_echarts([df], [x_axis], [y_axis], [filenames[idx]], plot_type)
 
     else:
         st.subheader("📊 Merge Multiple Datasets")
