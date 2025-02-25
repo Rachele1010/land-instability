@@ -20,7 +20,7 @@ def plot_echarts(df, x_axis, y_axis, plot_type):
     }
     st_echarts(options=options, height="500px")
 
-def statistics(df_list, filenames):
+def Statistics(df_list, filenames):
     """Visualizza dataset individuali e permette il merge con ECharts."""
     st.subheader("📈 Data Plotting")
     show_individual_plots = True
