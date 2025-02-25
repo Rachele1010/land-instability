@@ -59,23 +59,23 @@ def Statistics(df_list, filenames):
                 plot_echarts([df], [x_axis], [y_axis], [filenames[idx]], plot_type)
     else:
         # ---- Modalità Merge ----
+        col1, col2, col3, col4 = st.columns(4)
         st.subheader("📊 Merge Multiple Datasets")
-        selected_datasets = st.multiselect("Seleziona i dataset da plottare insieme", filenames, default=filenames)
+        with col1:
+            selected_datasets = st.multiselect("Seleziona i dataset da plottare insieme", filenames, default=filenames)
         
         if selected_datasets:
             df_list_selected = [convert_unix_to_datetime(df_list[filenames.index(name)]) for name in selected_datasets]
-
-            col1, col2, col3 = st.columns(3)
             x_axes = []
             y_axes = []
 
-            with col1:
-                for i, name in enumerate(selected_datasets):
-                    x_axes.append(st.selectbox(f"X Axis per {name}", df_list_selected[i].columns.tolist(), key=f"x_axis_merge_{i}"))
             with col2:
                 for i, name in enumerate(selected_datasets):
-                    y_axes.append(st.selectbox(f"Y Axis per {name}", df_list_selected[i].columns.tolist(), key=f"y_axis_merge_{i}"))
+                    x_axes.append(st.selectbox(f"X Axis per {name}", df_list_selected[i].columns.tolist(), key=f"x_axis_merge_{i}"))
             with col3:
+                for i, name in enumerate(selected_datasets):
+                    y_axes.append(st.selectbox(f"Y Axis per {name}", df_list_selected[i].columns.tolist(), key=f"y_axis_merge_{i}"))
+            with col4:
                 plot_type = st.selectbox("Scegli il tipo di grafico", ["line", "bar", "scatter", "pie", "heatmap", "radar"], key="plot_type_merge")
 
             # Mostra il grafico unificato
