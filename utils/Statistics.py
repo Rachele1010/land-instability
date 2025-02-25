@@ -1,20 +1,36 @@
 from streamlit_echarts import st_echarts
 import streamlit as st
-import plotly.express as px
+import pandas as pd
+
+def plot_echarts(df, x_axis, y_axis, plot_type):
+    """Genera un grafico ECharts in base al tipo selezionato."""
+    options = {
+        "title": {"text": f"{plot_type} Chart"},
+        "tooltip": {"trigger": "axis"},
+        "xAxis": {"type": "category", "data": df[x_axis].tolist()},
+        "yAxis": {"type": "value"},
+        "series": [
+            {
+                "name": y_axis,
+                "type": plot_type,
+                "data": df[y_axis].tolist(),
+                "smooth": True if plot_type == "line" else False,
+            }
+        ],
+    }
+    st_echarts(options=options, height="500px")
 
 def Statistics(df_list, filenames):
-    """
-    Funzione per visualizzare i dataset separati e fornire un'opzione di merge con grafici ECharts.
-    """
+    """Visualizza dataset individuali e permette il merge con ECharts."""
     st.subheader("📈 Data Plotting")
     show_individual_plots = True
     
-    # ---- Bottone per attivare il Merge ----
+    # Bottone per attivare il Merge
     if st.button("🔄 Merge Datasets"):
-        show_individual_plots = False  # Nasconde i grafici separati
+        show_individual_plots = False
 
     if show_individual_plots:
-        # ---- Struttura originale ----
+        # Visualizzazione singoli dataset
         for idx, df in enumerate(df_list):
             st.caption(f"**Dataset {idx + 1} - {filenames[idx]}**")
             col1, col2, col3 = st.columns([1, 1, 1])
@@ -25,34 +41,32 @@ def Statistics(df_list, filenames):
             with col2:
                 y_axis = st.selectbox(f"Y Axis {idx + 1}", df.columns.tolist(), key=f"y_axis_{idx}")
             with col3:
-                plot_type = st.selectbox(f"Plot Type {idx + 1}", ["Basic Scatter", "Basic Bar", "Basic Line", "Mixed Line and Bar", "Calendar Heatmap", "DataZoom"], key=f"plot_type_{idx}")
+                plot_type = st.selectbox(f"Plot Type {idx + 1}", ["line", "bar", "scatter", "pie", "radar", "heatmap"], key=f"plot_type_{idx}")
             with col4:
                 st.dataframe(df)
             with col5:
                 if not df.empty:
-                    fig = px.line(df, x=x_axis, y=y_axis, title=f"{plot_type} - {filenames[idx]}")
-                    st.plotly_chart(fig, use_container_width=True)
+                    plot_echarts(df, x_axis, y_axis, plot_type)
     else:
-        # ---- Sezione di Merge ----
+        # Sezione Merge
         st.subheader("📊 Merge Multiple Datasets")
         selected_datasets = st.multiselect("Seleziona i dataset da unire", filenames, default=filenames)
-
+        
         if selected_datasets:
             merged_dfs = [df_list[filenames.index(name)] for name in selected_datasets]
-
-            # Trova colonne comuni
             common_columns = set(merged_dfs[0].columns)
             for df in merged_dfs[1:]:
                 common_columns.intersection_update(df.columns)
-
+            
             if common_columns:
                 x_axis = st.selectbox("Seleziona la colonna X comune", list(common_columns))
                 y_axes = []
                 for idx, df in enumerate(merged_dfs):
                     y_axis = st.selectbox(f"Seleziona colonna Y per {selected_datasets[idx]}", df.columns.tolist(), key=f"y_axis_merge_{idx}")
                     y_axes.append((df, y_axis, selected_datasets[idx]))
-
-                # Creazione del grafico con ECharts
+                
+                plot_type = st.selectbox("Scegli il tipo di grafico", ["line", "bar", "scatter", "pie", "radar", "heatmap"], key="plot_type_merge")
+                
                 options = {
                     "title": {"text": "Grafico combinato"},
                     "tooltip": {"trigger": "axis"},
@@ -62,9 +76,9 @@ def Statistics(df_list, filenames):
                     "series": [
                         {
                             "name": name,
-                            "type": "line",
+                            "type": plot_type,
                             "data": df[y_axis].tolist(),
-                            "smooth": True
+                            "smooth": True if plot_type == "line" else False
                         } for df, y_axis, name in y_axes
                     ]
                 }
