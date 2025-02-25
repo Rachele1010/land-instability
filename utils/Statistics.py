@@ -68,7 +68,7 @@ def Statistics(df_list, filenames):
                 plot_type = st.selectbox(f"Plot Type {idx + 1}", ["Basic Scatter", "Basic Bar", "Basic Line", "Mixed Line and Bar", 
                                                                   "Calendar Heatmap", "DataZoom"], key=f"plot_type_{idx}_merge")
 
-                create_and_render_plot(df, x_axis, y_axis, plot_type)
+            create_and_render_plot(df, x_axis, y_axis, plot_type)
 
 
 
