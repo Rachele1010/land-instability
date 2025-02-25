@@ -106,6 +106,9 @@ def render_pie_chart_bokeh(df, values_col, names_col):
         fig.grid.grid_line_color = None
 
         st.bokeh_chart(fig, use_container_width=True)
+        except Exception as e:
+            st.error("❌ Errore: Non è stato possibile generare il grafico.")
+            st.write("🔍 Dettagli dell'errore (per debugging):", str(e))  # Opzionale, utile per debugging
         return fig
 
 
