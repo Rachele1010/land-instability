@@ -14,15 +14,27 @@ def plot_echarts(df, x_axis, y_axis, plot_type):
     """Genera un grafico ECharts evitando errori di dati."""
     if df.empty or x_axis not in df.columns or y_axis not in df.columns:
         st.error(f"Errore: Colonne non valide. x_axis: {x_axis}, y_axis: {y_axis}")
-        return
+        returnimport pandas as pd
+import streamlit as st
+from streamlit_echarts import st_echarts
+
+def plot_echarts(df, x_axis, y_axis, plot_type):
+    """Genera un grafico interattivo usando Streamlit ECharts."""
     
+    # Pulizia dati: rimuove NaN e converte tipi di dati
     df = df[[x_axis, y_axis]].dropna()
-    
+    df[x_axis] = df[x_axis].astype(str)
+    df[y_axis] = pd.to_numeric(df[y_axis], errors='coerce').dropna()
+
+    if df.empty:
+        st.warning("❗ Il dataset selezionato è vuoto dopo la pulizia. Seleziona un'altra colonna.")
+        return
+
     try:
         options = {
             "title": {"text": f"{plot_type.capitalize()} Chart"},
             "tooltip": {"trigger": "axis"},
-            "xAxis": {"type": "category", "data": df[x_axis].astype(str).tolist()},
+            "xAxis": {"type": "category", "data": df[x_axis].tolist()},
             "yAxis": {"type": "value"},
             "series": [{
                 "name": y_axis,
@@ -31,13 +43,15 @@ def plot_echarts(df, x_axis, y_axis, plot_type):
                 "smooth": True if plot_type == "line" else False,
             }],
         }
+        
         st_echarts(options=options, height="500px")
     except Exception as e:
-        st.error(f"Errore durante la creazione del grafico: {e}")
+        st.error(f"⚠️ Errore durante la creazione del grafico: {e}")
 
 def Statistics(df_list, filenames):
     """Visualizza dataset individuali e permette il merge con ECharts."""
     st.subheader("📈 Data Plotting")
+    
     show_individual_plots = True
     
     if st.button("🔄 Merge Datasets"):
@@ -46,7 +60,7 @@ def Statistics(df_list, filenames):
     if show_individual_plots:
         for idx, df in enumerate(df_list):
             st.caption(f"**Dataset {idx + 1} - {filenames[idx]}**")
-            df = convert_unix_to_datetime(df)
+            df = convert_unix_to_datetime(df)  # Assumi che questa funzione esista
             
             col1, col2, col3 = st.columns([1, 1, 1])
             col4, col5 = st.columns([1, 2])
@@ -90,7 +104,7 @@ def Statistics(df_list, filenames):
                     for name in merged_df.columns[1:]:
                         plot_echarts(merged_df, x_axis, name, plot_type)
             else:
-                st.warning("I dataset selezionati non hanno colonne in comune, impossibile fare il merge.")
+                st.warning("⚠️ I dataset selezionati non hanno colonne in comune, impossibile fare il merge.")
         else:
-            st.info("Seleziona almeno un dataset per procedere.")
+            st.info("ℹ️ Seleziona almeno un dataset per procedere.")
 
