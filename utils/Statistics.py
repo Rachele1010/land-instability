@@ -25,61 +25,68 @@ def plot_echarts(df_list, x_axes, y_axes, dataset_names, plot_type):
             for i, (df, y) in enumerate(zip(df_list, y_axes))
         ],
     }
-    st_echarts(options=options, height="500px", key=f"echarts_{plot_type}")
+    st_echarts(options=options, height="500px", key=f"echarts_{plot_type}_{dataset_names}")
 
 def Statistics(df_list, filenames):
     """Gestisce la visualizzazione e il merge dei dataset."""
-    
-    # Mantenere lo stato della vista
-    if "show_individual_plots" not in st.session_state:
-        st.session_state["show_individual_plots"] = True
+
+    # Inizializza lo stato della modalità di visualizzazione
+    if "plot_mode" not in st.session_state:
+        st.session_state["plot_mode"] = "single"
 
     st.subheader("📈 Data Plotting")
 
-    if st.button("🔄 Merge Datasets"):
-        st.session_state["show_individual_plots"] = False  # Passa alla modalità merge
+    col1, col2 = st.columns(2)
+    with col1:
+        if st.button("📊 Single Plot"):
+            st.session_state["plot_mode"] = "single"
+    with col2:
+        if st.button("🔄 Merge Plot"):
+            st.session_state["plot_mode"] = "merge"
 
-    if st.session_state["show_individual_plots"]:
-        # ---- Visualizza i dataset singoli ----
+    # ---- Modalità Single Plot ----
+    if st.session_state["plot_mode"] == "single":
         for idx, df in enumerate(df_list):
             df = convert_unix_to_datetime(df)  # Conversione timestamp Unix
             st.caption(f"**Dataset {idx + 1} - {filenames[idx]}**")
             col1, col2, col3 = st.columns([1, 1, 1])
-            
+
             with col1:
                 x_axis = st.selectbox(f"X Axis {idx + 1}", df.columns.tolist(), key=f"x_axis_{idx}")
             with col2:
                 y_axis = st.selectbox(f"Y Axis {idx + 1}", df.columns.tolist(), key=f"y_axis_{idx}")
             with col3:
-                plot_type = st.selectbox(f"Plot Type {idx + 1}", ["line", "bar", "scatter", "pie", "Customized Pie", "heatmap", "radar"], key=f"plot_type_{idx}")
+                plot_type = st.selectbox(f"Plot Type {idx + 1}", ["line", "bar", "scatter", "pie", "heatmap", "radar"], key=f"plot_type_{idx}")
 
             st.dataframe(df)
 
             if not df.empty:
                 plot_echarts([df], [x_axis], [y_axis], [filenames[idx]], plot_type)
-    else:
-        # ---- Modalità Merge ----
-        col1, col2, col3, col4 = st.columns(4)
+
+    # ---- Modalità Merge Plot ----
+    elif st.session_state["plot_mode"] == "merge":
         st.subheader("📊 Merge Multiple Datasets")
-        with col1:
-            selected_datasets = st.multiselect("Seleziona i dataset da plottare insieme", filenames, default=filenames)
-        
+        selected_datasets = st.multiselect("Seleziona i dataset da plottare insieme", filenames, default=filenames)
+
         if selected_datasets:
             df_list_selected = [convert_unix_to_datetime(df_list[filenames.index(name)]) for name in selected_datasets]
             x_axes = []
             y_axes = []
 
-            with col2:
+            col1, col2, col3 = st.columns(3)
+
+            with col1:
                 for i, name in enumerate(selected_datasets):
                     x_axes.append(st.selectbox(f"X Axis per {name}", df_list_selected[i].columns.tolist(), key=f"x_axis_merge_{i}"))
-            with col3:
+            with col2:
                 for i, name in enumerate(selected_datasets):
                     y_axes.append(st.selectbox(f"Y Axis per {name}", df_list_selected[i].columns.tolist(), key=f"y_axis_merge_{i}"))
-            with col4:
-                plot_type = st.selectbox("Scegli il tipo di grafico", ["line", "bar", "scatter", "pie", "Customized Pie", "heatmap", "radar"], key="plot_type_merge")
+            with col3:
+                plot_type = st.selectbox("Scegli il tipo di grafico", ["line", "bar", "scatter", "pie", "heatmap", "radar"], key="plot_type_merge")
 
             # Mostra il grafico unificato
             plot_echarts(df_list_selected, x_axes, y_axes, selected_datasets, plot_type)
+
 
 
 
