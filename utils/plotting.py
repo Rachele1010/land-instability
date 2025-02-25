@@ -73,19 +73,20 @@ def render_pie_chart_bokeh(df, values_col, names_col):
     df['angle'] = df[values_col] / df[values_col].sum() * 2 * pi  # Converti in angoli
     df['color'] = Category20c[len(df)]  # Colori automatici
 
-    p = figure(plot_height=500, title="Pie Chart con Bokeh", toolbar_location=None,
+    fig = figure(plot_height=500, title="Pie Chart con Bokeh", toolbar_location=None,
                tools="hover", tooltips="@"+names_col+": @"+values_col, x_range=(-1, 1))
 
-    p.wedge(x=0, y=0, radius=0.8,
+    fig.wedge(x=0, y=0, radius=0.8,
             start_angle=cumsum('angle', include_zero=True), 
             end_angle=cumsum('angle'),
             line_color="white", fill_color='color', source=df)
 
-    p.axis.axis_label = None
-    p.axis.visible = False
-    p.grid.grid_line_color = None
+    fig.axis.axis_label = None
+    fig.axis.visible = False
+    figp.grid.grid_line_color = None
 
-    st.bokeh_chart(p, use_container_width=True)
+    st.bokeh_chart(fig, use_container_width=True)
+    return fig
 
 # Funzione per creare e visualizzare i grafici
 def create_and_render_plot(df, x_axis, y_axis, plot_type):
@@ -106,7 +107,9 @@ def create_and_render_plot(df, x_axis, y_axis, plot_type):
         y_axis_bar = st.selectbox("Select Bar Y axis", df.columns.tolist(), key=f"y_axis_bar_{x_axis}")
         chart = create_mixed_line_and_bar_chart(df, x_axis, y_axis_line, y_axis_bar)
     elif plot_type == "Pie Chart (Bokeh)":
-        st.write(f"✅ Chiamata render_pie_chart_bokeh con {y_axis} e {x_axis}")
-        render_pie_chart_bokeh(df, y_axis, x_axis)
-    return
+        #st.write(f"✅ Chiamata render_pie_chart_bokeh con {y_axis} e {x_axis}")
+        chart = render_pie_chart_bokeh(df, y_axis, x_axis)
+    return chart
+    st.plotly_chart(chart, use_container_width=True)
+    st.stop
 
