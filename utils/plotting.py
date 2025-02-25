@@ -71,11 +71,11 @@ def render_pie_chart_bokeh(df, values_col, names_col):
     try:
         if df.empty:
             st.error("❌ Errore: Il DataFrame è vuoto. Impossibile generare il grafico.")
-            return
+            return None  # Evita crash
 
         if values_col not in df.columns or names_col not in df.columns:
             st.error(f"❌ Errore: Le colonne '{values_col}' e '{names_col}' non esistono nel DataFrame.")
-            return
+            return None  
 
         df = df[[names_col, values_col]].copy()
         df.dropna(inplace=True)  # Rimuove valori NaN
@@ -83,11 +83,11 @@ def render_pie_chart_bokeh(df, values_col, names_col):
 
         if df.empty:
             st.error("❌ Errore: Tutti i valori validi sono stati filtrati. Controlla i dati.")
-            return
+            return None  
 
         df['angle'] = df[values_col] / df[values_col].sum() * 2 * pi
 
-        # 🔹 Assicura che ci siano abbastanza colori, anche per dataset molto grandi
+        # 🔹 Assicura che ci siano abbastanza colori
         colors = list(cycle(Category20c[20]))  # Se il dataset è più grande di 20, ripete i colori
         df['color'] = colors[:len(df)]  
 
@@ -106,12 +106,12 @@ def render_pie_chart_bokeh(df, values_col, names_col):
         fig.grid.grid_line_color = None
 
         st.bokeh_chart(fig, use_container_width=True)
+        return fig  # Restituisce il grafico in caso di successo
+
     except Exception as e:
         st.error("❌ Errore: Non è stato possibile generare il grafico.")
-        st.write("🔍 Dettagli dell'errore (per debugging):", str(e))  # Opzionale, utile per debugging
-        return fig
-
-
+        st.write("🔍 Dettagli dell'errore (per debugging):", str(e))  # Opzionale
+        return None  # Evita crash
 # Funzione per creare e visualizzare i grafici
 def create_and_render_plot(df, x_axis, y_axis, plot_type):
     if plot_type == "Basic Bar":
