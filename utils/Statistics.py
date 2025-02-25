@@ -44,32 +44,6 @@ def Statistics(df_list, filenames):
 
     st.subheader("📈 Data Plotting")
 
-    # Selezione API tra ECharts e PyeCharts
-    api_options = ("echarts", "pyecharts")
-    selected_api = st.selectbox("Scegli l'API preferita:", api_options)
-
-    # Selezione del grafico disponibile tra le demo
-    page_options = (
-        list(ST_PY_DEMOS.keys()) if selected_api == "pyecharts" else list(ST_DEMOS.keys())
-    )
-    selected_page = st.selectbox("Scegli un esempio di grafico", page_options)
-    demo, url = (
-        ST_DEMOS[selected_page] if selected_api == "echarts" else ST_PY_DEMOS[selected_page]
-    )
-
-    if selected_api == "echarts":
-        st.caption(
-            """ECharts demos are extracted from https://echarts.apache.org/examples/en/index.html, 
-            by copying/formatting the 'option' json object into st_echarts.
-            Convert the JSON specs to Python Dicts for visualization."""
-        )
-    if selected_api == "pyecharts":
-        st.caption(
-            """Pyecharts demos are extracted from https://github.com/pyecharts/pyecharts-gallery,
-            by copying the pyecharts object into st_pyecharts. 
-            Pyecharts uses ECharts 4 underneath, which affects theming differences."""
-        )
-
     # Pulsanti di scelta tra "Single Plot" e "Merge Plot"
     col1, col2 = st.columns(2)
     with col1:
@@ -90,7 +64,31 @@ def Statistics(df_list, filenames):
             with col2:
                 y_axis = st.selectbox(f"Y Axis {idx + 1}", df.columns.tolist(), key=f"y_axis_{idx}")
             with col3:
-                plot_type = st.selectbox(f"Plot Type {idx + 1}", ["line", "bar", "scatter", "pie", "heatmap", "radar", "candlestick"], key=f"plot_type_{idx}")
+                # Selezione API tra ECharts e PyeCharts
+                api_options = ("echarts", "pyecharts")
+                selected_api = st.selectbox("Scegli l'API preferita:", api_options)
+            
+                # Selezione del grafico disponibile tra le demo
+                page_options = (
+                    list(ST_PY_DEMOS.keys()) if selected_api == "pyecharts" else list(ST_DEMOS.keys())
+                )
+                selected_page = st.selectbox("Scegli un esempio di grafico", page_options)
+                demo, url = (
+                    ST_DEMOS[selected_page] if selected_api == "echarts" else ST_PY_DEMOS[selected_page]
+                )
+            
+                if selected_api == "echarts":
+                    st.caption(
+                        """ECharts demos are extracted from https://echarts.apache.org/examples/en/index.html, 
+                        by copying/formatting the 'option' json object into st_echarts.
+                        Convert the JSON specs to Python Dicts for visualization."""
+                    )
+                if selected_api == "pyecharts":
+                    st.caption(
+                        """Pyecharts demos are extracted from https://github.com/pyecharts/pyecharts-gallery,
+                        by copying the pyecharts object into st_pyecharts. 
+                        Pyecharts uses ECharts 4 underneath, which affects theming differences."""
+                    )
 
             col1, col2 = st.columns([1, 2])
             with col1:
