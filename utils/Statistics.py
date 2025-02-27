@@ -336,7 +336,7 @@ def Statistics(df_list, filenames):
             if df is not None:
                 #st.write(f"### 📊 Statistiche per {dataset_name}")
                 stats_df = calcola_statistiche(df)
-                col1, col2, col3, col4, col5, col6, col7 = st.columns([7])
+                col1, col2, col3, col4, col5, col6, col7 = st.columns(7)
                 # Visualizzazione delle metriche per ogni variabile
                 for _, row in stats_df.iterrows():
                     with col1:
