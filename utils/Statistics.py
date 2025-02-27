@@ -301,9 +301,16 @@ def Statistics(df_list, filenames):
                     index_col = st.selectbox(f"Indice ({dataset_name})", df.columns, key=f"pivot_index_{dataset_name}")
                     shared_col = st.selectbox(f"Colonne e Valori ({dataset_name})", df.columns, key=f"pivot_shared_{dataset_name}")
     
-                    # Controlliamo se la colonna selezionata è numerica
-                    if not pd.api.types.is_numeric_dtype(df[shared_col]):
-                        st.error(f"⚠️ La colonna '{shared_col}' non è numerica! Seleziona una colonna valida.")
+                    # Creiamo una copia dei dati se la colonna è la stessa per colonne e valori
+                    if index_col == shared_col:
+                        df["_temp_values_"] = df[shared_col]
+                        values_col = "_temp_values_"
+                    else:
+                        values_col = shared_col
+    
+                    # Controlliamo se la colonna valori è numerica
+                    if not pd.api.types.is_numeric_dtype(df[values_col]):
+                        st.error(f"⚠️ La colonna '{values_col}' non è numerica! Seleziona una colonna valida.")
                         continue  # Passiamo al prossimo dataset
     
                     # Checkbox per le funzioni di aggregazione
@@ -324,11 +331,11 @@ def Statistics(df_list, filenames):
                         continue  # Passiamo al prossimo dataset
     
                     try:
-                        # Eseguiamo il pivot utilizzando la stessa colonna sia per colonne che per valori
+                        # Creiamo la pivot table usando la colonna temporanea se necessario
                         pivot_df = df.pivot_table(
                             index=index_col,
                             columns=shared_col,
-                            values=shared_col,
+                            values=values_col,
                             aggfunc=agg_funcs
                         ).reset_index()  # Reset per evitare MultiIndex
     
