@@ -11,7 +11,7 @@ from utils.Statistics import Statistics
 def display_dashboard():
     st.header("Data Analysis and Plotting")
     st.write("Here you can upload and view your data on a map and plot." 
-             " Use the side window to upload your files, and the dashboard will display the various products: **🌍 Map Generator** and **📊 Statistics**."
+             " Use the side window to upload your files, and the dashboard will display the various products:  **📊 Statistics** and **🌍 Map Generator**. "
              " Choose the chart format, correlate, and implement simple analyses. There is no data loading limit.")
 
     # Upload dei file
