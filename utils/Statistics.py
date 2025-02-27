@@ -30,7 +30,15 @@ def compute_cross_correlation(df, column1, column2, max_lag=50):
 
 # Funzione principale per la visualizzazione e analisi dei dataset
 def Statistics(df_list, filenames):
-    st.subheader("📈 Data Plotting")
+    if "show_individual_plots" not in st.session_state:
+    st.session_state["show_individual_plots"] = True
+    if "show_merge_multiple_dataset" not in st.session_state:
+        st.session_state["show_merge_multiple_dataset"] = False
+    if "show_autocorrelation" not in st.session_state:
+        st.session_state["show_autocorrelation"] = False
+    if "show_cross_correlation" not in st.session_state:
+        st.session_state["show_cross_correlation"] = False
+        st.subheader("📈 Data Plotting")
 
     col1, col2, col3, col4 = st.columns(4)
     
@@ -81,7 +89,7 @@ def Statistics(df_list, filenames):
                 create_and_render_plot(df, x_axis, y_axis, plot_type)
 
     # Sezione per Merge Datasets (UNICO GRAFICO)
-    elif not st.session_state["show_merge_multiple_dataset"]:
+    elif st.session_state["show_merge_multiple_dataset"]:
         st.subheader("📊 Merge Multiple Datasets in One Plot")
         
         selected_datasets = st.multiselect("Seleziona i dataset", filenames, default=filenames)
