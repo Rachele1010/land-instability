@@ -63,9 +63,8 @@ def Statistics(df_list, filenames):
             with col2:
                 y_axis = st.selectbox(f"Y Axis {idx + 1}", df.columns.tolist(), key=f"y_axis_{idx}")
             with col3:
-                plot_type = st.selectbox(f"Plot Type {idx + 1}", 
-                                         ["Scatter", "Bar", "Line"], 
-                                         key=f"plot_type_{idx}")
+                plot_type = st.selectbox(f"Plot Type {idx + 1}", ["Basic Scatter", "Basic Bar", "Basic Line", "Mixed Line and Bar", 
+                                                                  "Calendar Heatmap", "DataZoom"], key=f"plot_type_{idx}")
 
             col1, col2 = st.columns([1, 2])
             with col1:
@@ -98,9 +97,8 @@ def Statistics(df_list, filenames):
 
             with col3:
                 for i, dataset_name in enumerate(selected_datasets):
-                    plot_types[dataset_name] = st.selectbox(f"Plot Type ({dataset_name})", 
-                                                            ["Scatter", "Bar", "Line"], 
-                                                            key=f"plot_type_merge_{i}")
+                    plot_type = st.selectbox(f"Plot Type {idx + 1}", ["Basic Scatter", "Basic Bar", "Basic Line", "Mixed Line and Bar", 
+                                                                  "Calendar Heatmap", "DataZoom"], key=f"plot_type_{idx}")
 
             with col4:
                 for i, dataset_name in enumerate(selected_datasets):
