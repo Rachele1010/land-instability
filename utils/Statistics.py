@@ -307,13 +307,13 @@ def Statistics(df_list, filenames):
                             aggregazioni = aggrega_dati_temporali(df, colonna_data, variabile_plot)
         
                         # Visualizzazione dei grafici per ogni aggregazione temporale
-                    with col2:
-                        for periodo, agg_df in aggregazioni.items():
-                            st.write(f"#### Plot {periodo} by {dataset_name}")
-                            fig = px.bar(agg_df, x=agg_df.index, y=agg_df.values, title=f"{periodo} Aggregate")
-                            st.plotly_chart(fig)
+                        with col2:
+                            for periodo, agg_df in aggregazioni.items():
+                                st.write(f"#### Plot {periodo} by {dataset_name}")
+                                fig = px.bar(agg_df, x=agg_df.index, y=agg_df.values, title=f"{periodo} Aggregate")
+                                st.plotly_chart(fig)
+                            else:
+                                st.warning(f"⚠️ No available numeric variables for plotting in {dataset_name}.")
                         else:
-                            st.warning(f"⚠️ No available numeric variables for plotting in {dataset_name}.")
-                    else:
-                        st.warning(f"⚠️ No datatime on {dataset_name}.")
+                            st.warning(f"⚠️ No datatime on {dataset_name}.")
     
