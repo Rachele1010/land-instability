@@ -35,7 +35,6 @@ def display_dashboard():
     tab1, tab2 = st.tabs(["🌍 Map Generator", "📊 Statistics"])
     
     with tab1:
-        map_combined_datasets(df_list, filenames)
-    
+        Statistics(df_list, filenames)    
     with tab2:
-        Statistics(df_list, filenames)
+        map_combined_datasets(df_list, filenames)
