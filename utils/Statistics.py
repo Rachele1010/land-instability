@@ -332,31 +332,7 @@ def Statistics(df_list, filenames):
     elif st.session_state["show_pivot"]:
         st.subheader("Pivot")
         selected_files = st.multiselect("Seleziona i file per il Pivot", filenames)
+        pivot_dataframe(df, dataset_name)
+            except Exception as e:
+                st.error(f"❌ Errore nel caricamento del dataset '{dataset_name}': {e}")
 
-        if not selected_files:  # Controlliamo che almeno un file sia selezionato
-            st.warning("⚠️ Seleziona almeno un file per il Pivot!")
-            return
-
-        col1, col2 = st.columns([1, 2])  # Controlli a sinistra, tabella a destra
-
-        with col1:  # Selezioni dell'utente
-            for dataset_name in selected_files:
-                try:
-                    df_index = filenames.index(dataset_name)
-                    df = df_list[df_index] if df_index < len(df_list) else None
-                    
-                    if df is None:
-                        st.error(f"❌ Errore: il dataset '{dataset_name}' non è stato trovato!")
-                        continue  # Passiamo al prossimo dataset
-
-                    df = convert_unix_to_datetime(df)
-                    pivot_dataframe(df, dataset_name)
-                except Exception as e:
-                    st.error(f"❌ Errore nel caricamento del dataset '{dataset_name}': {e}")
-
-        with col2:  # Mostriamo l'anteprima della tabella
-            for dataset_name in selected_files:
-                pivot_data = st.session_state.get(f"pivot_{dataset_name}")
-                if pivot_data is not None:
-                    st.write(f"### 📊 Anteprima Pivot Table - {dataset_name}")
-                    st.dataframe(pivot_data)
