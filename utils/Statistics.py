@@ -17,7 +17,7 @@ def Statistics(df_list, filenames):
 
     st.subheader("📈 Data Plotting")
 
-    col1, col2, col3 = st.columns(3)
+    col1, col2 = st.columns(2)
     
     with col1:
         if st.button("📊 Single Plot"):
@@ -25,12 +25,9 @@ def Statistics(df_list, filenames):
     with col2:
         if st.button("🔄 Merge Datasets"):
             st.session_state["show_individual_plots"] = False
-    with col3:
-        if st.button("📈 Autocorrelation"):
-            st.session_state["show_individual_plots"] = None  # Modalità autocorrelazione
 
     # Sezione per i singoli grafici
-    if st.session_state["show_individual_plots"] is True:
+    if st.session_state["show_individual_plots"]:
         for idx, df in enumerate(df_list):
             df = convert_unix_to_datetime(df)
 
@@ -54,7 +51,7 @@ def Statistics(df_list, filenames):
                 create_and_render_plot(df, x_axis, y_axis, plot_type)
 
     # Sezione per Merge Datasets (UNICO GRAFICO)
-    elif st.session_state["show_individual_plots"] is False:
+    else:
         st.subheader("📊 Merge Multiple Datasets in One Plot")
         
         selected_datasets = st.multiselect("Seleziona i dataset", filenames, default=filenames)
@@ -64,13 +61,21 @@ def Statistics(df_list, filenames):
 
             x_axes, y_axes, second_y_axes = {}, {}, {}
 
-            # Creazione delle selezioni per asse X, asse Y e doppio asse Y
-            for i, dataset_name in enumerate(selected_datasets):
-                df = convert_unix_to_datetime(df_list[filenames.index(dataset_name)])
+            col1, col2, col3 = st.columns(3)
 
-                x_axes[dataset_name] = st.selectbox(f"X Axis ({dataset_name})", df.columns.tolist(), key=f"x_axis_merge_{i}")
-                y_axes[dataset_name] = st.selectbox(f"Y Axis ({dataset_name})", df.columns.tolist(), key=f"y_axis_merge_{i}")
-                second_y_axes[dataset_name] = st.checkbox(f"Usa Secondo Asse Y? ({dataset_name})", key=f"secondary_y_{i}")
+            with col1:
+                for i, dataset_name in enumerate(selected_datasets):
+                    df = convert_unix_to_datetime(df_list[filenames.index(dataset_name)])
+                    x_axes[dataset_name] = st.selectbox(f"X Axis ({dataset_name})", df.columns.tolist(), key=f"x_axis_merge_{i}")
+
+            with col2:
+                for i, dataset_name in enumerate(selected_datasets):
+                    df = convert_unix_to_datetime(df_list[filenames.index(dataset_name)])
+                    y_axes[dataset_name] = st.selectbox(f"Y Axis ({dataset_name})", df.columns.tolist(), key=f"y_axis_merge_{i}")
+
+            with col3:
+                for i, dataset_name in enumerate(selected_datasets):
+                    second_y_axes[dataset_name] = st.checkbox(f"Secondo asse Y? ({dataset_name})", key=f"secondary_y_{i}")
 
             # Aggiunta dei dati nel grafico unico
             for dataset_name in selected_datasets:
@@ -99,27 +104,4 @@ def Statistics(df_list, filenames):
             )
 
             st.plotly_chart(fig, use_container_width=True)
-
-    # Sezione per l'Autocorrelazione
-    elif st.session_state["show_individual_plots"] is None:
-        st.subheader("📊 Autocorrelation Analysis")
-
-        selected_datasets = st.multiselect("Seleziona i dataset", filenames, default=filenames)
-
-        if selected_datasets:
-            df_list_selected = [convert_unix_to_datetime(df_list[filenames.index(name)]) for name in selected_datasets]
-            selected_columns = {}
-
-            for i, name in enumerate(selected_datasets):
-                selected_columns[name] = st.multiselect(f"Seleziona le colonne ({name})", 
-                                                        df_list_selected[i].columns.tolist(), 
-                                                        key=f"autocorr_cols_{i}")
-
-            for i, name in enumerate(selected_datasets):
-                df = df_list_selected[i]
-                for col in selected_columns[name]:
-                    fig = compute_autocorrelation(df, col)
-                    if fig:
-                        st.plotly_chart(fig, use_container_width=True)
-
 
