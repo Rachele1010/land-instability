@@ -28,7 +28,7 @@ def display_dashboard():
     for uploaded_file in uploaded_files:
         df = load_file(uploaded_file)
         if df is not None:
-            df = process_file(df)
+            df = process_file(df, decimal_sep)
             df_list.append(df)
             filenames.append(uploaded_file.name)
     
