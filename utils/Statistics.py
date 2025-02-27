@@ -1,7 +1,7 @@
 import streamlit as st
 import pandas as pd
-import plotly.express as px  
-from utils.plotting import create_and_render_plot
+import plotly.graph_objects as go  
+from utils.plotting import create_and_render_plot  # Assumo che questa funzione gestisca ECharts
 
 # Funzione per convertire timestamp Unix in datetime
 def convert_unix_to_datetime(df):
@@ -53,54 +53,64 @@ def Statistics(df_list, filenames):
             with col2:
                 create_and_render_plot(df, x_axis, y_axis, plot_type)
 
-    # Sezione per Merge Datasets
+    # Sezione per Merge Datasets (grafico unico)
     elif st.session_state["show_individual_plots"] is False:
         st.subheader("📊 Merge Multiple Datasets in One Plot")
         
-        col1, col2, col3 = st.columns(3)
-        
-        with col1:
-            selected_datasets = st.multiselect("Seleziona i dataset", filenames, default=filenames)
+        selected_datasets = st.multiselect("Seleziona i dataset", filenames, default=filenames)
 
         if selected_datasets:
-            # Unire i dataset selezionati
-            merged_df = pd.concat(
-                [convert_unix_to_datetime(df_list[filenames.index(name)]) for name in selected_datasets], 
-                axis=0, 
-                ignore_index=True
+            fig = go.Figure()  # Creiamo il grafico vuoto
+
+            for i, dataset_name in enumerate(selected_datasets):
+                df = convert_unix_to_datetime(df_list[filenames.index(dataset_name)])
+
+                col1, col2, col3 = st.columns(3)
+                with col1:
+                    x_axis = st.selectbox(f"X Axis ({dataset_name})", df.columns.tolist(), key=f"x_axis_merge_{i}")
+                with col2:
+                    y_axis = st.selectbox(f"Y Axis ({dataset_name})", df.columns.tolist(), key=f"y_axis_merge_{i}")
+                with col3:
+                    use_secondary_y = st.checkbox(f"Secondo asse Y? ({dataset_name})", key=f"secondary_y_{i}")
+
+                fig.add_trace(go.Scatter(
+                    x=df[x_axis],
+                    y=df[y_axis],
+                    mode='lines+markers',
+                    name=dataset_name,
+                    yaxis="y2" if use_secondary_y else "y1"  # Se selezionato, va sul secondo asse
+                ))
+
+            # Layout per doppio asse Y
+            fig.update_layout(
+                title="Merged Datasets",
+                xaxis=dict(title="X Axis"),
+                yaxis=dict(title="Primary Y Axis"),
+                yaxis2=dict(
+                    title="Secondary Y Axis",
+                    overlaying='y',
+                    side='right',
+                    showgrid=False  # Evita griglie doppie
+                ),
+                legend=dict(title="Datasets")
             )
 
-            with col2:
-                x_axis = st.selectbox("Seleziona l'asse X", merged_df.columns.tolist(), key="x_axis_merge")
-            with col3:
-                y_axes = st.multiselect("Seleziona le variabili da plottare", merged_df.columns.tolist(), key="y_axes_merge")
-
-            plot_type = st.selectbox("Plot Type", ["Basic Scatter", "Basic Bar", "Basic Line", 
-                                                   "Mixed Line and Bar", "Calendar Heatmap", "DataZoom"], 
-                                     key="plot_type_merge")
-
-            if y_axes:
-                for y_axis in y_axes:
-                    create_and_render_plot(merged_df, x_axis, y_axis, plot_type)
+            st.plotly_chart(fig, use_container_width=True)
 
     # Sezione per l'Autocorrelazione
     elif st.session_state["show_individual_plots"] is None:
         st.subheader("📊 Autocorrelation Analysis")
 
-        col1, col2 = st.columns(2)
-
-        with col1:
-            selected_datasets = st.multiselect("Seleziona i dataset", filenames, default=filenames)
+        selected_datasets = st.multiselect("Seleziona i dataset", filenames, default=filenames)
 
         if selected_datasets:
             df_list_selected = [convert_unix_to_datetime(df_list[filenames.index(name)]) for name in selected_datasets]
             selected_columns = {}
 
-            with col2:
-                for i, name in enumerate(selected_datasets):
-                    selected_columns[name] = st.multiselect(f"Seleziona le colonne ({name})", 
-                                                            df_list_selected[i].columns.tolist(), 
-                                                            key=f"autocorr_cols_{i}")
+            for i, name in enumerate(selected_datasets):
+                selected_columns[name] = st.multiselect(f"Seleziona le colonne ({name})", 
+                                                        df_list_selected[i].columns.tolist(), 
+                                                        key=f"autocorr_cols_{i}")
 
             for i, name in enumerate(selected_datasets):
                 df = df_list_selected[i]
@@ -108,4 +118,5 @@ def Statistics(df_list, filenames):
                     fig = compute_autocorrelation(df, col)
                     if fig:
                         st.plotly_chart(fig, use_container_width=True)
+
 
