@@ -284,11 +284,11 @@ def Statistics(df_list, filenames):
     elif st.session_state["show_pivot"]:
         st.subheader("Pivot")
         selected_files = st.multiselect("Seleziona i file per il Pivot", filenames)
-
+    
         col1, col2 = st.columns([1, 2])  # Colonna sinistra per i controlli, destra per la tabella
     
         with col1:
-            for idx, dataset_name in enumerate(filenames):  # Iteriamo sui file selezionati
+            for idx, dataset_name in enumerate(filenames):
                 if dataset_name not in selected_files:
                     continue  # Saltiamo i file non selezionati
     
@@ -299,6 +299,11 @@ def Statistics(df_list, filenames):
                     index_col = st.selectbox(f"Indice ({dataset_name})", df.columns, key=f"pivot_index_{dataset_name}")
                     columns_col = st.selectbox(f"Colonne ({dataset_name})", df.columns, key=f"pivot_columns_{dataset_name}")
                     values_col = st.selectbox(f"Valori ({dataset_name})", df.columns, key=f"pivot_values_{dataset_name}")
+    
+                    # Controllo che la colonna valori sia numerica
+                    if not pd.api.types.is_numeric_dtype(df[values_col]):
+                        st.error(f"⚠️ La colonna '{values_col}' non è numerica! Seleziona una colonna valida.")
+                        continue
     
                     # Checkbox per scegliere più funzioni di aggregazione
                     sum_selected = st.checkbox("Somma (sum)", key=f"sum_{dataset_name}")
@@ -313,22 +318,21 @@ def Statistics(df_list, filenames):
                     if min_selected: agg_funcs.append("min")
                     if max_selected: agg_funcs.append("max")
                     if count_selected: agg_funcs.append("count")
-                    
+    
                     if not agg_funcs:
                         st.warning("⚠️ Seleziona almeno un'operazione di aggregazione!")
-                        return
-                    
-                    pivot_df = df.pivot_table(
-                        index=index_col,
-                        columns=columns_col,
-                        values=values_col,
-                        aggfunc=agg_funcs  # Passiamo direttamente la lista
-                    )
-                                st.session_state[f"pivot_{dataset_name}"] = pivot_df  # Salviamo lo stato
-                            except Exception as e:
-                                st.error(f"❌ Errore nel pivoting: {e}")
-                        else:
-                            st.warning("⚠️ Seleziona almeno un'operazione di aggregazione!")
+                        continue  # Passiamo al prossimo dataset
+    
+                    try:
+                        pivot_df = df.pivot_table(
+                            index=index_col,
+                            columns=columns_col,
+                            values=values_col,
+                            aggfunc={values_col: agg_funcs}  # Corretto con dizionario
+                        )
+                        st.session_state[f"pivot_{dataset_name}"] = pivot_df  # Salviamo lo stato
+                    except Exception as e:
+                        st.error(f"❌ Errore nel pivoting: {e}")
     
         with col2:  # Mostriamo l'anteprima della tabella
             for dataset_name in selected_files:
