@@ -32,48 +32,43 @@ def compute_cross_correlation(df, column1, column2, max_lag=50):
     cross_corr_values = [df[column1].corr(df[column2].shift(lag)) for lag in range(1, min(len(df), max_lag))]
     lags = list(range(1, len(cross_corr_values) + 1))
     return lags, cross_corr_values
-    
-# Funzione per calcolare le statistiche di base
 
+# Funzione per calcolare le statistiche
 def calcola_statistiche(df):
-    statistiche = {
-        'Variabile': [],
-        'Conteggio': [],
-        'Somma': [],
-        'Media': [],
-        'Minimo': [],
-        'Massimo': [],
-        'Mediana': []
-    }
-    
-    for colonna in df.columns:
-        statistiche['Variabile'].append(colonna)
-        statistiche['Conteggio'].append(df[colonna].count())
-
-        if pd.api.types.is_numeric_dtype(df[colonna]):
-            statistiche['Somma'].append(df[colonna].sum())
-            statistiche['Media'].append(df[colonna].mean())
-            statistiche['Minimo'].append(df[colonna].min())
-            statistiche['Massimo'].append(df[colonna].max())
-            statistiche['Mediana'].append(df[colonna].median())
+    stats = []
+    for col in df.columns:
+        if pd.api.types.is_numeric_dtype(df[col]):
+            stats.append({
+                'Variabile': col,
+                'Conteggio': df[col].count(),
+                'Somma': df[col].sum(),
+                'Media': df[col].mean(),
+                'Minimo': df[col].min(),
+                'Massimo': df[col].max(),
+                'Mediana': df[col].median()
+            })
         else:
-            statistiche['Somma'].append('N/A')
-            statistiche['Media'].append('N/A')
-            statistiche['Minimo'].append('N/A')
-            statistiche['Massimo'].append('N/A')
-            statistiche['Mediana'].append('N/A')
+            stats.append({
+                'Variabile': col,
+                'Conteggio': df[col].count(),
+                'Somma': 'N/A',
+                'Media': 'N/A',
+                'Minimo': 'N/A',
+                'Massimo': 'N/A',
+                'Mediana': 'N/A'
+            })
+    return pd.DataFrame(stats)
 
-    return pd.DataFrame(statistiche)
-
-def aggrega_dati_temporali(df, colonna_data):
-    df[colonna_data] = pd.to_datetime(df[colonna_data])  # Assicuriamoci che sia datetime
+# Funzione per aggregare dati temporali
+def aggrega_dati_temporali(df, colonna_data, colonna_valore):
+    df = df.set_index(colonna_data)
     aggregazioni = {
-        "Annuale": df.set_index(colonna_data).resample('Y').count(),
-        "Mensile": df.set_index(colonna_data).resample('M').count(),
-        "Stagionale": df.set_index(colonna_data).resample('Q').count(),
-        "Semestrale": df.set_index(colonna_data).resample('2Q').count()
+        'Annuale': df[colonna_valore].resample('Y').sum(),
+        'Mensile': df[colonna_valore].resample('M').sum(),
+        'Stagionale': df[colonna_valore].resample('Q').sum(),
+        'Semestrale': df[colonna_valore].resample('6M').sum()
     }
-    return aggregazioni    
+    return aggregazioni
 
 # Funzione principale per la visualizzazione e analisi dei dataset
 def Statistics(df_list, filenames):
@@ -330,7 +325,7 @@ def Statistics(df_list, filenames):
     elif st.session_state["show_distribution_data"]:
         st.subheader("Distribuzione Dati")
         selected_files = st.multiselect("Seleziona i file", filenames)
-    
+
         for idx, dataset_name in enumerate(filenames):
             if dataset_name not in selected_files:
                 continue
@@ -339,44 +334,38 @@ def Statistics(df_list, filenames):
             df = convert_unix_to_datetime(df)
     
             if df is not None:
-                #st.write(f"### 📊 Statistiche per {dataset_name}")
+                st.write(f"### 📊 Statistiche per {dataset_name}")
                 stats_df = calcola_statistiche(df)
-                col1, col2, col3, col4, col5, col6, col7 = st.columns(7)
+    
                 # Visualizzazione delle metriche per ogni variabile
                 for _, row in stats_df.iterrows():
-                    with col1:
-                        with st.container():
-                            st.write(f"**Variabile:** {row['Variabile']}")
-                        with col2:
-                            st.metric(label="Conteggio", value=row['Conteggio'])
-                        if row['Somma'] != 'N/A':
-                            with col3:
-                                st.metric(label="Somma", value=row['Somma'])
-                            with col4:  
-                                st.metric(label="Media", value=row['Media'])
-                            with col5:
-                                st.metric(label="Minimo", value=row['Minimo'])
-                            with col6:
-                                st.metric(label="Massimo", value=row['Massimo'])
-                            with col7:    
-                                st.metric(label="Mediana", value=row['Mediana'])
-                        st.markdown("---")
+                    st.write(f"**Variabile:** {row['Variabile']}")
+                    st.write(f"Conteggio: {row['Conteggio']}")
+                    if row['Somma'] != 'N/A':
+                        st.write(f"Somma: {row['Somma']}")
+                        st.write(f"Media: {row['Media']}")
+                        st.write(f"Minimo: {row['Minimo']}")
+                        st.write(f"Massimo: {row['Massimo']}")
+                        st.write(f"Mediana: {row['Mediana']}")
+                    st.markdown("---")
     
                 # Selezione di una colonna datetime se disponibile
                 colonne_datetime = df.select_dtypes(include=['datetime64[ns]', 'datetime64[ns, UTC]']).columns
                 if len(colonne_datetime) > 0:
                     colonna_data = st.selectbox(f"Seleziona la colonna data per {dataset_name}", colonne_datetime)
-                    aggregazioni = aggrega_dati_temporali(df, colonna_data)
-    
                     # Selezione della variabile da plottare
-                    variabile_plot = st.selectbox(f"Seleziona la variabile da plottare per {dataset_name}", df.columns)
+                    variabili_numeriche = df.select_dtypes(include=['number']).columns
+                    if len(variabili_numeriche) > 0:
+                        variabile_plot = st.selectbox(f"Seleziona la variabile da plottare per {dataset_name}", variabili_numeriche)
+                        aggregazioni = aggrega_dati_temporali(df, colonna_data, variabile_plot)
     
-                    # Visualizzazione dei grafici per ogni aggregazione temporale
-                    for periodo, agg_df in aggregazioni.items():
-                        if variabile_plot in agg_df.columns:
+                        # Visualizzazione dei grafici per ogni aggregazione temporale
+                        for periodo, agg_df in aggregazioni.items():
                             st.write(f"#### Grafico {periodo} per {dataset_name}")
-                            st.bar_chart(agg_df[variabile_plot])
-                        else:
-                            st.warning(f"⚠️ La variabile '{variabile_plot}' non ha dati validi per l'aggregazione {periodo}.")
+                            fig = px.bar(agg_df, x=agg_df.index, y=agg_df.values, title=f"{periodo} Aggregato")
+                            st.plotly_chart(fig)
+                    else:
+                        st.warning(f"⚠️ Nessuna variabile numerica disponibile per il plotting in {dataset_name}.")
                 else:
                     st.warning(f"⚠️ Nessuna colonna datetime trovata in {dataset_name}.")
+    
