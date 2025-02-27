@@ -263,63 +263,71 @@ def Statistics(df_list, filenames):
     
     elif st.session_state["show_distribution_data"]:
         st.subheader("Distribution Data")
-        selected_files = st.multiselect("Select file", filenames)
-
+    
+        # Inizializza lo stato solo una volta
+        if "selected_files" not in st.session_state:
+            st.session_state["selected_files"] = filenames  
+    
+        # Selettore dei file
+        selected_files = st.multiselect("Select file", filenames, default=st.session_state["selected_files"])
+    
+        # Se la selezione cambia, aggiorna lo stato e ricarica
+        if selected_files != st.session_state["selected_files"]:
+            st.session_state["selected_files"] = selected_files
+            st.rerun()
+    
         for idx, dataset_name in enumerate(filenames):
-            if dataset_name not in selected_files:
-                continue
+            if dataset_name not in st.session_state["selected_files"]:
+                continue  # Salta i file non selezionati
     
             df = df_list[idx]
             df = convert_unix_to_datetime(df)
     
             if df is not None:
-                #st.write(f"### 📊 Statistiche per {dataset_name}")
                 stats_df = calcola_statistiche(df)
+                if stats_df.empty:
+                    st.warning(f"⚠️ No data available for {dataset_name}")
+                    continue
     
-                # Visualizzazione delle metriche per ogni variabile
+                # Mostra le metriche
                 col1, col2, col3, col4, col5, col6, col7 = st.columns(7)
-                # Visualizzazione delle metriche per ogni variabile
                 for _, row in stats_df.iterrows():
                     with col1:
                         with st.container():
                             st.write(f"**Variable:** {row['Variable']}")
-                        with col2:
-                            st.metric(label="Counting", value=row['Counting'])
-                        if row['Sum'] != 'N/A':
-                            with col3:
-                                st.metric(label="Sum", value=row['Sum'])
-                            with col4:  
-                                st.metric(label="Mean", value=row['Mean'])
-                            with col5:
-                                st.metric(label="Minimum", value=row['Minimum'])
-                            with col6:
-                                st.metric(label="Max", value=row['Max'])
-                            with col7:    
-                                st.metric(label="Median", value=row['Median'])
-                        st.markdown("---")
+                    with col2:
+                        st.metric(label="Counting", value=row.get('Counting', 'N/A'))
+                    if row.get('Sum', 'N/A') != 'N/A':
+                        with col3:
+                            st.metric(label="Sum", value=row['Sum'])
+                        with col4:  
+                            st.metric(label="Mean", value=row['Mean'])
+                        with col5:
+                            st.metric(label="Minimum", value=row['Minimum'])
+                        with col6:
+                            st.metric(label="Max", value=row['Max'])
+                        with col7:    
+                            st.metric(label="Median", value=row['Median'])
+                    st.markdown("---")
     
-                # Selezione di una colonna datetime se disponibile
+                # Selezione datetime
                 colonne_datetime = df.select_dtypes(include=['datetime64[ns]', 'datetime64[ns, UTC]']).columns
                 if len(colonne_datetime) > 0:
-                    colonna_data = st.selectbox(f"Select datatime {dataset_name}", colonne_datetime)
-                    
-                    # Creazione colonne per la selezione della variabile e la visualizzazione del grafico
+                    colonna_data = st.selectbox(f"Select datetime {dataset_name}", colonne_datetime, key=f"datetime_{dataset_name}")
+    
                     col1, col2 = st.columns([1, 4])
-                    
                     variabili_numeriche = df.select_dtypes(include=['number']).columns
                     if len(variabili_numeriche) > 0:
                         with col1:
-                            variabile_plot = st.selectbox(f"Select variable {dataset_name}", variabili_numeriche)
+                            variabile_plot = st.selectbox(f"Select variable {dataset_name}", variabili_numeriche, key=f"var_{dataset_name}")
                             aggregazioni = aggrega_dati_temporali(df, colonna_data, variabile_plot)
-                
-                        # Visualizzazione dei grafici per ogni aggregazione temporale
+    
                         with col2:
                             for periodo, agg_df in aggregazioni.items():
                                 st.write(f"#### Plot {periodo} by {dataset_name}")
                                 fig = px.bar(agg_df, x=agg_df.index, y=agg_df.values, title=f"{periodo} Aggregate")
                                 st.plotly_chart(fig)
                     else:
-                        st.warning(f"⚠️ No available numeric variables for plotting in {dataset_name}.")
+                        st.warning(f"⚠️ No numeric variables available in {dataset_name}.")
                 else:
                     st.warning(f"⚠️ No datetime column found in {dataset_name}.")
-    
