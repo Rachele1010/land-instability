@@ -287,7 +287,7 @@ def Statistics(df_list, filenames):
         col1, col2 = st.columns([1, 2])  # Colonna sinistra per i controlli, destra per la tabella
 
         with col1:
-            for idx, df in enumerate(df_list)# Selezioni dell'utente
+            for idx, df in enumerate(df_list):# Selezioni dell'utente
                 #if st.checkbox(f"🕒 Converti Unix Timestamp ({dataset_name})"):
                 df = convert_unix_to_datetime(df)
         
