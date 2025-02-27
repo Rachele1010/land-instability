@@ -2,115 +2,91 @@ import streamlit as st
 import pandas as pd
 import io
 
-# Funzione per rilevare il separatore in un file CSV o TXT
+# Funzione per rilevare il separatore di colonna nei file CSV o TXT
 def detect_separator(uploaded_file):
-    """Detects the column separator in a CSV or TXT file from an uploaded file."""
+    """Rileva il separatore di colonna in un CSV o TXT."""
     first_line = io.StringIO(uploaded_file.getvalue().decode("utf-8")).readline()
-    possible_separators = [';', ',', '\t', ' ']  # Punto e virgola, virgola, tabulazione, spazio
+    possible_separators = [';', ',', '\t', ' ']  
     separator_counts = {sep: first_line.count(sep) for sep in possible_separators}
     return max(separator_counts, key=separator_counts.get) if max(separator_counts.values()) > 0 else ','
 
-# Funzione per caricare il file in base al tipo di estensione
+# Funzione per caricare un file con gestione degli errori
 @st.cache_data
 def load_file(uploaded_file):
-    """Carica un file da un oggetto file caricato e rileva il separatore per CSV/TXT."""
-    if uploaded_file.name.endswith(('.csv', '.txt')):
-        sep = detect_separator(uploaded_file)
-        try:
+    """Carica un file CSV, TXT o Excel e rileva il separatore automaticamente."""
+    try:
+        if uploaded_file.name.endswith(('.csv', '.txt')):
+            sep = detect_separator(uploaded_file)
             return pd.read_csv(io.StringIO(uploaded_file.getvalue().decode("utf-8")), sep=sep)
-        except pd.errors.ParserError as e:
-            st.error(f"Errore di parsing del file: {e}")
-            return None
-    elif uploaded_file.name.endswith('.xlsx'):
-        return pd.read_excel(uploaded_file)
-    else:
-        st.error("Formato file non supportato")
+        elif uploaded_file.name.endswith('.xlsx'):
+            return pd.read_excel(uploaded_file, sheet_name=0)  # Legge il primo foglio
+    except Exception as e:
+        st.error(f"Errore nel caricamento del file {uploaded_file.name}: {e}")
         return None
 
-# Funzione per inferire e analizzare le date nel DataFrame
+# Funzione per convertire colonne di testo in formato data
 def infer_and_parse_dates(df):
-    """Inferisce e analizza le date nel DataFrame."""
-    date_formats = ['%d/%m/%Y %H:%M:%S']
-    for col in df.columns:
-        if df[col].dtype == 'object':
-            for date_format in date_formats:
-                try:
-                    temp_col = pd.to_datetime(df[col], format=date_format, errors='coerce')
-                    if temp_col.notna().sum() > 0:
-                        df[col] = temp_col
-                        break
-                except Exception:
-                    continue
+    """Converti automaticamente colonne contenenti date."""
+    for col in df.select_dtypes(include=["object"]).columns:
+        df[col] = pd.to_datetime(df[col], errors="coerce")  # Converti in datetime, ignora errori
     return df
 
-# Funzione per convertire i numeri con virgola o punto decimale
+# Funzione per convertire i numeri con il separatore decimale corretto
 def convert_decimal_format(df, decimal_sep):
-    """Converte i numeri con il separatore decimale scelto (virgola o punto)."""
+    """Converte i numeri con il separatore decimale scelto (punto o virgola)."""
     for col in df.columns:
-        if df[col].dtype == 'object':
+        if df[col].dtype == 'object':  # Considera solo colonne di testo
             try:
-                if decimal_sep == ',':
-                    df[col] = df[col].str.replace('.', '').str.replace(',', '.').astype(float)
-                else:
-                    df[col] = df[col].str.replace(',', '').astype(float)
-            except ValueError:
+                df[col] = df[col].str.replace(' ', '').str.replace(',', '.') if decimal_sep == '.' else df[col].str.replace('.', '').str.replace(',', '.')
+                df[col] = pd.to_numeric(df[col], errors="coerce")  # Converte in numero
+            except Exception:
                 continue
     return df
-def convert_decimal_comma(df):
-    """Converte i numeri con virgola decimale in float."""
-    for col in df.columns:
-        if df[col].dtype == 'object':
-            df[col] = df[col].str.replace(',', '.').str.replace(' ', '').astype(str)
-            df[col] = pd.to_numeric(df[col], errors='coerce')  # Converte solo i numeri validi
-    return df
-# Funzione per elaborare i dati del DataFrame
+
+# Funzione principale per elaborare i dati
 def process_file(df, decimal_sep):
-    """Elabora i dati del DataFrame, convertendo date e numeri con il separatore corretto."""
-    df = infer_and_parse_dates(df)
-    
-    if decimal_sep == ",":
-        df = convert_decimal_comma(df)  # Converte solo se l'utente sceglie la virgola
-    
+    """Elabora il DataFrame, gestendo date e numeri."""
+    df = infer_and_parse_dates(df)  # Converti le date
+    df = convert_decimal_format(df, decimal_sep)  # Converti i numeri
+
     # Se l'utente ha scelto la virgola, formatta i numeri per la visualizzazione
     if decimal_sep == ",":
         df = df.applymap(lambda x: f"{x:.2f}".replace(".", ",") if isinstance(x, float) else x)
     
     return df
 
-
 # Funzione per caricare e visualizzare il file
 def load_and_display_file(uploaded_file, decimal_sep):
-    """Carica e visualizza il file con il separatore decimale scelto."""
+    """Carica e mostra il file con il separatore decimale scelto dall'utente."""
     try:
-        file_name = uploaded_file.name  # Ottieni il nome del file
-        
-        # Se il file non è già stato caricato nella sessione, caricalo e memorizzalo
-        if file_name not in st.session_state:
-            df = load_file(uploaded_file)  # Carica il file
-            if df is not None:
-                df = process_file(df, decimal_sep)  # Elabora i dati con il separatore decimale scelto
-                st.session_state[file_name] = df  # Memorizza il dataframe in session_state
+        file_name = uploaded_file.name  
 
-        # Recupera il dataframe dalla sessione e visualizzalo
+        if file_name not in st.session_state:  # Evita ricaricamenti inutili
+            df = load_file(uploaded_file)  
+            if df is not None:
+                df = process_file(df, decimal_sep)  
+                st.session_state[file_name] = df  
+
         df = st.session_state.get(file_name)
         if df is not None:
-            st.subheader(f"File: {file_name}")  # Mostra il nome del file
-            st.dataframe(df)  # Mostra il dataframe
+            st.subheader(f"📂 File: {file_name}")  
+            st.dataframe(df)  
             return df
 
-        return None
-    except pd.errors.ParserError as e:
-        st.error(f"Errore durante il parsing del file CSV: {e}")
     except Exception as e:
-        st.error(f"Errore: {e}")
+        st.error(f"Errore nel caricamento del file: {e}")
 
-# Interfaccia utente
-uploaded_file = st.file_uploader("Carica il tuo file (CSV, TXT, Excel)", type=["csv", "txt", "xlsx"])
+    return None
+
+# UI di Streamlit
+st.title("📊 Caricamento e Elaborazione Dati")
+uploaded_file = st.file_uploader("📂 Carica un file CSV, TXT o Excel", type=["csv", "txt", "xlsx"])
 
 # Selettore per il separatore decimale
-decimal_sep = st.radio("Scegli il separatore decimale:", (".", ","))
+#decimal_sep = st.radio("Scegli il separatore decimale:", (".", ","))
 
 if uploaded_file is not None:
     load_and_display_file(uploaded_file, decimal_sep)
 else:
-    st.info("Nessun file caricato.")
+    st.info("📁 Nessun file caricato.")
+
