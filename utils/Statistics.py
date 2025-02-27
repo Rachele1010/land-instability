@@ -42,20 +42,28 @@ def Statistics(df_list, filenames):
 
     col1, col2, col3, col4 = st.columns(4)
     
-    with col1:
+        with col1:
         if st.button("📊 Single Plot"):
             st.session_state["show_individual_plots"] = True
+            st.session_state["show_merge_multiple_dataset"] = False
             st.session_state["show_autocorrelation"] = False
+            st.session_state["show_cross_correlation"] = False
     with col2:
         if st.button("🔄 Merge Datasets"):
+            st.session_state["show_individual_plots"] = False
             st.session_state["show_merge_multiple_dataset"] = True
             st.session_state["show_autocorrelation"] = False
+            st.session_state["show_cross_correlation"] = False
     with col3:
         if st.button("📈 Autocorrelation"):
-            st.session_state["show_autocorrelation"] = True
             st.session_state["show_individual_plots"] = False
+            st.session_state["show_merge_multiple_dataset"] = False
+            st.session_state["show_autocorrelation"] = True
+            st.session_state["show_cross_correlation"] = False
     with col4:
         if st.button("🔀 Cross-Correlation"):
+            st.session_state["show_individual_plots"] = False
+            st.session_state["show_merge_multiple_dataset"] = False
             st.session_state["show_autocorrelation"] = False
             st.session_state["show_cross_correlation"] = True
 
