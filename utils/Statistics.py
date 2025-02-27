@@ -338,16 +338,26 @@ def Statistics(df_list, filenames):
                 stats_df = calcola_statistiche(df)
     
                 # Visualizzazione delle metriche per ogni variabile
+                col1, col2, col3, col4, col5, col6, col7 = st.columns(7)
+                # Visualizzazione delle metriche per ogni variabile
                 for _, row in stats_df.iterrows():
-                    st.write(f"**Variabile:** {row['Variabile']}")
-                    st.write(f"Conteggio: {row['Conteggio']}")
-                    if row['Somma'] != 'N/A':
-                        st.write(f"Somma: {row['Somma']}")
-                        st.write(f"Media: {row['Media']}")
-                        st.write(f"Minimo: {row['Minimo']}")
-                        st.write(f"Massimo: {row['Massimo']}")
-                        st.write(f"Mediana: {row['Mediana']}")
-                    st.markdown("---")
+                    with col1:
+                        with st.container():
+                            st.write(f"**Variabile:** {row['Variabile']}")
+                        with col2:
+                            st.metric(label="Conteggio", value=row['Conteggio'])
+                        if row['Somma'] != 'N/A':
+                            with col3:
+                                st.metric(label="Somma", value=row['Somma'])
+                            with col4:  
+                                st.metric(label="Media", value=row['Media'])
+                            with col5:
+                                st.metric(label="Minimo", value=row['Minimo'])
+                            with col6:
+                                st.metric(label="Massimo", value=row['Massimo'])
+                            with col7:    
+                                st.metric(label="Mediana", value=row['Mediana'])
+                        st.markdown("---")
     
                 # Selezione di una colonna datetime se disponibile
                 colonne_datetime = df.select_dtypes(include=['datetime64[ns]', 'datetime64[ns, UTC]']).columns
