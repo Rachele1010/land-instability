@@ -305,21 +305,20 @@ def Statistics(df_list, filenames):
                     # Controllo che la colonna valori sia numerica
                     if not pd.api.types.is_numeric_dtype(df[values_col]):
                         st.error(f"⚠️ La colonna '{values_col}' non è numerica! Seleziona una colonna valida.")
-                        continue
+                        continue  # Passiamo al prossimo dataset
     
-                    # Checkbox per scegliere più funzioni di aggregazione
-                    sum_selected = st.checkbox("Somma (sum)", key=f"sum_{dataset_name}")
-                    mean_selected = st.checkbox("Media (mean)", key=f"mean_{dataset_name}")
-                    min_selected = st.checkbox("Minimo (min)", key=f"min_{dataset_name}")
-                    max_selected = st.checkbox("Massimo (max)", key=f"max_{dataset_name}")
-                    count_selected = st.checkbox("Conteggio (count)", key=f"count_{dataset_name}")
-    
-                    agg_funcs = []
-                    if sum_selected: agg_funcs.append("sum")
-                    if mean_selected: agg_funcs.append("mean")
-                    if min_selected: agg_funcs.append("min")
-                    if max_selected: agg_funcs.append("max")
-                    if count_selected: agg_funcs.append("count")
+                    # Checkbox per le funzioni di aggregazione
+                    agg_funcs = {}
+                    if st.checkbox("Somma (sum)", key=f"sum_{dataset_name}"):
+                        agg_funcs["sum"] = "sum"
+                    if st.checkbox("Media (mean)", key=f"mean_{dataset_name}"):
+                        agg_funcs["mean"] = "mean"
+                    if st.checkbox("Minimo (min)", key=f"min_{dataset_name}"):
+                        agg_funcs["min"] = "min"
+                    if st.checkbox("Massimo (max)", key=f"max_{dataset_name}"):
+                        agg_funcs["max"] = "max"
+                    if st.checkbox("Conteggio (count)", key=f"count_{dataset_name}"):
+                        agg_funcs["count"] = "count"
     
                     if not agg_funcs:
                         st.warning("⚠️ Seleziona almeno un'operazione di aggregazione!")
@@ -330,9 +329,11 @@ def Statistics(df_list, filenames):
                             index=index_col,
                             columns=columns_col,
                             values=values_col,
-                            aggfunc={values_col: agg_funcs}  # Corretto con dizionario
-                        )
+                            aggfunc=agg_funcs
+                        ).reset_index()  # Reset per evitare MultiIndex
+    
                         st.session_state[f"pivot_{dataset_name}"] = pivot_df  # Salviamo lo stato
+    
                     except Exception as e:
                         st.error(f"❌ Errore nel pivoting: {e}")
     
@@ -342,3 +343,4 @@ def Statistics(df_list, filenames):
                 if pivot_data is not None:
                     st.write(f"### 📊 Anteprima Pivot Table - {dataset_name}")
                     st.dataframe(pivot_data)
+    
