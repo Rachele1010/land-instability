@@ -239,24 +239,31 @@ def Statistics(df_list, filenames):
             with col1:
                 for i, dataset_name in enumerate(selected_datasets):
                     df = convert_unix_to_datetime(df_list[filenames.index(dataset_name)])
-                    y_axis_1[dataset_name] = st.selectbox(f"Primary Y Axis ({dataset_name})", df.columns.tolist(), key=f"y_axis1_{i}")
+                    y_axis_1[dataset_name] = st.selectbox(f"Primary Y Axis ({dataset_name})", df.columns.tolist(), key=f"y_axis1_{dataset_name}")
     
             with col2:
                 for i, dataset_name in enumerate(selected_datasets):
                     df = convert_unix_to_datetime(df_list[filenames.index(dataset_name)])
-                    y_axis_2[dataset_name] = st.selectbox(f"Secondary Y Axis (opzionale) ({dataset_name})", ["None"] + df.columns.tolist(), key=f"y_axis2_{i}")
+                    y_axis_2[dataset_name] = st.selectbox(f"Secondary Y Axis ({dataset_name})", df.columns.tolist(), key=f"y_axis2_{dataset_name}")
     
             with col3:
                 for i, dataset_name in enumerate(selected_datasets):
-                    plot_types[dataset_name] = st.selectbox(f"Plot Type ({dataset_name})", ["Scatter", "Bar", "Line"], key=f"plot_type_{i}")
+                    plot_types[dataset_name] = st.selectbox(f"Plot Type ({dataset_name})", ["Scatter", "Bar", "Line"], key=f"plot_type_{dataset_name}")
     
             with col4:
                 for i, dataset_name in enumerate(selected_datasets):
-                    max_lag_values[dataset_name] = st.slider(f"Lag ({dataset_name})", min_value=1, max_value=100, value=50, key=f"lag_{i}")
+                    max_lag_values[dataset_name] = st.slider(f"Lag ({dataset_name})", min_value=1, max_value=100, value=50, key=f"lag_{dataset_name}")
+    
+            # Iteriamo sui dataset selezionati
+            for dataset_name in selected_datasets:
+                df = convert_unix_to_datetime(df_list[filenames.index(dataset_name)])
+                var1 = y_axis_1[dataset_name]  # Ora è definito
+                var2 = y_axis_2[dataset_name]  # Ora è definito
+                max_lag = max_lag_values[dataset_name]
     
                 lags, cross_corr_values = compute_cross_correlation(df, var1, var2, max_lag)
                 if lags:
                     fig.add_trace(go.Scatter(x=lags, y=cross_corr_values, mode="lines+markers", name=f"{dataset_name}: {var1} vs {var2}"))
-            
+    
             fig.update_layout(title="Cross-Correlation", xaxis_title="Lag", yaxis_title="Cross-Correlation Value")
             st.plotly_chart(fig, use_container_width=True)
