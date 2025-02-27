@@ -59,10 +59,18 @@ def convert_decimal_format(df, decimal_sep):
 
 # Funzione per elaborare i dati del DataFrame
 def process_file(df, decimal_sep):
-    """Elabora i dati del DataFrame, inclusa la conversione del separatore decimale."""
+    """Elabora i dati del DataFrame, convertendo date e numeri con il separatore corretto."""
     df = infer_and_parse_dates(df)
-    df = convert_decimal_format(df, decimal_sep)
+    
+    if decimal_sep == ",":
+        df = convert_decimal_comma(df)  # Converte solo se l'utente sceglie la virgola
+    
+    # Se l'utente ha scelto la virgola, formatta i numeri per la visualizzazione
+    if decimal_sep == ",":
+        df = df.applymap(lambda x: f"{x:.2f}".replace(".", ",") if isinstance(x, float) else x)
+    
     return df
+
 
 # Funzione per caricare e visualizzare il file
 def load_and_display_file(uploaded_file, decimal_sep):
