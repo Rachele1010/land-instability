@@ -286,46 +286,47 @@ def Statistics(df_list, filenames):
         selected_files = st.multiselect("Seleziona i file per il Pivot", filenames)
         col1, col2 = st.columns([1, 2])  # Colonna sinistra per i controlli, destra per la tabella
 
-        with col1:  # Selezioni dell'utente
-            #if st.checkbox(f"🕒 Converti Unix Timestamp ({dataset_name})"):
-            df = convert_unix_to_datetime(df)
-    
-            if df is not None:
-                index_col = st.selectbox(f"Indice", df.columns, key=f"pivot_index_{dataset_name}")
-                columns_col = st.selectbox(f"Colonne", df.columns, key=f"pivot_columns_{dataset_name}")
-                values_col = st.selectbox(f"Valori", df.columns, key=f"pivot_values_{dataset_name}")
-    
-                # Checkbox per scegliere più funzioni di aggregazione
-                sum_selected = st.checkbox("Somma (sum)", key=f"sum_{dataset_name}")
-                mean_selected = st.checkbox("Media (mean)", key=f"mean_{dataset_name}")
-                min_selected = st.checkbox("Minimo (min)", key=f"min_{dataset_name}")
-                max_selected = st.checkbox("Massimo (max)", key=f"max_{dataset_name}")
-                count_selected = st.checkbox("Conteggio (count)", key=f"count_{dataset_name}")
-    
-                agg_funcs = {}
-                if sum_selected: agg_funcs["sum"] = "sum"
-                if mean_selected: agg_funcs["mean"] = "mean"
-                if min_selected: agg_funcs["min"] = "min"
-                if max_selected: agg_funcs["max"] = "max"
-                if count_selected: agg_funcs["count"] = "count"
-    
-                if st.button(f"🔄 Applica Pivot ({dataset_name})"):
-                    if agg_funcs:
-                        try:
-                            pivot_df = df.pivot_table(
-                                index=index_col, 
-                                columns=columns_col, 
-                                values=values_col, 
-                                aggfunc=list(agg_funcs.values())
-                            )
-                            st.session_state[f"pivot_{dataset_name}"] = pivot_df  # Salviamo lo stato
-                        except Exception as e:
-                            st.error(f"❌ Errore nel pivoting: {e}")
-                    else:
-                        st.warning("⚠️ Seleziona almeno un'operazione di aggregazione!")
-    
-        with col2:  # Mostriamo l'anteprima della tabella
-            pivot_data = st.session_state.get(f"pivot_{dataset_name}")  # Evita errori se non esiste
-            if pivot_data is not None:
-                st.write(f"### 📊 Anteprima Pivot Table - {dataset_name}")
-                st.dataframe(pivot_data)
+        with col1:
+            for idx, df in enumerate(df_list)# Selezioni dell'utente
+                #if st.checkbox(f"🕒 Converti Unix Timestamp ({dataset_name})"):
+                df = convert_unix_to_datetime(df)
+        
+                if df is not None:
+                    index_col = st.selectbox(f"Indice", df.columns, key=f"pivot_index_{dataset_name}")
+                    columns_col = st.selectbox(f"Colonne", df.columns, key=f"pivot_columns_{dataset_name}")
+                    values_col = st.selectbox(f"Valori", df.columns, key=f"pivot_values_{dataset_name}")
+        
+                    # Checkbox per scegliere più funzioni di aggregazione
+                    sum_selected = st.checkbox("Somma (sum)", key=f"sum_{dataset_name}")
+                    mean_selected = st.checkbox("Media (mean)", key=f"mean_{dataset_name}")
+                    min_selected = st.checkbox("Minimo (min)", key=f"min_{dataset_name}")
+                    max_selected = st.checkbox("Massimo (max)", key=f"max_{dataset_name}")
+                    count_selected = st.checkbox("Conteggio (count)", key=f"count_{dataset_name}")
+        
+                    agg_funcs = {}
+                    if sum_selected: agg_funcs["sum"] = "sum"
+                    if mean_selected: agg_funcs["mean"] = "mean"
+                    if min_selected: agg_funcs["min"] = "min"
+                    if max_selected: agg_funcs["max"] = "max"
+                    if count_selected: agg_funcs["count"] = "count"
+        
+                    if st.button(f"🔄 Applica Pivot ({dataset_name})"):
+                        if agg_funcs:
+                            try:
+                                pivot_df = df.pivot_table(
+                                    index=index_col, 
+                                    columns=columns_col, 
+                                    values=values_col, 
+                                    aggfunc=list(agg_funcs.values())
+                                )
+                                st.session_state[f"pivot_{dataset_name}"] = pivot_df  # Salviamo lo stato
+                            except Exception as e:
+                                st.error(f"❌ Errore nel pivoting: {e}")
+                        else:
+                            st.warning("⚠️ Seleziona almeno un'operazione di aggregazione!")
+        
+            with col2:  # Mostriamo l'anteprima della tabella
+                pivot_data = st.session_state.get(f"pivot_{dataset_name}")  # Evita errori se non esiste
+                if pivot_data is not None:
+                    st.write(f"### 📊 Anteprima Pivot Table - {dataset_name}")
+                    st.dataframe(pivot_data)
