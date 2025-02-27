@@ -37,7 +37,7 @@ def Statistics(df_list, filenames):
 
     st.subheader("📈 Data Plotting")
 
-    col1, col2, col3 = st.columns(3)
+    col1, col2, col3, col4 = st.columns(4)
     
     with col1:
         if st.button("📊 Single Plot"):
@@ -45,12 +45,16 @@ def Statistics(df_list, filenames):
             st.session_state["show_autocorrelation"] = False
     with col2:
         if st.button("🔄 Merge Datasets"):
-            st.session_state["show_individual_plots"] = False
+            st.session_state["show_merge_multiple_dataset"] = True
             st.session_state["show_autocorrelation"] = False
     with col3:
         if st.button("📈 Autocorrelation"):
             st.session_state["show_autocorrelation"] = True
             st.session_state["show_individual_plots"] = False
+     with col4:
+        if st.button("🔀 Cross-Correlation"):
+            st.session_state["show_autocorrelation"] = False
+            st.session_state["show_cross_correlation"] = True
 
     # Sezione per i singoli grafici
     if st.session_state["show_individual_plots"]:
@@ -74,7 +78,7 @@ def Statistics(df_list, filenames):
                 create_and_render_plot(df, x_axis, y_axis, plot_type)
 
     # Sezione per Merge Datasets (UNICO GRAFICO)
-    elif not st.session_state["show_autocorrelation"]:
+    elif not st.session_state["show_merge_multiple_dataset"]:
         st.subheader("📊 Merge Multiple Datasets in One Plot")
         
         selected_datasets = st.multiselect("Seleziona i dataset", filenames, default=filenames)
