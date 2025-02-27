@@ -1,7 +1,7 @@
 import streamlit as st
 import pandas as pd
 import plotly.graph_objects as go  
-from utils.plotting import create_and_render_plot  # Assumo che questa funzione gestisca ECharts
+from utils.plotting import create_and_render_plot  
 
 # Funzione per convertire timestamp Unix in datetime
 def convert_unix_to_datetime(df):
@@ -53,35 +53,38 @@ def Statistics(df_list, filenames):
             with col2:
                 create_and_render_plot(df, x_axis, y_axis, plot_type)
 
-    # Sezione per Merge Datasets (grafico unico)
+    # Sezione per Merge Datasets (UNICO GRAFICO)
     elif st.session_state["show_individual_plots"] is False:
         st.subheader("📊 Merge Multiple Datasets in One Plot")
         
         selected_datasets = st.multiselect("Seleziona i dataset", filenames, default=filenames)
 
         if selected_datasets:
-            fig = go.Figure()  # Creiamo il grafico vuoto
+            fig = go.Figure()  # Unico grafico
 
+            x_axes, y_axes, second_y_axes = {}, {}, {}
+
+            # Creazione delle selezioni per asse X, asse Y e doppio asse Y
             for i, dataset_name in enumerate(selected_datasets):
                 df = convert_unix_to_datetime(df_list[filenames.index(dataset_name)])
 
-                col1, col2, col3 = st.columns(3)
-                with col1:
-                    x_axis = st.selectbox(f"X Axis ({dataset_name})", df.columns.tolist(), key=f"x_axis_merge_{i}")
-                with col2:
-                    y_axis = st.selectbox(f"Y Axis ({dataset_name})", df.columns.tolist(), key=f"y_axis_merge_{i}")
-                with col3:
-                    use_secondary_y = st.checkbox(f"Secondo asse Y? ({dataset_name})", key=f"secondary_y_{i}")
+                x_axes[dataset_name] = st.selectbox(f"X Axis ({dataset_name})", df.columns.tolist(), key=f"x_axis_merge_{i}")
+                y_axes[dataset_name] = st.selectbox(f"Y Axis ({dataset_name})", df.columns.tolist(), key=f"y_axis_merge_{i}")
+                second_y_axes[dataset_name] = st.checkbox(f"Usa Secondo Asse Y? ({dataset_name})", key=f"secondary_y_{i}")
 
+            # Aggiunta dei dati nel grafico unico
+            for dataset_name in selected_datasets:
+                df = convert_unix_to_datetime(df_list[filenames.index(dataset_name)])
+                
                 fig.add_trace(go.Scatter(
-                    x=df[x_axis],
-                    y=df[y_axis],
+                    x=df[x_axes[dataset_name]],
+                    y=df[y_axes[dataset_name]],
                     mode='lines+markers',
                     name=dataset_name,
-                    yaxis="y2" if use_secondary_y else "y1"  # Se selezionato, va sul secondo asse
+                    yaxis="y2" if second_y_axes[dataset_name] else "y1"  
                 ))
 
-            # Layout per doppio asse Y
+            # Layout del grafico con doppio asse Y
             fig.update_layout(
                 title="Merged Datasets",
                 xaxis=dict(title="X Axis"),
@@ -90,7 +93,7 @@ def Statistics(df_list, filenames):
                     title="Secondary Y Axis",
                     overlaying='y',
                     side='right',
-                    showgrid=False  # Evita griglie doppie
+                    showgrid=False  
                 ),
                 legend=dict(title="Datasets")
             )
