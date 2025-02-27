@@ -106,7 +106,7 @@ def Statistics(df_list, filenames):
                     second_y_axes[dataset_name] = st.checkbox(f"Secondo asse Y? ({dataset_name})", key=f"secondary_y_{i}")
 
             # Debug: Mostra le selezioni per verifica
-            st.write("Dati selezionati:", x_axes, y_axes, plot_types, second_y_axes)
+            #st.write("Dati selezionati:", x_axes, y_axes, plot_types, second_y_axes)
 
             # Aggiunta dei dati nel grafico unico con il tipo di grafico scelto
             for dataset_name in selected_datasets:
