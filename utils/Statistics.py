@@ -334,20 +334,27 @@ def Statistics(df_list, filenames):
             df = convert_unix_to_datetime(df)
     
             if df is not None:
-                st.write(f"### 📊 Statistiche per {dataset_name}")
+                #st.write(f"### 📊 Statistiche per {dataset_name}")
                 stats_df = calcola_statistiche(df)
-    
+                col1, col2, col3, col4, col5, col6, col7 = st.columns([7])
                 # Visualizzazione delle metriche per ogni variabile
                 for _, row in stats_df.iterrows():
-                    with st.container():
-                        st.write(f"**Variabile:** {row['Variabile']}")
-                        st.metric(label="Conteggio", value=row['Conteggio'])
+                    with col1:
+                        with st.container():
+                            st.write(f"**Variabile:** {row['Variabile']}")
+                        with col2:
+                            st.metric(label="Conteggio", value=row['Conteggio'])
                         if row['Somma'] != 'N/A':
-                            st.metric(label="Somma", value=row['Somma'])
-                            st.metric(label="Media", value=row['Media'])
-                            st.metric(label="Minimo", value=row['Minimo'])
-                            st.metric(label="Massimo", value=row['Massimo'])
-                            st.metric(label="Mediana", value=row['Mediana'])
+                            with col3:
+                                st.metric(label="Somma", value=row['Somma'])
+                            with col4:  
+                                st.metric(label="Media", value=row['Media'])
+                            with col5:
+                                st.metric(label="Minimo", value=row['Minimo'])
+                            with col6:
+                                st.metric(label="Massimo", value=row['Massimo'])
+                            with col7:    
+                                st.metric(label="Mediana", value=row['Mediana'])
                         st.markdown("---")
     
                 # Selezione di una colonna datetime se disponibile
