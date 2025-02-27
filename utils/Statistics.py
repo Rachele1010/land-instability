@@ -27,35 +27,7 @@ def compute_cross_correlation(df, column1, column2, max_lag=50):
     cross_corr_values = [df[column1].corr(df[column2].shift(lag)) for lag in range(1, min(len(df), max_lag))]
     lags = list(range(1, len(cross_corr_values) + 1))
     return lags, cross_corr_values
-    
-# Funzione per generare la Pivot Table
-def pivot_dataframe(df, dataset_name):
-    st.subheader(f"🔄 Pivot Table - {dataset_name}")
-
-    # Se l'utente vuole convertire date, lo facciamo
-    if st.checkbox(f"Converti Unix Timestamp in Date ({dataset_name})"):
-        df = convert_unix_to_datetime(df)
-
-    # Selezione delle colonne per il Pivot
-    index_col = st.selectbox(f"Scegli colonna per l'indice ({dataset_name})", df.columns, key=f"pivot_index_{dataset_name}")
-    columns_col = st.selectbox(f"Scegli colonna per le colonne ({dataset_name})", df.columns, key=f"pivot_columns_{dataset_name}")
-    values_col = st.selectbox(f"Scegli colonna per i valori ({dataset_name})", df.columns, key=f"pivot_values_{dataset_name}")
-
-    # Selezione della funzione di aggregazione
-    agg_func = st.selectbox(
-        f"Seleziona funzione di aggregazione ({dataset_name})",
-        ["sum", "mean", "min", "max", "count"],
-        key=f"agg_func_{dataset_name}"
-    )
-
-    if st.button(f"🔄 Applica Pivot ({dataset_name})"):
-        try:
-            pivot_df = df.pivot_table(index=index_col, columns=columns_col, values=values_col, aggfunc=agg_func)
-            st.write(f"### 📊 Risultato Pivot Table - {dataset_name}")
-            st.dataframe(pivot_df)
-        except Exception as e:
-            st.error(f"❌ Errore nel pivoting: {e}")
-            
+  
 # Funzione principale per la visualizzazione e analisi dei dataset
 def Statistics(df_list, filenames):
     if "show_individual_plots" not in st.session_state:
@@ -310,8 +282,47 @@ def Statistics(df_list, filenames):
         st.subheader("Pivot")
         selected_files = st.multiselect("Seleziona i file per il Pivot", filenames)
 
-        # Applica il Pivot solo sui file selezionati
-        for idx, filename in enumerate(filenames):
-            if filename in selected_files:
-                st.caption(f"**Dataset {idx + 1} - {filename}**")
-                pivot_dataframe(df_list[idx], filename)  # Passiamo il nome del dataset
+        st.subheader(f"🔄 Pivot Table - {dataset_name}")
+
+        col1, col2 = st.columns([1, 2])  # Colonna sinistra per i controlli, destra per la tabella
+    
+        with col1:  # Selezioni dell'utente
+            df = convert_unix_to_datetime(df)
+    
+            index_col = st.selectbox(f"Indice", df.columns, key=f"pivot_index_{dataset_name}")
+            columns_col = st.selectbox(f"Colonne", df.columns, key=f"pivot_columns_{dataset_name}")
+            values_col = st.selectbox(f"Valori", df.columns, key=f"pivot_values_{dataset_name}")
+    
+            # Checkbox per scegliere più funzioni di aggregazione
+            sum_selected = st.checkbox("Somma (sum)", key=f"sum_{dataset_name}")
+            mean_selected = st.checkbox("Media (mean)", key=f"mean_{dataset_name}")
+            min_selected = st.checkbox("Minimo (min)", key=f"min_{dataset_name}")
+            max_selected = st.checkbox("Massimo (max)", key=f"max_{dataset_name}")
+            count_selected = st.checkbox("Conteggio (count)", key=f"count_{dataset_name}")
+    
+            agg_funcs = {}
+            if sum_selected: agg_funcs["sum"] = "sum"
+            if mean_selected: agg_funcs["mean"] = "mean"
+            if min_selected: agg_funcs["min"] = "min"
+            if max_selected: agg_funcs["max"] = "max"
+            if count_selected: agg_funcs["count"] = "count"
+    
+            if st.button(f"🔄 Applica Pivot ({dataset_name})"):
+                if agg_funcs:
+                    try:
+                        pivot_df = df.pivot_table(
+                            index=index_col, 
+                            columns=columns_col, 
+                            values=values_col, 
+                            aggfunc=list(agg_funcs.values())
+                        )
+                        st.session_state[f"pivot_{dataset_name}"] = pivot_df  # Salviamo lo stato
+                    except Exception as e:
+                        st.error(f"❌ Errore nel pivoting: {e}")
+                else:
+                    st.warning("⚠️ Seleziona almeno un'operazione di aggregazione!")
+    
+        with col2:  # Mostriamo l'anteprima della tabella
+            if f"pivot_{dataset_name}" in st.session_state:
+                st.write(f"### 📊 Anteprima Pivot Table - {dataset_name}")
+                st.dataframe(st.session_state[f"pivot_{dataset_name}"])
