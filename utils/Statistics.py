@@ -258,8 +258,8 @@ def Statistics(df_list, filenames):
             st.plotly_chart(fig, use_container_width=True)
     
     elif st.session_state["show_distribution_data"]:
-        st.subheader("Distribuzione Dati")
-        selected_files = st.multiselect("Seleziona i file", filenames)
+        st.subheader("Distribution Data")
+        selected_files = st.multiselect("Select file", filenames)
 
         for idx, dataset_name in enumerate(filenames):
             if dataset_name not in selected_files:
@@ -269,7 +269,7 @@ def Statistics(df_list, filenames):
             df = convert_unix_to_datetime(df)
     
             if df is not None:
-                st.write(f"### 📊 Statistiche per {dataset_name}")
+                #st.write(f"### 📊 Statistiche per {dataset_name}")
                 stats_df = calcola_statistiche(df)
     
                 # Visualizzazione delle metriche per ogni variabile
@@ -278,39 +278,42 @@ def Statistics(df_list, filenames):
                 for _, row in stats_df.iterrows():
                     with col1:
                         with st.container():
-                            st.write(f"**Variabile:** {row['Variabile']}")
+                            st.write(f"**Variable:** {row['Variabile']}")
                         with col2:
-                            st.metric(label="Conteggio", value=row['Conteggio'])
+                            st.metric(label="Conteggio", value=row['Counting'])
                         if row['Somma'] != 'N/A':
                             with col3:
-                                st.metric(label="Somma", value=row['Somma'])
+                                st.metric(label="Somma", value=row['Sum'])
                             with col4:  
-                                st.metric(label="Media", value=row['Media'])
+                                st.metric(label="Media", value=row['Mean'])
                             with col5:
-                                st.metric(label="Minimo", value=row['Minimo'])
+                                st.metric(label="Minimo", value=row['Minimum'])
                             with col6:
-                                st.metric(label="Massimo", value=row['Massimo'])
+                                st.metric(label="Massimo", value=row['Max'])
                             with col7:    
-                                st.metric(label="Mediana", value=row['Mediana'])
+                                st.metric(label="Mediana", value=row['Median'])
                         st.markdown("---")
     
                 # Selezione di una colonna datetime se disponibile
                 colonne_datetime = df.select_dtypes(include=['datetime64[ns]', 'datetime64[ns, UTC]']).columns
                 if len(colonne_datetime) > 0:
-                    colonna_data = st.selectbox(f"Seleziona la colonna data per {dataset_name}", colonne_datetime)
+                    colonna_data = st.selectbox(f"Select datatime {dataset_name}", colonne_datetime)
                     # Selezione della variabile da plottare
+                    col1, col2 = ([1,4])
                     variabili_numeriche = df.select_dtypes(include=['number']).columns
-                    if len(variabili_numeriche) > 0:
-                        variabile_plot = st.selectbox(f"Seleziona la variabile da plottare per {dataset_name}", variabili_numeriche)
-                        aggregazioni = aggrega_dati_temporali(df, colonna_data, variabile_plot)
-    
+                    with col1:
+                        if len(variabili_numeriche) > 0:
+                            variabile_plot = st.selectbox(f"Select variable {dataset_name}", variabili_numeriche)
+                            aggregazioni = aggrega_dati_temporali(df, colonna_data, variabile_plot)
+        
                         # Visualizzazione dei grafici per ogni aggregazione temporale
+                    with cole2:
                         for periodo, agg_df in aggregazioni.items():
-                            st.write(f"#### Grafico {periodo} per {dataset_name}")
-                            fig = px.bar(agg_df, x=agg_df.index, y=agg_df.values, title=f"{periodo} Aggregato")
+                            st.write(f"#### Plot {periodo} by {dataset_name}")
+                            fig = px.bar(agg_df, x=agg_df.index, y=agg_df.values, title=f"{periodo} Aggregate")
                             st.plotly_chart(fig)
                     else:
-                        st.warning(f"⚠️ Nessuna variabile numerica disponibile per il plotting in {dataset_name}.")
+                        st.warning(f"⚠️ No available numeric variables for plotting in {dataset_name}.")
                 else:
-                    st.warning(f"⚠️ Nessuna colonna datetime trovata in {dataset_name}.")
+                    st.warning(f"⚠️ No datatime on {dataset_name}.")
     
