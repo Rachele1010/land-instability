@@ -308,7 +308,7 @@ def Statistics(df_list, filenames):
                             st.metric(label="Max", value=row['Max'])
                         with col7:    
                             st.metric(label="Median", value=row['Median'])
-                    st.markdown("---")
+                    st.markdown("-")
     
                 # Selezione datetime
                 colonne_datetime = df.select_dtypes(include=['datetime64[ns]', 'datetime64[ns, UTC]']).columns
