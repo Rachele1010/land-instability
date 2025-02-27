@@ -63,8 +63,7 @@ def Statistics(df_list, filenames):
             with col2:
                 y_axis = st.selectbox(f"Y Axis {idx + 1}", df.columns.tolist(), key=f"y_axis_{idx}")
             with col3:
-                plot_type = st.selectbox(f"Plot Type {idx + 1}", ["Basic Scatter", "Basic Bar", "Basic Line", "Mixed Line and Bar", 
-                                                                  "Calendar Heatmap", "DataZoom"], key=f"plot_type_{idx}")
+                plot_type = st.selectbox(f"Plot Type {idx + 1}", ["Basic Scatter", "Basic Bar", "Basic Line"], key=f"plot_type_{idx}")
 
             col1, col2 = st.columns([1, 2])
             with col1:
@@ -97,33 +96,36 @@ def Statistics(df_list, filenames):
 
             with col3:
                 for i, dataset_name in enumerate(selected_datasets):
-                    plot_types[dataset_name] = st.selectbox(f"Plot Type ({dataset_name})", 
-                                        ["Basic Scatter", "Basic Bar", "Basic Line", "Mixed Line and Bar", 
-                                         "Calendar Heatmap", "DataZoom"], 
+                    selected_plot_type = st.selectbox(f"Plot Type ({dataset_name})", 
+                                        ["Scatter", "Bar", "Line"], 
                                         key=f"plot_type_{i}")
+                    plot_types[dataset_name] = selected_plot_type
 
             with col4:
                 for i, dataset_name in enumerate(selected_datasets):
                     second_y_axes[dataset_name] = st.checkbox(f"Secondo asse Y? ({dataset_name})", key=f"secondary_y_{i}")
 
+            # Debug: Mostra le selezioni per verifica
+            st.write("Dati selezionati:", x_axes, y_axes, plot_types, second_y_axes)
+
             # Aggiunta dei dati nel grafico unico con il tipo di grafico scelto
             for dataset_name in selected_datasets:
                 df = convert_unix_to_datetime(df_list[filenames.index(dataset_name)])
                 
-                plot_type = plot_types[dataset_name]
-                trace_kwargs = {
-                    "x": df[x_axes[dataset_name]],
-                    "y": df[y_axes[dataset_name]],
-                    "name": dataset_name,
-                    "yaxis": "y2" if second_y_axes[dataset_name] else "y1"
-                }
-                
-                if plot_type == "Scatter":
-                    fig.add_trace(go.Scatter(mode='lines+markers', **trace_kwargs))
-                elif plot_type == "Bar":
-                    fig.add_trace(go.Bar(**trace_kwargs))
-                elif plot_type == "Line":
-                    fig.add_trace(go.Scatter(mode='lines', **trace_kwargs))
+                if dataset_name in x_axes and dataset_name in y_axes:
+                    trace_kwargs = {
+                        "x": df[x_axes[dataset_name]],
+                        "y": df[y_axes[dataset_name]],
+                        "name": dataset_name,
+                        "yaxis": "y2" if second_y_axes.get(dataset_name, False) else "y1"
+                    }
+                    
+                    if plot_types[dataset_name] == "Scatter":
+                        fig.add_trace(go.Scatter(mode='lines+markers', **trace_kwargs))
+                    elif plot_types[dataset_name] == "Bar":
+                        fig.add_trace(go.Bar(**trace_kwargs))
+                    elif plot_types[dataset_name] == "Line":
+                        fig.add_trace(go.Scatter(mode='lines', **trace_kwargs))
 
             # Layout del grafico con doppio asse Y
             fig.update_layout(
@@ -157,3 +159,4 @@ def Statistics(df_list, filenames):
 
             if fig:
                 st.plotly_chart(fig, use_container_width=True)
+
