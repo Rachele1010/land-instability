@@ -51,7 +51,7 @@ def Statistics(df_list, filenames):
         if st.button("📈 Autocorrelation"):
             st.session_state["show_autocorrelation"] = True
             st.session_state["show_individual_plots"] = False
-     with col4:
+    with col4:
         if st.button("🔀 Cross-Correlation"):
             st.session_state["show_autocorrelation"] = False
             st.session_state["show_cross_correlation"] = True
