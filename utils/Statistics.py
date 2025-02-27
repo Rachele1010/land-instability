@@ -28,6 +28,7 @@ def compute_cross_correlation(df, column1, column2, max_lag=50):
     lags = list(range(1, len(cross_corr_values) + 1))
     return lags, cross_corr_values
  # Funzione per generare la Pivot Table
+# Funzione per gestire il pivoting
 def pivot_dataframe(df, dataset_name):
     st.subheader(f"🔄 Pivot Table - {dataset_name}")
 
@@ -37,43 +38,47 @@ def pivot_dataframe(df, dataset_name):
         if st.checkbox(f"🕒 Converti Unix Timestamp ({dataset_name})"):
             df = convert_unix_to_datetime(df)
 
-        index_col = st.selectbox(f"Indice", df.columns, key=f"pivot_index_{dataset_name}")
-        columns_col = st.selectbox(f"Colonne", df.columns, key=f"pivot_columns_{dataset_name}")
-        values_col = st.selectbox(f"Valori", df.columns, key=f"pivot_values_{dataset_name}")
+        if df is not None:
+            index_col = st.selectbox(f"Indice", df.columns, key=f"pivot_index_{dataset_name}")
+            columns_col = st.selectbox(f"Colonne", df.columns, key=f"pivot_columns_{dataset_name}")
+            values_col = st.selectbox(f"Valori", df.columns, key=f"pivot_values_{dataset_name}")
 
-        # Checkbox per scegliere più funzioni di aggregazione
-        sum_selected = st.checkbox("Somma (sum)", key=f"sum_{dataset_name}")
-        mean_selected = st.checkbox("Media (mean)", key=f"mean_{dataset_name}")
-        min_selected = st.checkbox("Minimo (min)", key=f"min_{dataset_name}")
-        max_selected = st.checkbox("Massimo (max)", key=f"max_{dataset_name}")
-        count_selected = st.checkbox("Conteggio (count)", key=f"count_{dataset_name}")
+            # Checkbox per scegliere più funzioni di aggregazione
+            sum_selected = st.checkbox("Somma (sum)", key=f"sum_{dataset_name}")
+            mean_selected = st.checkbox("Media (mean)", key=f"mean_{dataset_name}")
+            min_selected = st.checkbox("Minimo (min)", key=f"min_{dataset_name}")
+            max_selected = st.checkbox("Massimo (max)", key=f"max_{dataset_name}")
+            count_selected = st.checkbox("Conteggio (count)", key=f"count_{dataset_name}")
 
-        agg_funcs = {}
-        if sum_selected: agg_funcs["sum"] = "sum"
-        if mean_selected: agg_funcs["mean"] = "mean"
-        if min_selected: agg_funcs["min"] = "min"
-        if max_selected: agg_funcs["max"] = "max"
-        if count_selected: agg_funcs["count"] = "count"
+            agg_funcs = {}
+            if sum_selected: agg_funcs["sum"] = "sum"
+            if mean_selected: agg_funcs["mean"] = "mean"
+            if min_selected: agg_funcs["min"] = "min"
+            if max_selected: agg_funcs["max"] = "max"
+            if count_selected: agg_funcs["count"] = "count"
 
-        if st.button(f"🔄 Applica Pivot ({dataset_name})"):
-            if agg_funcs:
-                try:
-                    pivot_df = df.pivot_table(
-                        index=index_col, 
-                        columns=columns_col, 
-                        values=values_col, 
-                        aggfunc=list(agg_funcs.values())
-                    )
-                    st.session_state[f"pivot_{dataset_name}"] = pivot_df  # Salviamo lo stato
-                except Exception as e:
-                    st.error(f"❌ Errore nel pivoting: {e}")
-            else:
-                st.warning("⚠️ Seleziona almeno un'operazione di aggregazione!")
+            if st.button(f"🔄 Applica Pivot ({dataset_name})"):
+                if agg_funcs:
+                    try:
+                        pivot_df = df.pivot_table(
+                            index=index_col, 
+                            columns=columns_col, 
+                            values=values_col, 
+                            aggfunc=list(agg_funcs.values())
+                        )
+                        st.session_state[f"pivot_{dataset_name}"] = pivot_df  # Salviamo lo stato
+                    except Exception as e:
+                        st.error(f"❌ Errore nel pivoting: {e}")
+                else:
+                    st.warning("⚠️ Seleziona almeno un'operazione di aggregazione!")
 
     with col2:  # Mostriamo l'anteprima della tabella
-        if f"pivot_{dataset_name}" in st.session_state:
+        pivot_data = st.session_state.get(f"pivot_{dataset_name}")  # Evita errori se non esiste
+        if pivot_data is not None:
             st.write(f"### 📊 Anteprima Pivot Table - {dataset_name}")
-            st.dataframe(st.session_state[f"pivot_{dataset_name}"]) 
+            st.dataframe(pivot_data)
+
+
 # Funzione principale per la visualizzazione e analisi dei dataset
 def Statistics(df_list, filenames):
     if "show_individual_plots" not in st.session_state:
@@ -328,47 +333,30 @@ def Statistics(df_list, filenames):
         st.subheader("Pivot")
         selected_files = st.multiselect("Seleziona i file per il Pivot", filenames)
 
+        if not selected_files:  # Controlliamo che almeno un file sia selezionato
+            st.warning("⚠️ Seleziona almeno un file per il Pivot!")
+            return
+
         col1, col2 = st.columns([1, 2])  # Controlli a sinistra, tabella a destra
-    
+
         with col1:  # Selezioni dell'utente
-            for dataset_name in selected_files:  # USIAMO selected_files QUI
-                df = convert_unix_to_datetime(df_list[filenames.index(dataset_name)])
+            for dataset_name in selected_files:
+                try:
+                    df_index = filenames.index(dataset_name)
+                    df = df_list[df_index] if df_index < len(df_list) else None
+                    
+                    if df is None:
+                        st.error(f"❌ Errore: il dataset '{dataset_name}' non è stato trovato!")
+                        continue  # Passiamo al prossimo dataset
 
-                index_col = st.selectbox(f"Indice", df.columns, key=f"pivot_index_{dataset_name}")
-                columns_col = st.selectbox(f"Colonne", df.columns, key=f"pivot_columns_{dataset_name}")
-                values_col = st.selectbox(f"Valori", df.columns, key=f"pivot_values_{dataset_name}")
-
-                # Checkbox per scegliere più funzioni di aggregazione
-                sum_selected = st.checkbox("Somma (sum)", key=f"sum_{dataset_name}")
-                mean_selected = st.checkbox("Media (mean)", key=f"mean_{dataset_name}")
-                min_selected = st.checkbox("Minimo (min)", key=f"min_{dataset_name}")
-                max_selected = st.checkbox("Massimo (max)", key=f"max_{dataset_name}")
-                count_selected = st.checkbox("Conteggio (count)", key=f"count_{dataset_name}")
-
-                agg_funcs = {}
-                if sum_selected: agg_funcs["sum"] = "sum"
-                if mean_selected: agg_funcs["mean"] = "mean"
-                if min_selected: agg_funcs["min"] = "min"
-                if max_selected: agg_funcs["max"] = "max"
-                if count_selected: agg_funcs["count"] = "count"
-
-                if st.button(f"🔄 Applica Pivot ({dataset_name})"):
-                    if agg_funcs:
-                        try:
-                            pivot_df = df.pivot_table(
-                                index=index_col, 
-                                columns=columns_col, 
-                                values=values_col, 
-                                aggfunc=list(agg_funcs.values())
-                            )
-                            st.session_state[f"pivot_{dataset_name}"] = pivot_df  # Salviamo lo stato
-                        except Exception as e:
-                            st.error(f"❌ Errore nel pivoting: {e}")
-                    else:
-                        st.warning("⚠️ Seleziona almeno un'operazione di aggregazione!")
+                    df = convert_unix_to_datetime(df)
+                    pivot_dataframe(df, dataset_name)
+                except Exception as e:
+                    st.error(f"❌ Errore nel caricamento del dataset '{dataset_name}': {e}")
 
         with col2:  # Mostriamo l'anteprima della tabella
-            for dataset_name in selected_files:  # Controlliamo se è stato generato il pivot
-                if f"pivot_{dataset_name}" in st.session_state:
+            for dataset_name in selected_files:
+                pivot_data = st.session_state.get(f"pivot_{dataset_name}")
+                if pivot_data is not None:
                     st.write(f"### 📊 Anteprima Pivot Table - {dataset_name}")
-                    st.dataframe(st.session_state[f"pivot_{dataset_name}"])
+                    st.dataframe(pivot_data)
