@@ -299,12 +299,11 @@ def Statistics(df_list, filenames):
     
                 if df is not None:
                     index_col = st.selectbox(f"Indice ({dataset_name})", df.columns, key=f"pivot_index_{dataset_name}")
-                    columns_col = st.selectbox(f"Colonne ({dataset_name})", df.columns, key=f"pivot_columns_{dataset_name}")
-                    values_col = st.selectbox(f"Valori ({dataset_name})", df.columns, key=f"pivot_values_{dataset_name}")
+                    shared_col = st.selectbox(f"Colonne e Valori ({dataset_name})", df.columns, key=f"pivot_shared_{dataset_name}")
     
-                    # Controllo che la colonna valori sia numerica
-                    if not pd.api.types.is_numeric_dtype(df[values_col]):
-                        st.error(f"⚠️ La colonna '{values_col}' non è numerica! Seleziona una colonna valida.")
+                    # Controlliamo se la colonna selezionata è numerica
+                    if not pd.api.types.is_numeric_dtype(df[shared_col]):
+                        st.error(f"⚠️ La colonna '{shared_col}' non è numerica! Seleziona una colonna valida.")
                         continue  # Passiamo al prossimo dataset
     
                     # Checkbox per le funzioni di aggregazione
@@ -325,10 +324,11 @@ def Statistics(df_list, filenames):
                         continue  # Passiamo al prossimo dataset
     
                     try:
+                        # Eseguiamo il pivot utilizzando la stessa colonna sia per colonne che per valori
                         pivot_df = df.pivot_table(
                             index=index_col,
-                            columns=columns_col,
-                            values=values_col,
+                            columns=shared_col,
+                            values=shared_col,
                             aggfunc=agg_funcs
                         ).reset_index()  # Reset per evitare MultiIndex
     
@@ -343,4 +343,3 @@ def Statistics(df_list, filenames):
                 if pivot_data is not None:
                     st.write(f"### 📊 Anteprima Pivot Table - {dataset_name}")
                     st.dataframe(pivot_data)
-    
