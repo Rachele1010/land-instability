@@ -132,33 +132,28 @@ def Statistics(df_list, filenames):
 
             st.plotly_chart(fig, use_container_width=True)
 
-    # Sezione per Autocorrelazione MULTIPLE DATASET
     elif st.session_state["show_autocorrelation"]:
         st.subheader("📈 Autocorrelation Analysis")
     
-        col1, = st.columns(1)  # Corretto
-        
-        with col1:
-            selected_datasets = st.multiselect("Seleziona i dataset", filenames, default=filenames)
+        # Selezione dataset
+        selected_datasets = st.multiselect("Seleziona i dataset", filenames, default=filenames)
     
         if selected_datasets:
             fig = go.Figure()
-            autocorr_cols = {}
-            x_axis_1, x_axis_2, y_axis = {}, {}, {}
-            plot_types = {}
-            max_lag_values = {}
+            y_axis_1, y_axis_2, plot_types, max_lag_values = {}, {}, {}, {}
     
-            col1, col2, col3, col4 = st.columns([2, 1, 1, 1])  # Definizione corretta delle colonne
+            # UI con 4 colonne: Y1, Y2 (opzionale), tipo di grafico, lag
+            col1, col2, col3, col4 = st.columns([2, 2, 1, 1])
+    
             with col1:
                 for i, dataset_name in enumerate(selected_datasets):
                     df = convert_unix_to_datetime(df_list[filenames.index(dataset_name)])
-                    x_axis_1[dataset_name] = st.selectbox(f"X Axis 1 ({dataset_name})", df.columns.tolist(), key=f"x_axis1_{i}")
-                    x_axis_2[dataset_name] = st.selectbox(f"X Axis 2 ({dataset_name})", df.columns.tolist(), key=f"x_axis2_{i}")
+                    y_axis_1[dataset_name] = st.selectbox(f"Primary Y Axis ({dataset_name})", df.columns.tolist(), key=f"y_axis1_{i}")
     
             with col2:
                 for i, dataset_name in enumerate(selected_datasets):
                     df = convert_unix_to_datetime(df_list[filenames.index(dataset_name)])
-                    y_axis[dataset_name] = st.selectbox(f"Y Axis ({dataset_name})", df.columns.tolist(), key=f"y_axis_{i}")
+                    y_axis_2[dataset_name] = st.selectbox(f"Secondary Y Axis (opzionale) ({dataset_name})", ["None"] + df.columns.tolist(), key=f"y_axis2_{i}")
     
             with col3:
                 for i, dataset_name in enumerate(selected_datasets):
@@ -168,18 +163,40 @@ def Statistics(df_list, filenames):
                 for i, dataset_name in enumerate(selected_datasets):
                     max_lag_values[dataset_name] = st.slider(f"Lag ({dataset_name})", min_value=1, max_value=100, value=50, key=f"lag_{i}")
     
+            # Creazione del grafico
             for dataset_name in selected_datasets:
                 df = convert_unix_to_datetime(df_list[filenames.index(dataset_name)])
-                col = y_axis[dataset_name]
+                
+                # Prima variabile Y
+                lags, autocorr_values = compute_autocorrelation(df, y_axis_1[dataset_name], max_lag_values[dataset_name])
+                fig.add_trace(go.Scatter(
+                    x=lags, y=autocorr_values,
+                    mode="lines+markers" if plot_types[dataset_name] == "Scatter" else "lines",
+                    name=f"{dataset_name} - {y_axis_1[dataset_name]}",
+                    yaxis="y1"
+                ))
     
-                if col in df.columns:
-                    lags, autocorr_values = compute_autocorrelation(df, col, max_lag_values[dataset_name])
-                    fig.add_trace(go.Scatter(x=lags, y=autocorr_values, mode="lines+markers", name=dataset_name))
+                # Seconda variabile Y (se selezionata)
+                if y_axis_2[dataset_name] != "None":
+                    lags, autocorr_values = compute_autocorrelation(df, y_axis_2[dataset_name], max_lag_values[dataset_name])
+                    fig.add_trace(go.Scatter(
+                        x=lags, y=autocorr_values,
+                        mode="lines+markers" if plot_types[dataset_name] == "Scatter" else "lines",
+                        name=f"{dataset_name} - {y_axis_2[dataset_name]}",
+                        yaxis="y2"
+                    ))
     
+            # Layout con secondo asse Y
             fig.update_layout(
                 title="Autocorrelation for Multiple Datasets",
                 xaxis=dict(title="Lag"),
-                yaxis=dict(title="Autocorrelation Coefficient"),
+                yaxis=dict(title="Primary Y Axis"),
+                yaxis2=dict(
+                    title="Secondary Y Axis",
+                    overlaying='y',
+                    side='right',
+                    showgrid=False
+                ),
                 legend=dict(title="Datasets")
             )
     
