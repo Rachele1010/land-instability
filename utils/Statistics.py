@@ -281,7 +281,7 @@ def Statistics(df_list, filenames):
                             st.write(f"**Variable:** {row['Variable']}")
                         with col2:
                             st.metric(label="Counting", value=row['Counting'])
-                        if row['Somma'] != 'N/A':
+                        if row['Sum'] != 'N/A':
                             with col3:
                                 st.metric(label="Sum", value=row['Sum'])
                             with col4:  
