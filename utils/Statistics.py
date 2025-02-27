@@ -43,11 +43,11 @@ def Statistics(df_list, filenames):
     col1, col2, col3, col4 = st.columns(4)
     
     with col1:
-    if st.button("📊 Single Plot"):
-        st.session_state["show_individual_plots"] = True
-        st.session_state["show_merge_multiple_dataset"] = False
-        st.session_state["show_autocorrelation"] = False
-        st.session_state["show_cross_correlation"] = False
+        if st.button("📊 Single Plot"):
+            st.session_state["show_individual_plots"] = True
+            st.session_state["show_merge_multiple_dataset"] = False
+            st.session_state["show_autocorrelation"] = False
+            st.session_state["show_cross_correlation"] = False
     with col2:
         if st.button("🔄 Merge Datasets"):
             st.session_state["show_individual_plots"] = False
