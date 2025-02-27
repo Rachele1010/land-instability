@@ -32,7 +32,7 @@ def display_dashboard():
             df_list.append(df)
             filenames.append(uploaded_file.name)
     
-    tab1, tab2 = st.tabs(["🌍 Map Generator", "📊 Statistics"])
+    tab1, tab2 = st.tabs(["📊 Statistics","🌍 Map Generator"])
     
     with tab1:
         Statistics(df_list, filenames)    
