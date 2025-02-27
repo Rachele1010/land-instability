@@ -98,8 +98,8 @@ def Statistics(df_list, filenames):
             st.session_state["show_autocorrelation"] = False
             st.session_state["show_cross_correlation"] = True
     with col5:
-        if st.button("🔄 Pivot Table"):
-            st.session_state["show_pivot"] = True
+        if st.button("🔄 Distribution Data"):
+            st.session_state["Distribution Data"] = True
             st.session_state["show_individual_plots"] = False
             st.session_state["show_merge_multiple_dataset"] = False
             st.session_state["show_autocorrelation"] = False
@@ -308,8 +308,8 @@ def Statistics(df_list, filenames):
             fig.update_layout(title="Cross-Correlation", xaxis_title="Lag", yaxis_title="Cross-Correlation Value")
             st.plotly_chart(fig, use_container_width=True)
     
-    elif st.session_state["show_pivot"]:
-        st.subheader("Statistiche e Aggregazioni")
+    elif st.session_state["Distribution Data"]:
+        st.subheader("Distribution Data")
         selected_files = st.multiselect("Seleziona i file", filenames)
     
         for idx, dataset_name in enumerate(filenames):
@@ -339,4 +339,4 @@ def Statistics(df_list, filenames):
                         fig = px.bar(agg_df, x=agg_df.index, y=agg_df.columns, title=f"{periodo} Aggregato")
                         st.plotly_chart(fig)
                 else:
-                    st.warning(f"⚠️ Nessuna colonna di tipo datetime trovata in {dataset_name}.")
+                    st.warning(f"⚠️ No Datatime {dataset_name}.")
