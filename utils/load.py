@@ -17,9 +17,14 @@ def load_file(uploaded_file):
     try:
         if uploaded_file.name.endswith(('.csv', '.txt')):
             sep = detect_separator(uploaded_file)
-            return pd.read_csv(io.StringIO(uploaded_file.getvalue().decode("utf-8")), sep=sep)
+            df = pd.read_csv(io.StringIO(uploaded_file.getvalue().decode("utf-8")), sep=sep)
         elif uploaded_file.name.endswith('.xlsx'):
-            return pd.read_excel(uploaded_file, sheet_name=0)  # Legge il primo foglio
+            df = pd.read_excel(uploaded_file, sheet_name=0)  
+        
+        if isinstance(df, pd.Series):  # Se per qualche motivo è una Serie, converti in DataFrame
+            df = df.to_frame()
+
+        return df
     except Exception as e:
         st.error(f"Errore nel caricamento del file {uploaded_file.name}: {e}")
         return None
