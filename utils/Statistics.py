@@ -30,14 +30,6 @@ def compute_cross_correlation(df, column1, column2, max_lag=50):
 
 # Funzione principale per la visualizzazione e analisi dei dataset
 def Statistics(df_list, filenames):
-    if "show_individual_plots" not in st.session_state:
-        st.session_state["show_individual_plots"] = True
-    if "show_merge_multiple_dataset" not in st.session_state:
-        st.session_state["show_merge_multiple_dataset"] = True
-    if "show_autocorrelation" not in st.session_state:
-        st.session_state["show_autocorrelation"] = True
-    if "show_cross_correlation" not in st.session_state:
-        st.session_state["show_cross_correlation"] = True
     st.subheader("📈 Data Plotting")
 
     col1, col2, col3, col4 = st.columns(4)
