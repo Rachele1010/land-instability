@@ -13,16 +13,26 @@ def detect_separator(uploaded_file):
 # Funzione per caricare un file con gestione degli errori
 @st.cache_data
 def load_file(uploaded_file):
-    """Carica un file CSV, TXT o Excel e rileva il separatore automaticamente."""
+    """Carica un file CSV, TXT o Excel e assicura che sia sempre un DataFrame."""
     try:
         if uploaded_file.name.endswith(('.csv', '.txt')):
             sep = detect_separator(uploaded_file)
             df = pd.read_csv(io.StringIO(uploaded_file.getvalue().decode("utf-8")), sep=sep)
         elif uploaded_file.name.endswith('.xlsx'):
-            df = pd.read_excel(uploaded_file, sheet_name=0)  
-        
-        if isinstance(df, pd.Series):  # Se per qualche motivo è una Serie, converti in DataFrame
-            df = df.to_frame()
+            df = pd.read_excel(uploaded_file, sheet_name=0)
+
+            # Se il risultato è una Series, convertirlo in DataFrame
+            if isinstance(df, pd.Series):
+                df = df.to_frame()
+
+            # Assicura che la prima riga venga considerata come intestazione
+            if df.shape[0] > 1 and df.columns[0] == 0:  # Excel a volte prende la prima colonna come indice numerico
+                df.columns = df.iloc[0]  # Imposta la prima riga come intestazione
+                df = df[1:]  # Rimuove la prima riga ora diventata intestazione
+
+        else:
+            st.error("Formato file non supportato.")
+            return None
 
         return df
     except Exception as e:
