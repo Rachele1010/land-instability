@@ -16,10 +16,8 @@ def compute_autocorrelation(df, column, max_lag=50):
     if column not in df.columns:
         st.error(f"❌ Errore: La colonna '{column}' non esiste nel DataFrame.")
         return None
-
     autocorr_values = [df[column].autocorr(lag) for lag in range(1, min(len(df), max_lag))]
     lags = list(range(1, len(autocorr_values) + 1))
-
     return lags, autocorr_values
 
 # Funzione principale per la visualizzazione e analisi dei dataset
@@ -136,34 +134,57 @@ def Statistics(df_list, filenames):
 
     # Sezione per Autocorrelazione MULTIPLE DATASET
     elif st.session_state["show_autocorrelation"]:
-        st.subheader("📈 Multiple Dataset Autocorrelation")
+        
 
-        selected_datasets = st.multiselect("Seleziona i dataset per l'autocorrelazione", filenames, default=filenames)
+        st.subheader("📈 Autocorrelation Analysis")
+    
+        col1, col2, col3, col4 = st.columns([2, 1, 1, 1])
+    
+        with col1:
+            selected_datasets = st.multiselect("Seleziona i dataset", filenames, default=filenames)
         
         if selected_datasets:
             fig = go.Figure()
-
             autocorr_cols = {}
-
-            col1 = st.columns(1)[0]
-            for i, dataset_name in enumerate(selected_datasets):
-                df = convert_unix_to_datetime(df_list[filenames.index(dataset_name)])
-                autocorr_cols[dataset_name] = col1.selectbox(f"Seleziona colonna ({dataset_name})", df.columns.tolist(), key=f"autocorr_col_{i}")
-
+            x_axis_1, x_axis_2, y_axis = {}, {}, {}
+            plot_types = {}
+            max_lag_values = {}
+    
+            with col1:
+                for i, dataset_name in enumerate(selected_datasets):
+                    df = convert_unix_to_datetime(df_list[filenames.index(dataset_name)])
+                    x_axis_1[dataset_name] = st.selectbox(f"X Axis 1 ({dataset_name})", df.columns.tolist(), key=f"x_axis1_{i}")
+                    x_axis_2[dataset_name] = st.selectbox(f"X Axis 2 ({dataset_name})", df.columns.tolist(), key=f"x_axis2_{i}")
+    
+            with col2:
+                for i, dataset_name in enumerate(selected_datasets):
+                    df = convert_unix_to_datetime(df_list[filenames.index(dataset_name)])
+                    y_axis[dataset_name] = st.selectbox(f"Y Axis ({dataset_name})", df.columns.tolist(), key=f"y_axis_{i}")
+    
+            with col3:
+                for i, dataset_name in enumerate(selected_datasets):
+                    plot_types[dataset_name] = st.selectbox(f"Plot Type ({dataset_name})", 
+                                            ["Scatter", "Bar", "Line"], 
+                                            key=f"plot_type_{i}")
+    
+            with col4:
+                for i, dataset_name in enumerate(selected_datasets):
+                    max_lag_values[dataset_name] = st.slider(f"Lag ({dataset_name})", min_value=1, max_value=100, value=50, key=f"lag_{i}")
+    
             for dataset_name in selected_datasets:
                 df = convert_unix_to_datetime(df_list[filenames.index(dataset_name)])
-                col = autocorr_cols[dataset_name]
+                col = y_axis[dataset_name]
                 
                 if col in df.columns:
-                    lags, autocorr_values = compute_autocorrelation(df, col)
-                    fig.add_trace(go.Scatter(x=lags, y=autocorr_values, mode="lines+markers", name=dataset_name))
-
+                    lags, autocorr_values = compute_autocorrelation(df, col, max_lag_values[dataset_name])
+                    fig.add_trace(go.Scatter(x=lags, y=autocorr_values, mode="lines+markers", 
+                                             name=dataset_name))
+    
             fig.update_layout(
                 title="Autocorrelation for Multiple Datasets",
                 xaxis=dict(title="Lag"),
                 yaxis=dict(title="Autocorrelation Coefficient"),
                 legend=dict(title="Datasets")
             )
-
+    
             st.plotly_chart(fig, use_container_width=True)
-
