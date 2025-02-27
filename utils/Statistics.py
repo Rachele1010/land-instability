@@ -97,8 +97,10 @@ def Statistics(df_list, filenames):
 
             with col3:
                 for i, dataset_name in enumerate(selected_datasets):
-                    plot_type = st.selectbox(f"Plot Type {idx + 1}", ["Basic Scatter", "Basic Bar", "Basic Line", "Mixed Line and Bar", 
-                                                                  "Calendar Heatmap", "DataZoom"], key=f"plot_type_{idx}")
+                    plot_types[dataset_name] = st.selectbox(f"Plot Type ({dataset_name})", 
+                                        ["Basic Scatter", "Basic Bar", "Basic Line", "Mixed Line and Bar", 
+                                         "Calendar Heatmap", "DataZoom"], 
+                                        key=f"plot_type_{i}")
 
             with col4:
                 for i, dataset_name in enumerate(selected_datasets):
