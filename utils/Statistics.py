@@ -287,33 +287,33 @@ def Statistics(df_list, filenames):
         st.subheader("Pivot")
         selected_files = st.multiselect("Seleziona i file per il Pivot", filenames)
     
-        col1, col2 = st.columns([1, 2])  # Colonna sinistra per i controlli, destra per la tabella
+        col1, col2 = st.columns([1, 2])  # Controlli a sinistra, tabella a destra
     
         with col1:
             for idx, dataset_name in enumerate(filenames):
                 if dataset_name not in selected_files:
                     continue  # Saltiamo i file non selezionati
     
-                df = df_list[idx]  # Prendiamo il DataFrame corrispondente
+                df = df_list[idx]  # DataFrame corrispondente
                 df = convert_unix_to_datetime(df)
     
                 if df is not None:
                     index_col = st.selectbox(f"Indice ({dataset_name})", df.columns, key=f"pivot_index_{dataset_name}")
                     shared_col = st.selectbox(f"Colonne e Valori ({dataset_name})", df.columns, key=f"pivot_shared_{dataset_name}")
     
-                    # Creiamo una copia dei dati se la colonna è la stessa per colonne e valori
+                    # Se la colonna selezionata per colonne e valori è la stessa, creiamo una colonna numerica temporanea
                     if index_col == shared_col:
-                        df["_temp_values_"] = df[shared_col]
-                        values_col = "_temp_values_"
+                        df["_temp_numeric_"] = df.groupby(index_col)[shared_col].transform("count")
+                        values_col = "_temp_numeric_"
                     else:
                         values_col = shared_col
     
                     # Controlliamo se la colonna valori è numerica
                     if not pd.api.types.is_numeric_dtype(df[values_col]):
                         st.error(f"⚠️ La colonna '{values_col}' non è numerica! Seleziona una colonna valida.")
-                        continue  # Passiamo al prossimo dataset
+                        continue
     
-                    # Checkbox per le funzioni di aggregazione
+                    # Selezione delle funzioni di aggregazione
                     agg_funcs = {}
                     if st.checkbox("Somma (sum)", key=f"sum_{dataset_name}"):
                         agg_funcs["sum"] = "sum"
@@ -331,7 +331,7 @@ def Statistics(df_list, filenames):
                         continue  # Passiamo al prossimo dataset
     
                     try:
-                        # Creiamo la pivot table usando la colonna temporanea se necessario
+                        # Creiamo la pivot table
                         pivot_df = df.pivot_table(
                             index=index_col,
                             columns=shared_col,
