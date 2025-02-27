@@ -60,8 +60,7 @@ def main():
     else:
         # Gestisci la visualizzazione dei tab
         generator_tab, statistics_tab = st.tabs([
-            "🗺️ Map Generator",
-            "📊 Statistics",
+            "📊 Statistics", "🗺️ Map Generator",
         ])
 
 if __name__ == "__main__":
