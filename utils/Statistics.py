@@ -28,18 +28,18 @@ def compute_cross_correlation(df, column1, column2, max_lag=50):
     lags = list(range(1, len(cross_corr_values) + 1))
     return lags, cross_corr_values
     
-def pivot_dataframe(df):
-    st.subheader("🔄 Pivot Table")
+def pivot_dataframe(df, dataset_name):
+    st.subheader(f"🔄 Pivot Table - {dataset_name}")
     
-    # Selezione colonne per il pivot
-    index_col = st.selectbox("Scegli colonna per l'indice", df.columns, key="pivot_index")
-    columns_col = st.selectbox("Scegli colonna per le colonne", df.columns, key="pivot_columns")
-    values_col = st.selectbox("Scegli colonna per i valori", df.columns, key="pivot_values")
+    # Creiamo chiavi uniche per ogni dataset
+    index_col = st.selectbox(f"Scegli colonna per l'indice ({dataset_name})", df.columns, key=f"pivot_index_{dataset_name}")
+    columns_col = st.selectbox(f"Scegli colonna per le colonne ({dataset_name})", df.columns, key=f"pivot_columns_{dataset_name}")
+    values_col = st.selectbox(f"Scegli colonna per i valori ({dataset_name})", df.columns, key=f"pivot_values_{dataset_name}")
 
-    if st.button("🔄 Applica Pivot"):
+    if st.button(f"🔄 Applica Pivot ({dataset_name})"):
         try:
             pivot_df = df.pivot(index=index_col, columns=columns_col, values=values_col)
-            st.write("### 📊 Risultato Pivot Table")
+            st.write(f"### 📊 Risultato Pivot Table - {dataset_name}")
             st.dataframe(pivot_df)
         except Exception as e:
             st.error(f"❌ Errore nel pivoting: {e}")
@@ -298,4 +298,4 @@ def Statistics(df_list, filenames):
         st.subheader("Pivot")
         for idx, df in enumerate(df_list):
             st.caption(f"**Dataset {idx + 1} - {filenames[idx]}**")
-            pivot_dataframe(df)
+            pivot_dataframe(df, filenames[idx]) 
