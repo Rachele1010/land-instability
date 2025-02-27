@@ -56,14 +56,20 @@ def convert_decimal_format(df, decimal_sep):
             except ValueError:
                 continue
     return df
-
+def convert_decimal_comma(df):
+    """Converte i numeri con virgola decimale in float."""
+    for col in df.columns:
+        if df[col].dtype == 'object':
+            df[col] = df[col].str.replace(',', '.').str.replace(' ', '').astype(str)
+            df[col] = pd.to_numeric(df[col], errors='coerce')  # Converte solo i numeri validi
+    return df
 # Funzione per elaborare i dati del DataFrame
 def process_file(df, decimal_sep):
     """Elabora i dati del DataFrame, convertendo date e numeri con il separatore corretto."""
     df = infer_and_parse_dates(df)
     
     if decimal_sep == ",":
-        df = convert_decimal_format(df)  # Converte solo se l'utente sceglie la virgola
+        df = convert_decimal_comma(df)  # Converte solo se l'utente sceglie la virgola
     
     # Se l'utente ha scelto la virgola, formatta i numeri per la visualizzazione
     if decimal_sep == ",":
