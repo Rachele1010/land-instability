@@ -278,20 +278,20 @@ def Statistics(df_list, filenames):
                 for _, row in stats_df.iterrows():
                     with col1:
                         with st.container():
-                            st.write(f"**Variable:** {row['Variabile']}")
+                            st.write(f"**Variable:** {row['Variable']}")
                         with col2:
-                            st.metric(label="Conteggio", value=row['Counting'])
+                            st.metric(label="Counting", value=row['Counting'])
                         if row['Somma'] != 'N/A':
                             with col3:
-                                st.metric(label="Somma", value=row['Sum'])
+                                st.metric(label="Sum", value=row['Sum'])
                             with col4:  
-                                st.metric(label="Media", value=row['Mean'])
+                                st.metric(label="Mean", value=row['Mean'])
                             with col5:
-                                st.metric(label="Minimo", value=row['Minimum'])
+                                st.metric(label="Minimum", value=row['Minimum'])
                             with col6:
-                                st.metric(label="Massimo", value=row['Max'])
+                                st.metric(label="Max", value=row['Max'])
                             with col7:    
-                                st.metric(label="Mediana", value=row['Median'])
+                                st.metric(label="Median", value=row['Median'])
                         st.markdown("---")
     
                 # Selezione di una colonna datetime se disponibile
