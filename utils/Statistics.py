@@ -136,19 +136,19 @@ def Statistics(df_list, filenames):
     elif st.session_state["show_autocorrelation"]:
         st.subheader("📈 Autocorrelation Analysis")
     
-        col1 = st.columns(1)
-    
+        col1, = st.columns(1)  # Corretto
+        
         with col1:
             selected_datasets = st.multiselect("Seleziona i dataset", filenames, default=filenames)
-        
+    
         if selected_datasets:
             fig = go.Figure()
             autocorr_cols = {}
             x_axis_1, x_axis_2, y_axis = {}, {}, {}
             plot_types = {}
             max_lag_values = {}
-            
-            col1, col2, col3, col4 = st.columns([2, 1, 1, 1])
+    
+            col1, col2, col3, col4 = st.columns([2, 1, 1, 1])  # Definizione corretta delle colonne
             with col1:
                 for i, dataset_name in enumerate(selected_datasets):
                     df = convert_unix_to_datetime(df_list[filenames.index(dataset_name)])
@@ -162,9 +162,7 @@ def Statistics(df_list, filenames):
     
             with col3:
                 for i, dataset_name in enumerate(selected_datasets):
-                    plot_types[dataset_name] = st.selectbox(f"Plot Type ({dataset_name})", 
-                                            ["Scatter", "Bar", "Line"], 
-                                            key=f"plot_type_{i}")
+                    plot_types[dataset_name] = st.selectbox(f"Plot Type ({dataset_name})", ["Scatter", "Bar", "Line"], key=f"plot_type_{i}")
     
             with col4:
                 for i, dataset_name in enumerate(selected_datasets):
@@ -173,11 +171,10 @@ def Statistics(df_list, filenames):
             for dataset_name in selected_datasets:
                 df = convert_unix_to_datetime(df_list[filenames.index(dataset_name)])
                 col = y_axis[dataset_name]
-                
+    
                 if col in df.columns:
                     lags, autocorr_values = compute_autocorrelation(df, col, max_lag_values[dataset_name])
-                    fig.add_trace(go.Scatter(x=lags, y=autocorr_values, mode="lines+markers", 
-                                             name=dataset_name))
+                    fig.add_trace(go.Scatter(x=lags, y=autocorr_values, mode="lines+markers", name=dataset_name))
     
             fig.update_layout(
                 title="Autocorrelation for Multiple Datasets",
