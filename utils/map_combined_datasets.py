@@ -2,9 +2,9 @@ import streamlit as st
 import pandas as pd
 import plotly.graph_objects as go
 from utils.plotting import create_and_render_plot
-from utils.load import load_file, process_file
+from utils.load import load_file, process_file, convert_decimal_format
 
-def map_combined_datasets(dataframes, filenames=None):
+def map_combined_datasets(dataframes, filenames=None, decimal_sep="."):
     """
     Mappa più dataset con coordinate e popups, centrando la mappa sui dati caricati o sull'Italia di default.
     """
@@ -68,8 +68,10 @@ def map_combined_datasets(dataframes, filenames=None):
 
                 if lat_col and lon_col and lat_col in df.columns and lon_col in df.columns:
                     df_map = df.dropna(subset=[lat_col, lon_col]).copy()
-                    df_map["lat"] = pd.to_numeric(df_map[lat_col], errors="coerce")
-                    df_map["lon"] = pd.to_numeric(df_map[lon_col], errors="coerce")
+
+                    # Converte i numeri secondo il separatore scelto
+                    df_map["lat"] = convert_decimal_format(df_map[lat_col], decimal_sep)
+                    df_map["lon"] = convert_decimal_format(df_map[lon_col], decimal_sep)
                     df_map = df_map.dropna()
 
                     if df_map.empty:
