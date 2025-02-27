@@ -67,7 +67,7 @@ def Statistics(df_list, filenames):
     if "show_cross_correlation" not in st.session_state:
         st.session_state["show_cross_correlation"] = False
     if "show_pivot" not in st.session_state:
-        st.session_state["show_pivot"] = False
+        st.session_state["show_distribution_data"] = False
         
         st.subheader("📈 Data Plotting")
     
@@ -99,7 +99,7 @@ def Statistics(df_list, filenames):
             st.session_state["show_cross_correlation"] = True
     with col5:
         if st.button("🔄 Distribution Data"):
-            st.session_state["Distribution Data"] = True
+            st.session_state["show_distribution_data"] = True
             st.session_state["show_individual_plots"] = False
             st.session_state["show_merge_multiple_dataset"] = False
             st.session_state["show_autocorrelation"] = False
@@ -308,7 +308,7 @@ def Statistics(df_list, filenames):
             fig.update_layout(title="Cross-Correlation", xaxis_title="Lag", yaxis_title="Cross-Correlation Value")
             st.plotly_chart(fig, use_container_width=True)
     
-    elif st.session_state["Distribution Data"]:
+    elif st.session_state["show_distribution_data"]:
         st.subheader("Distribution Data")
         selected_files = st.multiselect("Seleziona i file", filenames)
     
