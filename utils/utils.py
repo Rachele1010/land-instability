@@ -39,23 +39,23 @@ def calcola_statistiche(df):
     for col in df.columns:
         if pd.api.types.is_numeric_dtype(df[col]):
             stats.append({
-                'Variabile': col,
-                'Conteggio': df[col].count(),
-                'Somma': df[col].sum(),
-                'Media': df[col].mean(),
-                'Minimo': df[col].min(),
-                'Massimo': df[col].max(),
-                'Mediana': df[col].median()
+                'Variable': col,
+                'Counting': df[col].count(),
+                'Sum': df[col].sum(),
+                'Mean': df[col].mean(),
+                'Minum': df[col].min(),
+                'Max': df[col].max(),
+                'Median': df[col].median()
             })
         else:
             stats.append({
-                'Variabile': col,
-                'Conteggio': df[col].count(),
-                'Somma': 'N/A',
-                'Media': 'N/A',
-                'Minimo': 'N/A',
-                'Massimo': 'N/A',
-                'Mediana': 'N/A'
+                'Variable': col,
+                'Counting': df[col].count(),
+                'Sum': 'N/A',
+                'Mean': 'N/A',
+                'Minimum': 'N/A',
+                'Max': 'N/A',
+                'Median': 'N/A'
             })
     return pd.DataFrame(stats)
 
@@ -63,9 +63,9 @@ def calcola_statistiche(df):
 def aggrega_dati_temporali(df, colonna_data, colonna_valore):
     df = df.set_index(colonna_data)
     aggregazioni = {
-        'Annuale': df[colonna_valore].resample('Y').sum(),
-        'Mensile': df[colonna_valore].resample('M').sum(),
-        'Stagionale': df[colonna_valore].resample('Q').sum(),
-        'Semestrale': df[colonna_valore].resample('6M').sum()
+        'Annualy': df[colonna_valore].resample('Y').sum(),
+        'Monthly': df[colonna_valore].resample('M').sum(),
+        'Stagionality': df[colonna_valore].resample('Q').sum(),
+        'Six-monthly': df[colonna_valore].resample('6M').sum()
     }
     return aggregazioni
