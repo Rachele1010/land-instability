@@ -134,11 +134,9 @@ def Statistics(df_list, filenames):
 
     # Sezione per Autocorrelazione MULTIPLE DATASET
     elif st.session_state["show_autocorrelation"]:
-        
-
         st.subheader("📈 Autocorrelation Analysis")
     
-        col1, col2, col3, col4 = st.columns([2, 1, 1, 1])
+        col1 = st.columns(1)
     
         with col1:
             selected_datasets = st.multiselect("Seleziona i dataset", filenames, default=filenames)
@@ -149,7 +147,8 @@ def Statistics(df_list, filenames):
             x_axis_1, x_axis_2, y_axis = {}, {}, {}
             plot_types = {}
             max_lag_values = {}
-    
+            
+            col1, col2, col3, col4 = st.columns([2, 1, 1, 1])
             with col1:
                 for i, dataset_name in enumerate(selected_datasets):
                     df = convert_unix_to_datetime(df_list[filenames.index(dataset_name)])
