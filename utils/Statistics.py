@@ -307,22 +307,23 @@ def Statistics(df_list, filenames):
                     max_selected = st.checkbox("Massimo (max)", key=f"max_{dataset_name}")
                     count_selected = st.checkbox("Conteggio (count)", key=f"count_{dataset_name}")
     
-                    agg_funcs = {}
-                    if sum_selected: agg_funcs["sum"] = "sum"
-                    if mean_selected: agg_funcs["mean"] = "mean"
-                    if min_selected: agg_funcs["min"] = "min"
-                    if max_selected: agg_funcs["max"] = "max"
-                    if count_selected: agg_funcs["count"] = "count"
-    
-                    if st.button(f"🔄 Applica Pivot ({dataset_name})", key=f"pivot_btn_{dataset_name}"):
-                        if agg_funcs:
-                            try:
-                                pivot_df = df.pivot_table(
-                                    index=index_col, 
-                                    columns=columns_col, 
-                                    values=values_col, 
-                                    aggfunc=list(agg_funcs.values())
-                                )
+                    agg_funcs = []
+                    if sum_selected: agg_funcs.append("sum")
+                    if mean_selected: agg_funcs.append("mean")
+                    if min_selected: agg_funcs.append("min")
+                    if max_selected: agg_funcs.append("max")
+                    if count_selected: agg_funcs.append("count")
+                    
+                    if not agg_funcs:
+                        st.warning("⚠️ Seleziona almeno un'operazione di aggregazione!")
+                        return
+                    
+                    pivot_df = df.pivot_table(
+                        index=index_col,
+                        columns=columns_col,
+                        values=values_col,
+                        aggfunc=agg_funcs  # Passiamo direttamente la lista
+                    )
                                 st.session_state[f"pivot_{dataset_name}"] = pivot_df  # Salviamo lo stato
                             except Exception as e:
                                 st.error(f"❌ Errore nel pivoting: {e}")
