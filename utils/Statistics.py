@@ -31,16 +31,34 @@ def compute_cross_correlation(df, column1, column2, max_lag=50):
 # Funzione per calcolare le statistiche di base
 
 def calcola_statistiche(df):
-    stats = pd.DataFrame({
-        'Variabile': df.columns,
-        'Conteggio': df.count(),
-        'Somma': df.select_dtypes(include='number').sum(),
-        'Media': df.select_dtypes(include='number').mean(),
-        'Minimo': df.select_dtypes(include='number').min(),
-        'Massimo': df.select_dtypes(include='number').max(),
-        'Mediana': df.select_dtypes(include='number').median()
-    })
-    return stats
+    statistiche = {
+        'Variabile': [],
+        'Conteggio': [],
+        'Somma': [],
+        'Media': [],
+        'Minimo': [],
+        'Massimo': [],
+        'Mediana': []
+    }
+    
+    for colonna in df.columns:
+        statistiche['Variabile'].append(colonna)
+        statistiche['Conteggio'].append(df[colonna].count())
+
+        if pd.api.types.is_numeric_dtype(df[colonna]):
+            statistiche['Somma'].append(df[colonna].sum())
+            statistiche['Media'].append(df[colonna].mean())
+            statistiche['Minimo'].append(df[colonna].min())
+            statistiche['Massimo'].append(df[colonna].max())
+            statistiche['Mediana'].append(df[colonna].median())
+        else:
+            statistiche['Somma'].append(None)
+            statistiche['Media'].append(None)
+            statistiche['Minimo'].append(None)
+            statistiche['Massimo'].append(None)
+            statistiche['Mediana'].append(None)
+
+    return pd.DataFrame(statistiche)
 
 # Funzione per aggregare dati temporali
 def aggrega_dati_temporali(df, colonna_data):
