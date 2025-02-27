@@ -12,19 +12,15 @@ def convert_unix_to_datetime(df):
     return df
 
 # Funzione per calcolare l'autocorrelazione
-def compute_autocorrelation(df, column):
+def compute_autocorrelation(df, column, max_lag=50):
     if column not in df.columns:
         st.error(f"❌ Errore: La colonna '{column}' non esiste nel DataFrame.")
         return None
 
-    autocorr_values = [df[column].autocorr(lag) for lag in range(1, min(len(df), 50))]
+    autocorr_values = [df[column].autocorr(lag) for lag in range(1, min(len(df), max_lag))]
     lags = list(range(1, len(autocorr_values) + 1))
 
-    fig = px.line(x=lags, y=autocorr_values, markers=True, title="Autocorrelation Plot")
-    fig.update_xaxes(title="Lag")
-    fig.update_yaxes(title="Autocorrelation Coefficient")
-    
-    return fig
+    return lags, autocorr_values
 
 # Funzione principale per la visualizzazione e analisi dei dataset
 def Statistics(df_list, filenames):
@@ -105,10 +101,6 @@ def Statistics(df_list, filenames):
                 for i, dataset_name in enumerate(selected_datasets):
                     second_y_axes[dataset_name] = st.checkbox(f"Secondo asse Y? ({dataset_name})", key=f"secondary_y_{i}")
 
-            # Debug: Mostra le selezioni per verifica
-            #st.write("Dati selezionati:", x_axes, y_axes, plot_types, second_y_axes)
-
-            # Aggiunta dei dati nel grafico unico con il tipo di grafico scelto
             for dataset_name in selected_datasets:
                 df = convert_unix_to_datetime(df_list[filenames.index(dataset_name)])
                 
@@ -127,7 +119,6 @@ def Statistics(df_list, filenames):
                     elif plot_types[dataset_name] == "Line":
                         fig.add_trace(go.Scatter(mode='lines', **trace_kwargs))
 
-            # Layout del grafico con doppio asse Y
             fig.update_layout(
                 title="Merged Datasets",
                 xaxis=dict(title="X Axis"),
@@ -143,20 +134,36 @@ def Statistics(df_list, filenames):
 
             st.plotly_chart(fig, use_container_width=True)
 
-    # Sezione per Autocorrelazione
+    # Sezione per Autocorrelazione MULTIPLE DATASET
     elif st.session_state["show_autocorrelation"]:
-        st.subheader("📈 Autocorrelation Analysis")
+        st.subheader("📈 Multiple Dataset Autocorrelation")
 
-        selected_dataset = st.selectbox("Seleziona il dataset", filenames, key="autocorr_dataset")
+        selected_datasets = st.multiselect("Seleziona i dataset per l'autocorrelazione", filenames, default=filenames)
+        
+        if selected_datasets:
+            fig = go.Figure()
 
-        if selected_dataset:
-            df = convert_unix_to_datetime(df_list[filenames.index(selected_dataset)])
+            autocorr_cols = {}
 
-            autocorr_col = st.selectbox(f"Seleziona la colonna per l'autocorrelazione ({selected_dataset})", 
-                                        df.columns.tolist(), key="autocorr_col")
+            col1 = st.columns(1)[0]
+            for i, dataset_name in enumerate(selected_datasets):
+                df = convert_unix_to_datetime(df_list[filenames.index(dataset_name)])
+                autocorr_cols[dataset_name] = col1.selectbox(f"Seleziona colonna ({dataset_name})", df.columns.tolist(), key=f"autocorr_col_{i}")
+
+            for dataset_name in selected_datasets:
+                df = convert_unix_to_datetime(df_list[filenames.index(dataset_name)])
+                col = autocorr_cols[dataset_name]
                 
-            fig = compute_autocorrelation(df, autocorr_col)
+                if col in df.columns:
+                    lags, autocorr_values = compute_autocorrelation(df, col)
+                    fig.add_trace(go.Scatter(x=lags, y=autocorr_values, mode="lines+markers", name=dataset_name))
 
-            if fig:
-                st.plotly_chart(fig, use_container_width=True)
+            fig.update_layout(
+                title="Autocorrelation for Multiple Datasets",
+                xaxis=dict(title="Lag"),
+                yaxis=dict(title="Autocorrelation Coefficient"),
+                legend=dict(title="Datasets")
+            )
+
+            st.plotly_chart(fig, use_container_width=True)
 
