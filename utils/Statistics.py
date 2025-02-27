@@ -7,8 +7,13 @@ from utils.plotting import create_and_render_plot
 # Funzione per convertire timestamp Unix in datetime
 def convert_unix_to_datetime(df):
     for col in df.columns:
-        if pd.api.types.is_numeric_dtype(df[col]) and df[col].between(1e9, 2e9).all():
-            df[col] = pd.to_datetime(df[col], unit='s').dt.strftime('%d/%m/%Y %H:%M')
+        if pd.api.types.is_numeric_dtype(df[col]):
+            # Verifica se i valori sono plausibili per timestamp in secondi
+            if df[col].between(1e9, 2e9).all():
+                df[col] = pd.to_datetime(df[col], unit='s')
+            # Verifica se i valori sono plausibili per timestamp in millisecondi
+            elif df[col].between(1e12, 2e12).all():
+                df[col] = pd.to_datetime(df[col], unit='ms')
     return df
 
 # Funzione per calcolare l'autocorrelazione
