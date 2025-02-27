@@ -35,8 +35,8 @@ def pivot_dataframe(df, dataset_name):
     col1, col2 = st.columns([1, 2])  # Colonna sinistra per i controlli, destra per la tabella
 
     with col1:  # Selezioni dell'utente
-        if st.checkbox(f"🕒 Converti Unix Timestamp ({dataset_name})"):
-            df = convert_unix_to_datetime(df)
+        #if st.checkbox(f"🕒 Converti Unix Timestamp ({dataset_name})"):
+        df = convert_unix_to_datetime(df)
 
         if df is not None:
             index_col = st.selectbox(f"Indice", df.columns, key=f"pivot_index_{dataset_name}")
