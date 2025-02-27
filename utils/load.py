@@ -63,7 +63,7 @@ def process_file(df, decimal_sep):
     df = infer_and_parse_dates(df)
     
     if decimal_sep == ",":
-        df = convert_decimal_comma(df)  # Converte solo se l'utente sceglie la virgola
+        df = convert_decimal_format(df)  # Converte solo se l'utente sceglie la virgola
     
     # Se l'utente ha scelto la virgola, formatta i numeri per la visualizzazione
     if decimal_sep == ",":
