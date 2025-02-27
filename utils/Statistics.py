@@ -40,7 +40,7 @@ def Statistics(df_list, filenames):
             with col3:
                 # Selezione del grafico disponibile tra le demo di ECharts
                 plot_type = st.selectbox(f"Plot Type {idx + 1}", ["Basic Scatter", "Basic Bar", "Basic Line", "Mixed Line and Bar", 
-                                                                  "Calendar Heatmap", "DataZoom", "Pie Chart"], key=f"plot_type_{idx}")
+                                                                  "Calendar Heatmap", "DataZoom"], key=f"plot_type_{idx}")
 
             col1, col2 = st.columns([1, 2])
             with col1:
@@ -67,7 +67,7 @@ def Statistics(df_list, filenames):
                     y_axes.append(st.selectbox(f"Y Axis {name}", df_list_selected[i].columns.tolist(), key=f"y_axis_merge_{i}"))
             with col4:
                 plot_type = st.selectbox(f"Plot Type {idx + 1}", ["Basic Scatter", "Basic Bar", "Basic Line", "Mixed Line and Bar", 
-                                                                  "Calendar Heatmap", "DataZoom", "Pie Chart"], key=f"plot_type_{idx}_merge")
+                                                                  "Calendar Heatmap", "DataZoom"], key=f"plot_type_{idx}_merge")
 
             create_and_render_plot(df, x_axis, y_axis, plot_type)
 
