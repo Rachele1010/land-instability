@@ -28,8 +28,33 @@ def compute_cross_correlation(df, column1, column2, max_lag=50):
     lags = list(range(1, len(cross_corr_values) + 1))
     return lags, cross_corr_values
     
-# Funzione per generare la Pivot Table
+# Funzione per calcolare le statistiche di base
 
+def calcola_statistiche(df):
+    stats = pd.DataFrame({
+        'Variabile': df.columns,
+        'Conteggio': df.count(),
+        'Somma': df.select_dtypes(include='number').sum(),
+        'Media': df.select_dtypes(include='number').mean(),
+        'Minimo': df.select_dtypes(include='number').min(),
+        'Massimo': df.select_dtypes(include='number').max(),
+        'Mediana': df.select_dtypes(include='number').median()
+    })
+    return stats
+
+# Funzione per aggregare dati temporali
+def aggrega_dati_temporali(df, colonna_data):
+    df[colonna_data] = pd.to_datetime(df[colonna_data], errors='coerce')
+    df = df.dropna(subset=[colonna_data])
+    df.set_index(colonna_data, inplace=True)
+
+    aggregazioni = {
+        'Annuale': df.resample('Y').sum(),
+        'Mensile': df.resample('M').sum(),
+        'Stagionale': df.resample('Q').sum(),
+        'Semestrale': df.resample('6M').sum()
+    }
+    return aggregazioni
 
 # Funzione principale per la visualizzazione e analisi dei dataset
 def Statistics(df_list, filenames):
@@ -284,69 +309,34 @@ def Statistics(df_list, filenames):
             st.plotly_chart(fig, use_container_width=True)
     
     elif st.session_state["show_pivot"]:
-        st.subheader("Pivot")
-        selected_files = st.multiselect("Seleziona i file per il Pivot", filenames)
+        st.subheader("Statistiche e Aggregazioni")
+        selected_files = st.multiselect("Seleziona i file", filenames)
     
-        col1, col2 = st.columns([1, 2])  # Controlli a sinistra, tabella a destra
+        for idx, dataset_name in enumerate(filenames):
+            if dataset_name not in selected_files:
+                continue
     
-        with col1:
-            for idx, dataset_name in enumerate(filenames):
-                if dataset_name not in selected_files:
-                    continue  # Saltiamo i file non selezionati
+            df = df_list[idx]
+            df = convert_unix_to_datetime(df)
     
-                df = df_list[idx]  # DataFrame corrispondente
-                df = convert_unix_to_datetime(df)
+            if df is not None:
+                st.write(f"### 📊 Statistiche per {dataset_name}")
+                stats_df = calcola_statistiche(df)
     
-                if df is not None:
-                    index_col = st.selectbox(f"Indice ({dataset_name})", df.columns, key=f"pivot_index_{dataset_name}")
-                    shared_col = st.selectbox(f"Colonne e Valori ({dataset_name})", df.columns, key=f"pivot_shared_{dataset_name}")
+                # Visualizzazione delle metriche
+                for i, row in stats_df.iterrows():
+                    st.metric(label=row['Variabile'], value=row['Conteggio'], help=f"Somma: {row['Somma']}, Media: {row['Media']}, Min: {row['Minimo']}, Max: {row['Massimo']}, Mediana: {row['Mediana']}")
     
-                    # Se la colonna selezionata per colonne e valori è la stessa, creiamo una colonna numerica temporanea
-                    if index_col == shared_col:
-                        df["_temp_numeric_"] = df.groupby(index_col)[shared_col].transform("count")
-                        values_col = "_temp_numeric_"
-                    else:
-                        values_col = shared_col
+                # Selezione della colonna di tipo datetime
+                colonne_datetime = df.select_dtypes(include=['datetime64[ns]', 'datetime64[ns, UTC]']).columns
+                if len(colonne_datetime) > 0:
+                    colonna_data = st.selectbox(f"Seleziona la colonna data per {dataset_name}", colonne_datetime)
+                    aggregazioni = aggrega_dati_temporali(df, colonna_data)
     
-                    # Controlliamo se la colonna valori è numerica
-                    if not pd.api.types.is_numeric_dtype(df[values_col]):
-                        st.error(f"⚠️ La colonna '{values_col}' non è numerica! Seleziona una colonna valida.")
-                        continue
-    
-                    # Selezione delle funzioni di aggregazione
-                    agg_funcs = {}
-                    if st.checkbox("Somma (sum)", key=f"sum_{dataset_name}"):
-                        agg_funcs["sum"] = "sum"
-                    if st.checkbox("Media (mean)", key=f"mean_{dataset_name}"):
-                        agg_funcs["mean"] = "mean"
-                    if st.checkbox("Minimo (min)", key=f"min_{dataset_name}"):
-                        agg_funcs["min"] = "min"
-                    if st.checkbox("Massimo (max)", key=f"max_{dataset_name}"):
-                        agg_funcs["max"] = "max"
-                    if st.checkbox("Conteggio (count)", key=f"count_{dataset_name}"):
-                        agg_funcs["count"] = "count"
-    
-                    if not agg_funcs:
-                        st.warning("⚠️ Seleziona almeno un'operazione di aggregazione!")
-                        continue  # Passiamo al prossimo dataset
-    
-                    try:
-                        # Creiamo la pivot table
-                        pivot_df = df.pivot_table(
-                            index=index_col,
-                            columns=shared_col,
-                            values=values_col,
-                            aggfunc=agg_funcs
-                        ).reset_index()  # Reset per evitare MultiIndex
-    
-                        st.session_state[f"pivot_{dataset_name}"] = pivot_df  # Salviamo lo stato
-    
-                    except Exception as e:
-                        st.error(f"❌ Errore nel pivoting: {e}")
-    
-        with col2:  # Mostriamo l'anteprima della tabella
-            for dataset_name in selected_files:
-                pivot_data = st.session_state.get(f"pivot_{dataset_name}")  # Evita errori se non esiste
-                if pivot_data is not None:
-                    st.write(f"### 📊 Anteprima Pivot Table - {dataset_name}")
-                    st.dataframe(pivot_data)
+                    # Visualizzazione dei grafici per ogni tipo di aggregazione
+                    for periodo, agg_df in aggregazioni.items():
+                        st.write(f"#### Grafico {periodo} per {dataset_name}")
+                        fig = px.bar(agg_df, x=agg_df.index, y=agg_df.columns, title=f"{periodo} Aggregato")
+                        st.plotly_chart(fig)
+                else:
+                    st.warning(f"⚠️ Nessuna colonna di tipo datetime trovata in {dataset_name}.")
