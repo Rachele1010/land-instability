@@ -117,7 +117,10 @@ def create_and_render_plot(df, x_axis, y_axis, plot_type):
         y_axis_line = st.selectbox("Select Line Y axis", df.columns.tolist(), key=f"y_axis_line_{x_axis}")
         y_axis_bar = st.selectbox("Select Bar Y axis", df.columns.tolist(), key=f"y_axis_bar_{x_axis}")
         chart = create_mixed_line_and_bar_chart(df, x_axis, y_axis_line, y_axis_bar)
-
+    elif plot_type == "Pie Chart":
+        values_col = st.selectbox("Select Values Column", df.columns.tolist(), key="values_col")
+        names_col = st.selectbox("Select Names Column", df.columns.tolist(), key="names_col")
+        chart = render_pie_chart_bokeh(df, values_col, names_col)
     # Mostra il grafico prima di restituirlo
     st.plotly_chart(chart, use_container_width=True)
     return chart
