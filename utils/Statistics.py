@@ -52,27 +52,23 @@ def calcola_statistiche(df):
             statistiche['Massimo'].append(df[colonna].max())
             statistiche['Mediana'].append(df[colonna].median())
         else:
-            statistiche['Somma'].append(None)
-            statistiche['Media'].append(None)
-            statistiche['Minimo'].append(None)
-            statistiche['Massimo'].append(None)
-            statistiche['Mediana'].append(None)
+            statistiche['Somma'].append('N/A')
+            statistiche['Media'].append('N/A')
+            statistiche['Minimo'].append('N/A')
+            statistiche['Massimo'].append('N/A')
+            statistiche['Mediana'].append('N/A')
 
     return pd.DataFrame(statistiche)
 
-# Funzione per aggregare dati temporali
 def aggrega_dati_temporali(df, colonna_data):
-    df[colonna_data] = pd.to_datetime(df[colonna_data], errors='coerce')
-    df = df.dropna(subset=[colonna_data])
-    df.set_index(colonna_data, inplace=True)
-
+    df[colonna_data] = pd.to_datetime(df[colonna_data])  # Assicuriamoci che sia datetime
     aggregazioni = {
-        'Annuale': df.resample('Y').sum(),
-        'Mensile': df.resample('M').sum(),
-        'Stagionale': df.resample('Q').sum(),
-        'Semestrale': df.resample('6M').sum()
+        "Annuale": df.set_index(colonna_data).resample('Y').count(),
+        "Mensile": df.set_index(colonna_data).resample('M').count(),
+        "Stagionale": df.set_index(colonna_data).resample('Q').count(),
+        "Semestrale": df.set_index(colonna_data).resample('2Q').count()
     }
-    return aggregazioni
+    return aggregazioni    
 
 # Funzione principale per la visualizzazione e analisi dei dataset
 def Statistics(df_list, filenames):
@@ -327,7 +323,7 @@ def Statistics(df_list, filenames):
             st.plotly_chart(fig, use_container_width=True)
     
     elif st.session_state["show_distribution_data"]:
-        st.subheader("Distribution Data")
+        st.subheader("Distribuzione Dati")
         selected_files = st.multiselect("Seleziona i file", filenames)
     
         for idx, dataset_name in enumerate(filenames):
@@ -341,13 +337,18 @@ def Statistics(df_list, filenames):
                 st.write(f"### 📊 Statistiche per {dataset_name}")
                 stats_df = calcola_statistiche(df)
     
-                # Tabella con statistiche
-                st.dataframe(stats_df)
-    
-                # Visualizzazione metriche per ogni variabile
+                # Visualizzazione delle metriche per ogni variabile
                 for _, row in stats_df.iterrows():
-                    st.metric(label=row['Variabile'], value=row['Conteggio'], 
-                              help=f"Somma: {row['Somma']}, Media: {row['Media']}, Min: {row['Minimo']}, Max: {row['Massimo']}, Mediana: {row['Mediana']}")
+                    with st.container():
+                        st.write(f"**Variabile:** {row['Variabile']}")
+                        st.metric(label="Conteggio", value=row['Conteggio'])
+                        if row['Somma'] != 'N/A':
+                            st.metric(label="Somma", value=row['Somma'])
+                            st.metric(label="Media", value=row['Media'])
+                            st.metric(label="Minimo", value=row['Minimo'])
+                            st.metric(label="Massimo", value=row['Massimo'])
+                            st.metric(label="Mediana", value=row['Mediana'])
+                        st.markdown("---")
     
                 # Selezione di una colonna datetime se disponibile
                 colonne_datetime = df.select_dtypes(include=['datetime64[ns]', 'datetime64[ns, UTC]']).columns
@@ -362,8 +363,7 @@ def Statistics(df_list, filenames):
                     for periodo, agg_df in aggregazioni.items():
                         if variabile_plot in agg_df.columns:
                             st.write(f"#### Grafico {periodo} per {dataset_name}")
-                            fig = px.bar(agg_df, x=agg_df.index, y=variabile_plot, title=f"{periodo} Aggregato")
-                            st.plotly_chart(fig)
+                            st.bar_chart(agg_df[variabile_plot])
                         else:
                             st.warning(f"⚠️ La variabile '{variabile_plot}' non ha dati validi per l'aggregazione {periodo}.")
                 else:
