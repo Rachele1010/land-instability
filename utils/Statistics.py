@@ -323,20 +323,30 @@ def Statistics(df_list, filenames):
                 st.write(f"### 📊 Statistiche per {dataset_name}")
                 stats_df = calcola_statistiche(df)
     
-                # Visualizzazione delle metriche
-                for i, row in stats_df.iterrows():
-                    st.metric(label=row['Variabile'], value=row['Conteggio'], help=f"Somma: {row['Somma']}, Media: {row['Media']}, Min: {row['Minimo']}, Max: {row['Massimo']}, Mediana: {row['Mediana']}")
+                # Tabella con statistiche
+                st.dataframe(stats_df)
     
-                # Selezione della colonna di tipo datetime
+                # Visualizzazione metriche per ogni variabile
+                for _, row in stats_df.iterrows():
+                    st.metric(label=row['Variabile'], value=row['Conteggio'], 
+                              help=f"Somma: {row['Somma']}, Media: {row['Media']}, Min: {row['Minimo']}, Max: {row['Massimo']}, Mediana: {row['Mediana']}")
+    
+                # Selezione di una colonna datetime se disponibile
                 colonne_datetime = df.select_dtypes(include=['datetime64[ns]', 'datetime64[ns, UTC]']).columns
                 if len(colonne_datetime) > 0:
                     colonna_data = st.selectbox(f"Seleziona la colonna data per {dataset_name}", colonne_datetime)
                     aggregazioni = aggrega_dati_temporali(df, colonna_data)
     
-                    # Visualizzazione dei grafici per ogni tipo di aggregazione
+                    # Selezione della variabile da plottare
+                    variabile_plot = st.selectbox(f"Seleziona la variabile da plottare per {dataset_name}", df.columns)
+    
+                    # Visualizzazione dei grafici per ogni aggregazione temporale
                     for periodo, agg_df in aggregazioni.items():
-                        st.write(f"#### Grafico {periodo} per {dataset_name}")
-                        fig = px.bar(agg_df, x=agg_df.index, y=agg_df.columns, title=f"{periodo} Aggregato")
-                        st.plotly_chart(fig)
+                        if variabile_plot in agg_df.columns:
+                            st.write(f"#### Grafico {periodo} per {dataset_name}")
+                            fig = px.bar(agg_df, x=agg_df.index, y=variabile_plot, title=f"{periodo} Aggregato")
+                            st.plotly_chart(fig)
+                        else:
+                            st.warning(f"⚠️ La variabile '{variabile_plot}' non ha dati validi per l'aggregazione {periodo}.")
                 else:
-                    st.warning(f"⚠️ No Datatime {dataset_name}.")
+                    st.warning(f"⚠️ Nessuna colonna datetime trovata in {dataset_name}.")
