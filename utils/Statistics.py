@@ -5,9 +5,6 @@ from utils.plotting import create_and_render_plot
 
 # Funzione per convertire timestamp Unix in datetime
 def convert_unix_to_datetime(df):
-    """
-    Converte le colonne di un DataFrame da timestamp Unix a datetime (se applicabile).
-    """
     for col in df.columns:
         if pd.api.types.is_numeric_dtype(df[col]) and df[col].between(1e9, 2e9).all():
             df[col] = pd.to_datetime(df[col], unit='s').dt.strftime('%d/%m/%Y %H:%M')
@@ -15,9 +12,6 @@ def convert_unix_to_datetime(df):
 
 # Funzione per calcolare l'autocorrelazione
 def compute_autocorrelation(df, column):
-    """
-    Calcola e visualizza l'autocorrelazione per una colonna specificata.
-    """
     if column not in df.columns:
         st.error(f"❌ Errore: La colonna '{column}' non esiste nel DataFrame.")
         return None
@@ -36,7 +30,7 @@ def Statistics(df_list, filenames):
     if "show_individual_plots" not in st.session_state:
         st.session_state["show_individual_plots"] = True
 
-    st.subheader("📈 Data Analysis")
+    st.subheader("📈 Data Plotting")
 
     col1, col2, col3 = st.columns(3)
     
@@ -46,11 +40,14 @@ def Statistics(df_list, filenames):
     with col2:
         if st.button("🔄 Merge Datasets"):
             st.session_state["show_individual_plots"] = False
+    with col3:
+        if st.button("📈 Autocorrelation"):
+            st.session_state["show_individual_plots"] = None  # Modalità autocorrelazione
 
     # Sezione per i singoli grafici
-    if st.session_state["show_individual_plots"]:
+    if st.session_state["show_individual_plots"] is True:
         for idx, df in enumerate(df_list):
-            df = convert_unix_to_datetime(df.copy())  # Applica la conversione ai timestamp
+            df = convert_unix_to_datetime(df)
 
             st.caption(f"**Dataset {idx + 1} - {filenames[idx]}**")
 
@@ -71,33 +68,58 @@ def Statistics(df_list, filenames):
             with col2:
                 create_and_render_plot(df, x_axis, y_axis, plot_type)
 
+    # Sezione per Merge Datasets
+    elif st.session_state["show_individual_plots"] is False:
+        st.subheader("📊 Merge Multiple Datasets")
+        
+        col1, col2, col3, col4 = st.columns(4)
+        
+        with col1:
+            selected_datasets = st.multiselect("Seleziona i dataset", filenames, default=filenames)
+
+        if selected_datasets:
+            df_list_selected = [convert_unix_to_datetime(df_list[filenames.index(name)]) for name in selected_datasets]
+            x_axes, y_axes = [], []
+
+            with col2:
+                for i, name in enumerate(selected_datasets):
+                    x_axes.append(st.selectbox(f"X Axis {name}", df_list_selected[i].columns.tolist(), key=f"x_axis_merge_{i}"))
+            with col3:
+                for i, name in enumerate(selected_datasets):
+                    y_axes.append(st.selectbox(f"Y Axis {name}", df_list_selected[i].columns.tolist(), key=f"y_axis_merge_{i}"))
+            with col4:
+                plot_type = st.selectbox("Plot Type", ["Basic Scatter", "Basic Bar", "Basic Line", "Mixed Line and Bar", 
+                                                       "Calendar Heatmap", "DataZoom"], key="plot_type_merge")
+
+            # Creazione grafico per dataset uniti
+            for i in range(len(selected_datasets)):
+                create_and_render_plot(df_list_selected[i], x_axes[i], y_axes[i], plot_type)
+
     # Sezione per l'Autocorrelazione
-    with col3:
-        if st.button("📈 Autocorrelation"):
-            st.subheader("📊 Autocorrelation Analysis")
+    elif st.session_state["show_individual_plots"] is None:
+        st.subheader("📊 Autocorrelation Analysis")
 
-            # Scelta multipla dei file
-            selected_files = st.multiselect("Seleziona i dataset per l'autocorrelazione", filenames, default=filenames)
+        col1, col2, col3 = st.columns(3)
 
-            if not selected_files:
-                st.warning("⚠️ Seleziona almeno un dataset per continuare.")
-                return
+        with col1:
+            selected_datasets = st.multiselect("Seleziona i dataset", filenames, default=filenames)
 
-            for file in selected_files:
-                idx = filenames.index(file)
-                df = convert_unix_to_datetime(df_list[idx].copy())  # Conversione timestamp
+        if selected_datasets:
+            df_list_selected = [convert_unix_to_datetime(df_list[filenames.index(name)]) for name in selected_datasets]
+            selected_columns = {}
 
-                st.markdown(f"### 📊 Dataset: {file}")
+            with col2:
+                for i, name in enumerate(selected_datasets):
+                    selected_columns[name] = st.multiselect(f"Seleziona le colonne ({name})", 
+                                                            df_list_selected[i].columns.tolist(), 
+                                                            key=f"autocorr_cols_{i}")
+            
+            with col3:
+                max_lag = st.slider("Seleziona il massimo lag", min_value=1, max_value=50, value=20)
 
-                # Scelta multipla delle colonne
-                selected_columns = st.multiselect(f"Seleziona le colonne per l'autocorrelazione ({file})", 
-                                                  df.columns.tolist(), key=f"autocorr_cols_{idx}")
-
-                if not selected_columns:
-                    st.warning(f"⚠️ Seleziona almeno una colonna per il dataset {file}.")
-                    continue
-
-                for col in selected_columns:
+            for i, name in enumerate(selected_datasets):
+                df = df_list_selected[i]
+                for col in selected_columns[name]:
                     fig = compute_autocorrelation(df, col)
                     if fig:
                         st.plotly_chart(fig, use_container_width=True)
