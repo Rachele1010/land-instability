@@ -135,57 +135,70 @@ def Statistics(df_list, filenames):
 
     elif st.session_state["show_autocorrelation"]:
         st.subheader("📈 Autocorrelation Analysis")
-
+    
         # Selezione dataset
         selected_datasets = st.multiselect("Seleziona i dataset", filenames, default=filenames)
-        
+    
         if selected_datasets:
             fig = go.Figure()
-        
-            max_lag_values = {}
-            selected_columns = {}
-        
-            # UI con 2 colonne: scelta asse Y (checkbox) e lag massimo
-            col1, col2 = st.columns([3, 1])
-        
+            y_axis_1, y_axis_2, plot_types, max_lag_values = {}, {}, {}, {}
+    
+            # UI con 4 colonne: Y1, Y2 (opzionale), tipo di grafico, lag
+            col1, col2, col3, col4 = st.columns([2, 2, 1, 1])
+    
             with col1:
-                for dataset_name in selected_datasets:
+                for i, dataset_name in enumerate(selected_datasets):
                     df = convert_unix_to_datetime(df_list[filenames.index(dataset_name)])
-        
-                    # 🔥 Sostituiamo il selectbox con un multiselect (checkbox multipli)
-                    selected_columns[dataset_name] = st.multiselect(
-                        f"Seleziona le colonne per l'autocorrelazione ({dataset_name})",
-                        df.columns.tolist(),
-                        key=f"columns_{dataset_name}"
-                    )
-        
+                    y_axis_1[dataset_name] = st.selectbox(f"Primary Y Axis ({dataset_name})", df.columns.tolist(), key=f"y_axis1_{i}")
+    
             with col2:
-                for dataset_name in selected_datasets:
-                    max_lag_values[dataset_name] = st.slider(
-                        f"Lag ({dataset_name})",
-                        min_value=1, max_value=100, value=50,
-                        key=f"lag_{dataset_name}"
-                    )
-        
+                for i, dataset_name in enumerate(selected_datasets):
+                    df = convert_unix_to_datetime(df_list[filenames.index(dataset_name)])
+                    y_axis_2[dataset_name] = st.selectbox(f"Secondary Y Axis (opzionale) ({dataset_name})", ["None"] + df.columns.tolist(), key=f"y_axis2_{i}")
+    
+            with col3:
+                for i, dataset_name in enumerate(selected_datasets):
+                    plot_types[dataset_name] = st.selectbox(f"Plot Type ({dataset_name})", ["Scatter", "Bar", "Line"], key=f"plot_type_{i}")
+    
+            with col4:
+                for i, dataset_name in enumerate(selected_datasets):
+                    max_lag_values[dataset_name] = st.slider(f"Lag ({dataset_name})", min_value=1, max_value=100, value=50, key=f"lag_{i}")
+    
             # Creazione del grafico
             for dataset_name in selected_datasets:
                 df = convert_unix_to_datetime(df_list[filenames.index(dataset_name)])
-        
-                for column in selected_columns[dataset_name]:  # 🔄 Iteriamo su più colonne selezionate
-                    lags, autocorr_values = compute_autocorrelation(df, column, max_lag_values[dataset_name])
-        
+                
+                # Prima variabile Y
+                lags, autocorr_values = compute_autocorrelation(df, y_axis_1[dataset_name], max_lag_values[dataset_name])
+                fig.add_trace(go.Scatter(
+                    x=lags, y=autocorr_values,
+                    mode="lines+markers" if plot_types[dataset_name] == "Scatter" else "lines",
+                    name=f"{dataset_name} - {y_axis_1[dataset_name]}",
+                    yaxis="y1"
+                ))
+    
+                # Seconda variabile Y (se selezionata)
+                if y_axis_2[dataset_name] != "None":
+                    lags, autocorr_values = compute_autocorrelation(df, y_axis_2[dataset_name], max_lag_values[dataset_name])
                     fig.add_trace(go.Scatter(
                         x=lags, y=autocorr_values,
-                        mode="lines+markers",
-                        name=f"{dataset_name} - {column}",
+                        mode="lines+markers" if plot_types[dataset_name] == "Scatter" else "lines",
+                        name=f"{dataset_name} - {y_axis_2[dataset_name]}",
+                        yaxis="y2"
                     ))
-        
-            # Layout del grafico
+    
+            # Layout con secondo asse Y
             fig.update_layout(
                 title="Autocorrelation for Multiple Datasets",
                 xaxis=dict(title="Lag"),
-                yaxis=dict(title="Autocorrelation Value"),
-                legend=dict(title="Datasets & Columns")
+                yaxis=dict(title="Primary Y Axis"),
+                yaxis2=dict(
+                    title="Secondary Y Axis",
+                    overlaying='y',
+                    side='right',
+                    showgrid=False
+                ),
+                legend=dict(title="Datasets")
             )
-        
+    
             st.plotly_chart(fig, use_container_width=True)
