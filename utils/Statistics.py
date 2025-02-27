@@ -27,7 +27,23 @@ def compute_cross_correlation(df, column1, column2, max_lag=50):
     cross_corr_values = [df[column1].corr(df[column2].shift(lag)) for lag in range(1, min(len(df), max_lag))]
     lags = list(range(1, len(cross_corr_values) + 1))
     return lags, cross_corr_values
+    
+def pivot_dataframe(df):
+    st.subheader("🔄 Pivot Table")
+    
+    # Selezione colonne per il pivot
+    index_col = st.selectbox("Scegli colonna per l'indice", df.columns, key="pivot_index")
+    columns_col = st.selectbox("Scegli colonna per le colonne", df.columns, key="pivot_columns")
+    values_col = st.selectbox("Scegli colonna per i valori", df.columns, key="pivot_values")
 
+    if st.button("🔄 Applica Pivot"):
+        try:
+            pivot_df = df.pivot(index=index_col, columns=columns_col, values=values_col)
+            st.write("### 📊 Risultato Pivot Table")
+            st.dataframe(pivot_df)
+        except Exception as e:
+            st.error(f"❌ Errore nel pivoting: {e}")
+            
 # Funzione principale per la visualizzazione e analisi dei dataset
 def Statistics(df_list, filenames):
     if "show_individual_plots" not in st.session_state:
@@ -38,9 +54,12 @@ def Statistics(df_list, filenames):
         st.session_state["show_autocorrelation"] = False
     if "show_cross_correlation" not in st.session_state:
         st.session_state["show_cross_correlation"] = False
+    if "show_pivot" not in st.session_state:
+        st.session_state["show_pivot"] = False
+        
         st.subheader("📈 Data Plotting")
-
-    col1, col2, col3, col4 = st.columns(4)
+    
+    col1, col2, col3, col4, col5 = st.columns(5)
     
     with col1:
         if st.button("📊 Single Plot"):
@@ -66,6 +85,13 @@ def Statistics(df_list, filenames):
             st.session_state["show_merge_multiple_dataset"] = False
             st.session_state["show_autocorrelation"] = False
             st.session_state["show_cross_correlation"] = True
+    with col5:
+        if st.button("🔄 Pivot Table"):
+            st.session_state["show_pivot"] = True
+            st.session_state["show_individual_plots"] = False
+            st.session_state["show_merge_multiple_dataset"] = False
+            st.session_state["show_autocorrelation"] = False
+            st.session_state["show_cross_correlation"] = False
 
     # Sezione per i singoli grafici
     if st.session_state["show_individual_plots"]:
@@ -267,3 +293,9 @@ def Statistics(df_list, filenames):
     
             fig.update_layout(title="Cross-Correlation", xaxis_title="Lag", yaxis_title="Cross-Correlation Value")
             st.plotly_chart(fig, use_container_width=True)
+    
+    elif st.session_state["show_pivot"]:
+        st.subheader("Pivot")
+        for idx, df in enumerate(df_list):
+            st.caption(f"**Dataset {idx + 1} - {filenames[idx]}**")
+            pivot_dataframe(df)
