@@ -19,7 +19,14 @@ def compute_autocorrelation(df, column, max_lag=50):
     autocorr_values = [df[column].autocorr(lag) for lag in range(1, min(len(df), max_lag))]
     lags = list(range(1, len(autocorr_values) + 1))
     return lags, autocorr_values
-
+    
+def compute_cross_correlation(df, column1, column2, max_lag=50):
+    if column1 not in df.columns or column2 not in df.columns:
+        st.error("❌ Errore: Una delle colonne selezionate non esiste nel DataFrame.")
+        return None
+    cross_corr_values = [df[column1].corr(df[column2].shift(lag)) for lag in range(1, min(len(df), max_lag))]
+    lags = list(range(1, len(cross_corr_values) + 1))
+    return lags, cross_corr_values
 
 # Funzione principale per la visualizzazione e analisi dei dataset
 def Statistics(df_list, filenames):
@@ -201,4 +208,25 @@ def Statistics(df_list, filenames):
                 legend=dict(title="Datasets")
             )
     
+            st.plotly_chart(fig, use_container_width=True)
+    elif st.session_state["show_cross_correlation"]:
+        st.subheader("🔀 Cross-Correlation Analysis")
+        selected_datasets = st.multiselect("Seleziona i dataset", filenames, default=filenames)
+    
+        if selected_datasets:
+            fig = go.Figure()
+            for dataset_name in selected_datasets:
+                df = convert_unix_to_datetime(df_list[filenames.index(dataset_name)])
+                col1, col2 = st.columns(2)
+                with col1:
+                    var1 = st.selectbox(f"Variabile 1 ({dataset_name})", df.columns.tolist(), key=f"var1_{dataset_name}")
+                with col2:
+                    var2 = st.selectbox(f"Variabile 2 ({dataset_name})", df.columns.tolist(), key=f"var2_{dataset_name}")
+                max_lag = st.slider(f"Lag ({dataset_name})", 1, 100, 50, key=f"lag_cross_{dataset_name}")
+                
+                lags, cross_corr_values = compute_cross_correlation(df, var1, var2, max_lag)
+                if lags:
+                    fig.add_trace(go.Scatter(x=lags, y=cross_corr_values, mode="lines+markers", name=f"{dataset_name}: {var1} vs {var2}"))
+            
+            fig.update_layout(title="Cross-Correlation", xaxis_title="Lag", yaxis_title="Cross-Correlation Value")
             st.plotly_chart(fig, use_container_width=True)
