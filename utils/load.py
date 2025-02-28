@@ -42,9 +42,12 @@ def load_file(uploaded_file):
 
 # Funzione per convertire colonne di testo in formato data
 def infer_and_parse_dates(df):
-    """Converti automaticamente colonne contenenti date."""
+    """Converti automaticamente colonne contenenti date con un formato esplicito."""
     for col in df.select_dtypes(include=["object"]).columns:
-        df[col] = pd.to_datetime(df[col], errors="coerce")  # Converti in datetime, ignora errori
+        try:
+            df[col] = pd.to_datetime(df[col], errors="coerce")  # Adatta il formato
+        except Exception:
+            pass  # Se fallisce, ignora la colonna
     return df
 
 # Funzione per convertire i numeri con il separatore decimale corretto
@@ -63,11 +66,11 @@ def convert_decimal_format(df, decimal_sep):
 def process_file(df, decimal_sep):
     """Elabora il DataFrame, gestendo date e numeri."""
     df = infer_and_parse_dates(df)  # Converti le date
-    df = convert_decimal_format(df, decimal_sep)  # Converti i numeri
+    df = convert_decimal_format(df, decimal_sep)  # Converte i numeri
 
     # Se l'utente ha scelto la virgola, formatta i numeri per la visualizzazione
     if decimal_sep == ",":
-        df = df.applymap(lambda x: f"{x:.2f}".replace(".", ",") if isinstance(x, float) else x)
+        df = df.map(lambda x: f"{x:.2f}".replace(".", ",") if isinstance(x, float) else x)
     
     return df
 
