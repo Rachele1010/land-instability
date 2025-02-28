@@ -12,6 +12,7 @@ def detect_separator(uploaded_file):
 
 # Funzione per caricare un file con gestione degli errori
 @st.cache_data
+@st.cache_data
 def load_file(uploaded_file):
     """Carica un file CSV, TXT o Excel e lo converte sempre in DataFrame."""
     try:
@@ -25,18 +26,18 @@ def load_file(uploaded_file):
             if isinstance(df, pd.Series):
                 df = df.to_frame()
 
-            # Se la prima riga è numerica, assumerla come intestazione
+            # Se la prima riga è numerica o None, impostala come intestazione
             if df.shape[0] > 1 and not isinstance(df.columns[0], str):
                 df.columns = df.iloc[0]  # Imposta la prima riga come intestazione
                 df = df[1:].reset_index(drop=True)
 
         else:
-            st.error("Formato file non supportato.")
+            st.error("❌ Formato file non supportato.")
             return None
 
         return df
     except Exception as e:
-        st.error(f"Errore nel caricamento del file {uploaded_file.name}: {e}")
+        st.error(f"❌ Errore nel caricamento del file {uploaded_file.name}: {e}")
         return None
 
 # Funzione per convertire colonne di testo in formato data
