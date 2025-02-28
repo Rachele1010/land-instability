@@ -44,10 +44,10 @@ def infer_and_parse_dates(df):
     return df
 
 # Funzione per elaborare i dati del DataFrame
-def process_file(df, decimal_sep=","):
+def process_file(df):
     """Elabora i dati del DataFrame."""
     df = infer_and_parse_dates(df)
-    df = convert_decimal_comma(df, decimal_sep)
+    #df = convert_decimal_comma(df, decimal_sep)
     return df
 
 # Funzione per caricare e visualizzare il file
