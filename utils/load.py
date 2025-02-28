@@ -48,7 +48,10 @@ def load_file(uploaded_file):
 def infer_and_parse_dates(df):
     """Converti automaticamente colonne contenenti date."""
     for col in df.select_dtypes(include=["object"]).columns:
-        df[col] = pd.to_datetime(df[col], errors="coerce")  # Converti in datetime, ignora errori
+        try:
+            df[col] = pd.to_datetime(df[col], format="%d/%m/%Y", errors="coerce")  # Usa il formato corretto
+        except Exception as e:
+            st.warning(f"⚠ Errore nella conversione delle date in '{col}': {e}")
     return df
 
 def convert_decimal_format(df, decimal_sep):
@@ -75,8 +78,9 @@ def process_file(df, decimal_sep):
 
     # Se l'utente ha scelto la virgola, formatta i numeri per la visualizzazione
     if decimal_sep == ",":
-        df = df.applymap(lambda x: f"{x:.2f}".replace(".", ",") if isinstance(x, float) else x)
-    
+        df[df.select_dtypes(include=["float", "int"]).columns] = df.select_dtypes(include=["float", "int"]).map(
+            lambda x: f"{x:.2f}".replace(".", ",") if isinstance(x, float) else x
+            )    
     return df
 
 # Funzione per caricare e visualizzare il file
