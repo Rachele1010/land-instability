@@ -17,7 +17,7 @@ def display_dashboard():
     # Upload dei file
     st.sidebar.header("📂 Upload Files")
     uploaded_files = st.sidebar.file_uploader("Drag & Drop your CSV files here", type=['csv', 'xlsx', 'txt'], accept_multiple_files=True)
-    decimal_sep = st.sidebar.radio("Choose decimal separator:", [".", ","], index=0)
+    #decimal_sep = st.sidebar.radio("Choose decimal separator:", [".", ","], index=0)
     if not uploaded_files:
         st.sidebar.info("No files uploaded yet.")
         return
