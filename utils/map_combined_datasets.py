@@ -2,7 +2,17 @@ import streamlit as st
 import pandas as pd
 import plotly.graph_objects as go
 from utils.plotting import create_and_render_plot
-from utils.load import load_file, process_file, convert_decimal_comma
+from utils.load import load_file, process_file
+
+def convert_decimal_comma(df, decimal_sep=","):
+    """Converte i numeri con separatore decimale personalizzato in float."""
+    for col in df.columns:
+        if df[col].dtype == 'object':
+            try:
+                df[col] = df[col].str.replace(decimal_sep, '.').astype(float)
+            except ValueError:
+                continue
+    return df
 
 def map_combined_datasets(dataframes, filenames=None, decimal_sep="."):
     """
