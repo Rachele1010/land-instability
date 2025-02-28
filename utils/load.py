@@ -12,9 +12,8 @@ def detect_separator(uploaded_file):
 
 # Funzione per caricare un file con gestione degli errori
 @st.cache_data
-@st.cache_data
 def load_file(uploaded_file):
-    """Carica un file CSV, TXT o Excel e lo converte sempre in DataFrame."""
+    """Carica un file CSV, TXT o Excel e assicura che sia sempre un DataFrame."""
     try:
         if uploaded_file.name.endswith(('.csv', '.txt')):
             sep = detect_separator(uploaded_file)
@@ -26,28 +25,25 @@ def load_file(uploaded_file):
             if isinstance(df, pd.Series):
                 df = df.to_frame()
 
-            # Se la prima riga è numerica o None, impostala come intestazione
-            if df.shape[0] > 1 and not isinstance(df.columns[0], str):
+            # Assicura che la prima riga venga considerata come intestazione
+            if df.shape[0] > 1 and df.columns[0] == 0:  # Excel a volte prende la prima colonna come indice numerico
                 df.columns = df.iloc[0]  # Imposta la prima riga come intestazione
-                df = df[1:].reset_index(drop=True)
+                df = df[1:]  # Rimuove la prima riga ora diventata intestazione
 
         else:
-            st.error("❌ Formato file non supportato.")
+            st.error("Formato file non supportato.")
             return None
 
         return df
     except Exception as e:
-        st.error(f"❌ Errore nel caricamento del file {uploaded_file.name}: {e}")
+        st.error(f"Errore nel caricamento del file {uploaded_file.name}: {e}")
         return None
 
 # Funzione per convertire colonne di testo in formato data
 def infer_and_parse_dates(df):
-    """Converti automaticamente colonne contenenti date con un formato esplicito."""
+    """Converti automaticamente colonne contenenti date."""
     for col in df.select_dtypes(include=["object"]).columns:
-        try:
-            df[col] = pd.to_datetime(df[col], errors="coerce")  # Adatta il formato
-        except Exception:
-            pass  # Se fallisce, ignora la colonna
+        df[col] = pd.to_datetime(df[col], errors="coerce")  # Converti in datetime, ignora errori
     return df
 
 # Funzione per convertire i numeri con il separatore decimale corretto
@@ -66,11 +62,11 @@ def convert_decimal_format(df, decimal_sep):
 def process_file(df, decimal_sep):
     """Elabora il DataFrame, gestendo date e numeri."""
     df = infer_and_parse_dates(df)  # Converti le date
-    df = convert_decimal_format(df, decimal_sep)  # Converte i numeri
+    df = convert_decimal_format(df, decimal_sep)  # Converti i numeri
 
     # Se l'utente ha scelto la virgola, formatta i numeri per la visualizzazione
     if decimal_sep == ",":
-        df = df.map(lambda x: f"{x:.2f}".replace(".", ",") if isinstance(x, float) else x)
+        df = df.applymap(lambda x: f"{x:.2f}".replace(".", ",") if isinstance(x, float) else x)
     
     return df
 
@@ -102,10 +98,11 @@ st.title("📊 Caricamento e Elaborazione Dati")
 uploaded_file = st.file_uploader("📂 Carica un file CSV, TXT o Excel", type=["csv", "txt", "xlsx"])
 
 # Selettore per il separatore decimale
-#decimal_sep = st.radio("Scegli il separatore decimale:", (".", ","))
+decimal_sep = st.radio("Scegli il separatore decimale:", (".", ","))
 
 if uploaded_file is not None:
     load_and_display_file(uploaded_file, decimal_sep)
 else:
     st.info("📁 Nessun file caricato.")
+
 
