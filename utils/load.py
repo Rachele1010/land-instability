@@ -44,21 +44,21 @@ def infer_and_parse_dates(df):
     return df
 
 # Funzione per convertire i numeri con virgola decimale in float
-def convert_decimal_comma(df):
-    """Converte i numeri con virgola decimale in float."""
+def convert_decimal_comma(df, decimal_sep=","):
+    """Converte i numeri con separatore decimale personalizzato in float."""
     for col in df.columns:
         if df[col].dtype == 'object':
             try:
-                df[col] = df[col].str.replace(',', '.').astype(float)
+                df[col] = df[col].str.replace(decimal_sep, '.').astype(float)
             except ValueError:
                 continue
     return df
 
 # Funzione per elaborare i dati del DataFrame
-def process_file(df):
+def process_file(df, decimal_sep=","):
     """Elabora i dati del DataFrame."""
     df = infer_and_parse_dates(df)
-    df = convert_decimal_comma(df)
+    df = convert_decimal_comma(df, decimal_sep)
     return df
 
 # Funzione per caricare e visualizzare il file
