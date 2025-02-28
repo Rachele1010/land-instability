@@ -4,7 +4,7 @@ import plotly.express as px
 import plotly.graph_objects as go
 from streamlit_echarts import st_echarts
 from utils.plotting import create_and_render_plot
-from utils.load import load_file, process_file
+from utils.load import load_file, process_file, detect_separator
 from utils.map_combined_datasets import map_combined_datasets
 from utils.Statistics import Statistics
 
@@ -28,7 +28,8 @@ def display_dashboard():
     for uploaded_file in uploaded_files:
         df = load_file(uploaded_file)
         if df is not None:
-            df = process_file(df)
+            sep = detect_separator(uploaded_file)  # Rileva il separatore
+            df = process_file(df, decimal_sep=sep)  # Passa il separatore alla funzione
             df_list.append(df)
             filenames.append(uploaded_file.name)
     
