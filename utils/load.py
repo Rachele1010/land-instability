@@ -13,7 +13,7 @@ def detect_separator(uploaded_file):
 # Funzione per caricare un file con gestione degli errori
 @st.cache_data
 def load_file(uploaded_file):
-    """Carica un file CSV, TXT o Excel e assicura che sia sempre un DataFrame."""
+    """Carica un file CSV, TXT o Excel e lo converte sempre in un DataFrame."""
     try:
         if uploaded_file.name.endswith(('.csv', '.txt')):
             sep = detect_separator(uploaded_file)
@@ -21,14 +21,19 @@ def load_file(uploaded_file):
         elif uploaded_file.name.endswith('.xlsx'):
             df = pd.read_excel(uploaded_file, sheet_name=0)
 
-            # Se il risultato è una Series, convertirlo in DataFrame
+            # Se `df` è una Series, convertirlo in DataFrame
             if isinstance(df, pd.Series):
                 df = df.to_frame()
+            
+            # Se il DataFrame non è valido, interrompi
+            if not isinstance(df, pd.DataFrame):
+                st.error(f"⚠ Il dataset '{uploaded_file.name}' non è un DataFrame valido.")
+                return None
 
-            # Assicura che la prima riga venga considerata come intestazione
-            if df.shape[0] > 1 and df.columns[0] == 0:  # Excel a volte prende la prima colonna come indice numerico
-                df.columns = df.iloc[0]  # Imposta la prima riga come intestazione
-                df = df[1:]  # Rimuove la prima riga ora diventata intestazione
+            # Se la prima riga sembra essere un'intestazione, usarla come colonne
+            if df.shape[0] > 1 and all(isinstance(x, str) for x in df.iloc[0]):
+                df.columns = df.iloc[0]
+                df = df[1:].reset_index(drop=True)
 
         else:
             st.error("Formato file non supportato.")
@@ -38,7 +43,7 @@ def load_file(uploaded_file):
     except Exception as e:
         st.error(f"Errore nel caricamento del file {uploaded_file.name}: {e}")
         return None
-
+        
 # Funzione per convertire colonne di testo in formato data
 def infer_and_parse_dates(df):
     """Converti automaticamente colonne contenenti date."""
@@ -46,16 +51,20 @@ def infer_and_parse_dates(df):
         df[col] = pd.to_datetime(df[col], errors="coerce")  # Converti in datetime, ignora errori
     return df
 
-# Funzione per convertire i numeri con il separatore decimale corretto
 def convert_decimal_format(df, decimal_sep):
     """Converte i numeri con il separatore decimale scelto (punto o virgola)."""
     for col in df.columns:
-        if df[col].dtype == 'object':  # Considera solo colonne di testo
+        if df[col].dtype == 'object':  # Considera solo colonne testuali
             try:
-                df[col] = df[col].str.replace(' ', '').str.replace(',', '.') if decimal_sep == '.' else df[col].str.replace('.', '').str.replace(',', '.')
+                df[col] = df[col].str.replace(' ', '', regex=True).str.replace(',', '.') if decimal_sep == '.' else df[col].str.replace('.', '').str.replace(',', '.', regex=True)
                 df[col] = pd.to_numeric(df[col], errors="coerce")  # Converte in numero
             except Exception:
                 continue
+    
+    # Sostituisce applymap con map per formattare i numeri solo se serve
+    if decimal_sep == ",":
+        df = df.map(lambda x: f"{x:.2f}".replace(".", ",") if isinstance(x, float) else x)
+    
     return df
 
 # Funzione principale per elaborare i dati
