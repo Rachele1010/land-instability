@@ -4,17 +4,7 @@ import plotly.graph_objects as go
 from utils.plotting import create_and_render_plot
 from utils.load import load_file, process_file
 
-def convert_decimal_comma(df, decimal_sep=","):
-    """Converte i numeri con separatore decimale personalizzato in float."""
-    for col in df.columns:
-        if df[col].dtype == 'object':
-            try:
-                df[col] = df[col].str.replace(decimal_sep, '.').astype(float)
-            except ValueError:
-                continue
-    return df
-
-def map_combined_datasets(dataframes, filenames=None, decimal_sep="."):
+def map_combined_datasets(dataframes, filenames=None):
     """
     Mappa più dataset con coordinate e popups, centrando la mappa sui dati caricati o sull'Italia di default.
     """
@@ -78,10 +68,8 @@ def map_combined_datasets(dataframes, filenames=None, decimal_sep="."):
 
                 if lat_col and lon_col and lat_col in df.columns and lon_col in df.columns:
                     df_map = df.dropna(subset=[lat_col, lon_col]).copy()
-
-                    # Converte i numeri secondo il separatore scelto
-                    df_map["lat"] = convert_decimal_comma(df_map[lat_col], decimal_sep)
-                    df_map["lon"] = convert_decimal_comma(df_map[lon_col], decimal_sep)
+                    df_map["lat"] = pd.to_numeric(df_map[lat_col], errors="coerce")
+                    df_map["lon"] = pd.to_numeric(df_map[lon_col], errors="coerce")
                     df_map = df_map.dropna()
 
                     if df_map.empty:
