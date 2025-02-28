@@ -49,9 +49,15 @@ def infer_and_parse_dates(df):
     """Converti automaticamente colonne contenenti date."""
     for col in df.select_dtypes(include=["object"]).columns:
         try:
-            df[col] = pd.to_datetime(df[col], format="%d/%m/%Y", errors="coerce")  # Usa il formato corretto
+            # Prova con il formato più usato nei tuoi dati
+            df[col] = pd.to_datetime(df[col], format="%d/%m/%Y", errors="coerce")  
+            
+            # Se i valori sono ancora NaT, prova un altro formato
+            if df[col].isna().sum() > 0:
+                df[col] = pd.to_datetime(df[col], format="%Y-%m-%d", errors="coerce")
+
         except Exception as e:
-            st.warning(f"⚠ Errore nella conversione delle date in '{col}': {e}")
+            st.warning(f"⚠ Errore nella conversione della colonna '{col}': {e}")
     return df
 
 def convert_decimal_format(df, decimal_sep):
