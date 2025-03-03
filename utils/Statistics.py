@@ -353,18 +353,23 @@ def Statistics(df_list, filenames):
             with col2:
                 if "aggregazioni" in locals() and aggregazioni:
                     for periodo, agg_df in aggregazioni.items():
-                        if isinstance(agg_df, pd.DataFrame) and not agg_df.empty:  # Controllo aggiuntivo
-                            st.write(f"#### Plot {periodo} by {dataset_name}")
-                            
-                            # Controllo sui dati
-                            if agg_df.index.empty or agg_df.values.size == 0:
+                        if isinstance(agg_df, pd.Series) or isinstance(agg_df, pd.DataFrame):
+                            if not agg_df.empty:
+                                st.write(f"#### Plot {periodo} by {dataset_name}")
+                                
+                                # Converte la Serie in DataFrame se necessario
+                                if isinstance(agg_df, pd.Series):
+                                    agg_df = agg_df.reset_index()
+                                
+                                # Debug per controllare le lunghezze
+                                st.write(f"Data shape: {agg_df.shape}")
+                                
+                                if len(agg_df) > 1:
+                                    fig = px.bar(agg_df, x=agg_df.iloc[:, 0], y=agg_df.iloc[:, 1], title=f"{periodo} Aggregate")
+                                    st.plotly_chart(fig)
+                                else:
+                                    st.warning(f"⚠️ No sufficient data to plot for {periodo}.")
+                            else:
                                 st.warning(f"⚠️ No data to plot for {periodo}.")
-                                continue
-                            
-                            # Creazione del grafico
-                            fig = px.bar(agg_df, x=agg_df.index, y=agg_df.values, title=f"{periodo} Aggregate")
-                            st.plotly_chart(fig)
-                        else:
-                            st.warning(f"⚠️ No valid aggregated data available for {periodo}.")
                 else:
-                    st.warning(f"⚠️ No aggregated data available.")  
+                    st.warning(f"⚠️ No aggregated data available.")
