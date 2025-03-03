@@ -63,7 +63,7 @@ def calcula_statistics(df):
 import pandas as pd
 import streamlit as st
 
-def aggrega_dati_temporali(df, colonna_data, colonna_valore):
+def aggrega_datos_time(df, colonna_data, colonna_valore):
     df = df.set_index(colonna_data)
     aggregazioni = {
         'Annualy': df[colonna_valore].resample('YE').count(),
