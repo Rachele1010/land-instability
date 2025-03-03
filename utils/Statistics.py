@@ -320,7 +320,8 @@ def Statistics(df_list, filenames):
                         variabili_numeriche.tolist(),
                         key=f"y_axis_num_{dataset_name}_{idx}"  # Chiave univoca
                     )
-        
+                    if y_axis_num[dataset_name]:  
+                            aggregazioni = aggrega_datos_time(df, colonna_data, y_axis_num [dataset_name])
             with col3:
                 if len(variabili_categoriche) > 0:
                     categoria_scelta = st.selectbox(
