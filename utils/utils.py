@@ -64,40 +64,11 @@ import pandas as pd
 import streamlit as st
 
 def aggrega_dati_temporali(df, colonna_data, colonna_valore):
-    # Controllo che le colonne esistano
-    if colonna_data not in df.columns:
-        st.warning(f"⚠️ Column '{colonna_data}' not found in dataset.")
-        return {}
-
-    if colonna_valore not in df.columns:
-        st.warning(f"⚠️ Column '{colonna_valore}' not found in dataset.")
-        return {}
-
-    # Converte colonna_data in datetime se necessario
-    df[colonna_data] = pd.to_datetime(df[colonna_data], errors='coerce')
-
-    # Rimuove eventuali valori NaT
-    df = df.dropna(subset=[colonna_data])
-
-    # Controlla se il DataFrame è ancora valido dopo il filtraggio
-    if df.empty:
-        st.warning(f"⚠️ No valid datetime data remaining for column '{colonna_data}'.")
-        return {}
-
-    # Imposta l'indice, mantenendo colonna_valore
     df = df.set_index(colonna_data)
-
-    # Controlla nuovamente se colonna_valore è presente dopo il set_index
-    if colonna_valore not in df.columns:
-        st.warning(f"⚠️ Column '{colonna_valore}' disappeared after setting index.")
-        return {}
-
-    # Aggrega i dati in diversi periodi
     aggregazioni = {
-        'Annually': df[colonna_valore].resample('YE').count(),
+        'Annualy': df[colonna_valore].resample('YE').count(),
         'Monthly': df[colonna_valore].resample('ME').count(),
-        'Seasonally': df[colonna_valore].resample('QE').count(),
+        'Stagionality': df[colonna_valore].resample('QE').count(),
         'Six-monthly': df[colonna_valore].resample('6M').count()
     }
-
     return aggregazioni
