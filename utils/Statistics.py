@@ -309,31 +309,21 @@ def Statistics(df_list, filenames):
                             st.metric(label="Median", value=row['Median'])
                 st.markdown("---")
     
-                # Selezione datetime
-                colonne_datetime = df.select_dtypes(include=['datetime64[ns]', 'datetime64[ns, UTC]']).columns
-                if len(colonne_datetime) > 0:
-                    colonna_data = st.selectbox(f"Select datetime {dataset_name}", colonne_datetime, key=f"datetime_{dataset_name}")
+                # Selezione della variabile
+                colonne_disponibili = df.columns.tolist()
+                variabile_plot = st.selectbox(f"Select variable {dataset_name}", colonne_disponibili, key=f"var_{dataset_name}")
     
-                    col1, col2 = st.columns([1, 4])
-                    variabili_numeriche = df.select_dtypes(include=['number']).columns
-                    if len(variabili_numeriche) > 0:
-                        with col1:
-                            variabile_plot = st.selectbox(f"Select variable {dataset_name}", variabili_numeriche, key=f"var_{dataset_name}")
-                            aggregazioni = aggrega_dati_temporali(df, colonna_data, variabile_plot)
+                if variabile_plot:
+                    try:
+                        if df[variabile_plot].dtype in ['int64', 'float64']:  # Caso numerico
+                            fig = px.histogram(df, x=variabile_plot, title=f"Distribution of {variabile_plot}")
+                        else:  # Caso categorico (conteggio delle occorrenze)
+                            count_df = df[variabile_plot].value_counts().reset_index()
+                            count_df.columns = ["Category", "Count"]
+                            fig = px.bar(count_df, x="Category", y="Count", title=f"Count of {variabile_plot}")
     
-                        with col2:
-                            for periodo, agg_df in aggregazioni.items():
-                                try:
-                                    st.write(f"#### Plot {periodo} by {dataset_name}")
-                                    fig = px.bar(agg_df, x=agg_df.index, y=agg_df.values, title=f"{periodo} Aggregate")
-                                    st.plotly_chart(fig)
-                                except ValueError as e:
-                                    st.warning(f"⚠️ Unable to plot {dataset_name} ({periodo}). Showing count instead.")
-                                    if isinstance(agg_df, pd.Series):
-                                        agg_df = agg_df.reset_index()
-                                        agg_df.columns = ["Category", "Count"]
-                                        st.dataframe(agg_df)
-                    else:
-                        st.warning(f"⚠️ No numeric variables available in {dataset_name}.")
-                else:
-                    st.warning(f"⚠️ No datetime column found in {dataset_name}.")
+                        st.plotly_chart(fig)
+    
+                    except Exception as e:
+                        st.warning(f"⚠️ Error plotting {variabile_plot}. Showing table instead.")
+                        st.dataframe(df[variabile_plot].value_counts().reset_index())
