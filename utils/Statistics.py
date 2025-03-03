@@ -264,18 +264,21 @@ def Statistics(df_list, filenames):
     elif st.session_state["show_distribution_data"]:
         st.subheader("Distribution Data")
     
+        # Inizializza lo stato solo una volta
         if "selected_files" not in st.session_state:
             st.session_state["selected_files"] = filenames  
     
+        # Selettore dei file
         selected_files = st.multiselect("Select file", filenames, default=st.session_state["selected_files"])
     
+        # Se la selezione cambia, aggiorna lo stato e ricarica
         if selected_files != st.session_state["selected_files"]:
             st.session_state["selected_files"] = selected_files
             st.rerun()
     
         for idx, dataset_name in enumerate(filenames):
             if dataset_name not in st.session_state["selected_files"]:
-                continue  
+                continue  # Salta i file non selezionati
     
             df = df_list[idx]
             df = convert_unix_to_datetime(df)
@@ -286,6 +289,7 @@ def Statistics(df_list, filenames):
                     st.warning(f"⚠️ No data available for {dataset_name}")
                     continue
     
+                # Mostra le metriche
                 col1, col2, col3, col4, col5, col6, col7 = st.columns(7)
                 for _, row in stats_df.iterrows():
                     with col1:
@@ -311,55 +315,25 @@ def Statistics(df_list, filenames):
                     colonna_data = st.selectbox(f"Select datetime {dataset_name}", colonne_datetime, key=f"datetime_{dataset_name}")
     
                     col1, col2 = st.columns([1, 4])
-                    tutte_le_colonne = df.columns  # Includi anche le variabili categoriche
-                    
-                    # Selezione della variabile per l'asse Y
-                    if f"selected_variable_{dataset_name}" not in st.session_state:
-                        st.session_state[f"selected_variable_{dataset_name}"] = tutte_le_colonne[0]
+                    variabili_numeriche = df.select_dtypes(include=['number']).columns
+                    if len(variabili_numeriche) > 0:
+                        with col1:
+                            variabile_plot = st.selectbox(f"Select variable {dataset_name}", variabili_numeriche, key=f"var_{dataset_name}")
+                            aggregazioni = aggrega_dati_temporali(df, colonna_data, variabile_plot)
     
-                    with col1:
-                        variabile_plot = st.selectbox(f"Select variable {dataset_name}", tutte_le_colonne, key=f"var_{dataset_name}")
-    
-                    # Evita di ricaricare la pagina inutilmente
-                    if variabile_plot != st.session_state[f"selected_variable_{dataset_name}"]:
-                        st.session_state[f"selected_variable_{dataset_name}"] = variabile_plot
-                        st.rerun()
-    
-                    # Controlla se la variabile è numerica o categorica
-                    if variabile_plot in df.select_dtypes(include=['number']).columns:
-                        aggregazioni = aggrega_dati_temporali(df, colonna_data, variabile_plot)  
+                        with col2:
+                            for periodo, agg_df in aggregazioni.items():
+                                try:
+                                    st.write(f"#### Plot {periodo} by {dataset_name}")
+                                    fig = px.bar(agg_df, x=agg_df.index, y=agg_df.values, title=f"{periodo} Aggregate")
+                                    st.plotly_chart(fig)
+                                except ValueError as e:
+                                    st.warning(f"⚠️ Unable to plot {dataset_name} ({periodo}). Showing count instead.")
+                                    if isinstance(agg_df, pd.Series):
+                                        agg_df = agg_df.reset_index()
+                                        agg_df.columns = ["Category", "Count"]
+                                        st.dataframe(agg_df)
                     else:
-                        aggregazioni = {"Count": df[variabile_plot].value_counts().reset_index()}  
-                        aggregazioni["Count"].columns = [variabile_plot, "Count"]
-    
-                    st.write(f"Aggregations for {variabile_plot} ({dataset_name}):", aggregazioni)  
-    
-                    with col2:
-                        for periodo, agg_df in aggregazioni.items():
-                            if agg_df.empty:
-                                st.warning(f"⚠️ No data available for {variabile_plot} in {dataset_name} ({periodo}).")
-                                continue
-                    
-                            st.write(f"#### Aggregations for {variabile_plot} ({dataset_name})")
-                            
-                            # Se è una Series (es. valore categorico), converti in DataFrame
-                            if isinstance(agg_df, pd.Series):
-                                agg_df = agg_df.reset_index()
-                                agg_df.columns = ["Category", "Count"]  # Rinomina le colonne
-                                st.dataframe(agg_df)  # Mostra la tabella
-                    
-                                # Se il conteggio è numerico, mostra il grafico
-                                if pd.api.types.is_numeric_dtype(agg_df["Count"]):
-                                    fig = px.bar(agg_df, x="Category", y="Count", title=f"{periodo} Aggregate")
-                                    st.plotly_chart(fig)
-                                else:
-                                    st.warning("⚠️ Data cannot be plotted, but the count is displayed above.")
-                            else:
-                                # Assicura che i dati siano coerenti per il grafico
-                                if len(agg_df.index) == len(agg_df.iloc[:, 0]):
-                                    fig = px.bar(agg_df, x=agg_df.index, y=agg_df.iloc[:, 0], title=f"{periodo} Aggregate")
-                                    st.plotly_chart(fig)
-                                else:
-                                    st.warning("⚠️ Data format is inconsistent. Displaying table instead.")
-                                    st.dataframe(agg_df)
-
+                        st.warning(f"⚠️ No numeric variables available in {dataset_name}.")
+                else:
+                    st.warning(f"⚠️ No datetime column found in {dataset_name}.")
