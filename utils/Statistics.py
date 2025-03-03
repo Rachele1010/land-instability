@@ -262,20 +262,25 @@ def Statistics(df_list, filenames):
             st.plotly_chart(fig, use_container_width=True)
     
     # Streamlit UI
+    # Controlla se lo stato delle variabili è già stato inizializzato
+    if "selected_files" not in st.session_state:
+        st.session_state["selected_files"] = []
+    if "y_axis_1" not in st.session_state:
+        st.session_state["y_axis_1"] = {}
+    if "categoria_scelta" not in st.session_state:
+        st.session_state["categoria_scelta"] = {}
+    
+    # Streamlit UI
     elif st.session_state["show_distribution_data"]:
         st.subheader("Distribution Data")
     
-        if "selected_files" not in st.session_state:
-            st.session_state["selected_files"] = filenames  
-    
+        # Selezione dei dataset
         selected_files = st.multiselect("Select datasets", filenames, default=st.session_state["selected_files"])
     
+        # Aggiorna solo se cambia la selezione dei file
         if selected_files != st.session_state["selected_files"]:
             st.session_state["selected_files"] = selected_files
             st.rerun()
-    
-        # Inizializza il dizionario per la selezione dell'asse Y
-        y_axis_1 = {}
     
         for idx, dataset_name in enumerate(filenames):
             if dataset_name not in st.session_state["selected_files"]:
@@ -312,7 +317,7 @@ def Statistics(df_list, filenames):
     
             # Selezione della colonna datetime
             colonne_datetime = df.select_dtypes(include=['datetime64[ns]', 'datetime64[ns, UTC]']).columns
-            
+    
             # Selezione delle variabili numeriche e categoriche
             variabili_numeriche = df.select_dtypes(include=['number']).columns
             variabili_categoriche = df.select_dtypes(include=['object']).columns
@@ -321,40 +326,48 @@ def Statistics(df_list, filenames):
     
             with col1:
                 if len(colonne_datetime) > 0:
-                    colonna_data = st.selectbox(f"Select datetime for {dataset_name}", colonne_datetime, key=f"datetime_{dataset_name}")
+                    colonna_data = st.selectbox(
+                        f"Select datetime for {dataset_name}", 
+                        colonne_datetime, 
+                        key=f"datetime_{dataset_name}"
+                    )
+    
             with col2:
                 if len(variabili_numeriche) > 0:
-                    y_axis_1[dataset_name] = st.selectbox(
+                    # Usa session_state per mantenere la selezione della variabile numerica
+                    st.session_state["y_axis_1"][dataset_name] = st.selectbox(
                         f"Select numerical variable for {dataset_name}", 
                         variabili_numeriche.tolist(), 
                         key=f"var_num_{dataset_name}"
                     )
     
-                    if y_axis_1[dataset_name]:  
-                        aggregazioni = aggrega_datos_time(df, colonna_data, y_axis_1[dataset_name])
-                    
+                    if st.session_state["y_axis_1"][dataset_name]:  
+                        aggregazioni = aggrega_datos_time(df, colonna_data, st.session_state["y_axis_1"][dataset_name])
+    
                         # Debug: stampa i dati aggregati per vedere se sono validi
-                        st.write(f"Aggregated data for {y_axis_1[dataset_name]} in {dataset_name}:")
+                        st.write(f"Aggregated data for {st.session_state['y_axis_1'][dataset_name]} in {dataset_name}:")
                         st.write(aggregazioni)
+    
             with col3:          
                 if len(variabili_categoriche) > 0:
-                    categoria_scelta = st.selectbox(
+                    # Usa session_state per mantenere la selezione della variabile categoriale
+                    st.session_state["categoria_scelta"][dataset_name] = st.selectbox(
                         f"Select categorical variable for {dataset_name}",
                         variabili_categoriche.tolist(),
                         key=f"var_cat_{dataset_name}"
                     )
     
-                    if categoria_scelta:
-                        count_df = df[categoria_scelta].value_counts().reset_index()
-                        count_df.columns = [categoria_scelta, "Count"]
+                    if st.session_state["categoria_scelta"][dataset_name]:
+                        count_df = df[st.session_state["categoria_scelta"][dataset_name]].value_counts().reset_index()
+                        count_df.columns = [st.session_state["categoria_scelta"][dataset_name], "Count"]
     
-                        fig_cat = px.bar(count_df, x=categoria_scelta, y="Count", title=f"Distribution of {categoria_scelta}")
+                        fig_cat = px.bar(count_df, x=st.session_state["categoria_scelta"][dataset_name], y="Count", title=f"Distribution of {st.session_state['categoria_scelta'][dataset_name]}")
                         st.plotly_chart(fig_cat)
     
                         if len(colonne_datetime) > 0:
-                            count_time_df = df.groupby([colonna_data, categoria_scelta]).size().reset_index(name="Count")
+                            count_time_df = df.groupby([colonna_data, st.session_state["categoria_scelta"][dataset_name]]).size().reset_index(name="Count")
     
-                            fig_time = px.line(count_time_df, x=colonna_data, y="Count", color=categoria_scelta, title=f"Trend of {categoria_scelta} over time")
+                            fig_time = px.line(count_time_df, x=colonna_data, y="Count", color=st.session_state["categoria_scelta"][dataset_name], title=f"Trend of {st.session_state['categoria_scelta'][dataset_name]} over time")
                             st.plotly_chart(fig_time)
     
             with col2:
@@ -368,4 +381,3 @@ def Statistics(df_list, filenames):
                             st.warning(f"⚠️ No data to plot for {periodo}.")
                 else:
                     st.warning(f"⚠️ No aggregated data available.")
-
