@@ -71,16 +71,16 @@ def load_and_display_file(uploaded_file):
 
         return None
     except pd.errors.ParserError as e:
-        st.error(f"Errore durante il parsing del file CSV: {e}")
+        st.error(f"Error file CSV: {e}")
     except Exception as e:
-        st.error(f"Errore: {e}")
+        st.error(f"Error: {e}")
 
 # Interfaccia utente
-uploaded_file = st.file_uploader("Carica il tuo file (CSV, TXT, Excel)", type=["csv", "txt", "xlsx"])
+uploaded_file = st.file_uploader("Upload your file (CSV, TXT, Excel)", type=["csv", "txt", "xlsx"])
 
 if uploaded_file is not None:
     load_and_display_file(uploaded_file)
 else:
-    st.info("Nessun file caricato.")
+    st.info("No file.")
 
 
