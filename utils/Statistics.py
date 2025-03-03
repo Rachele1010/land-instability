@@ -321,7 +321,7 @@ def Statistics(df_list, filenames):
                         key=f"y_axis_num_{dataset_name}_{idx}"  # Chiave univoca
                     )
                     if y_axis_num:  
-                        aggregazioni = aggrega_datos_time(df, colonna_data, y_axis_num)
+                        aggregazioni, fig_seasonal = aggrega_datos_time(df, colonna_data, y_axis_num)
             with col3:
                 if len(variabili_categoriche) > 0:
                     categoria_scelta = st.selectbox(
@@ -354,7 +354,7 @@ def Statistics(df_list, filenames):
                 if "aggregazioni" in locals() and aggregazioni:
                     for periodo, agg_df in aggregazioni.items():
                         if not agg_df.empty:
-                            #st.write(f"#### Plot {periodo} by {dataset_name}")
+                            st.write(f"#### Plot {periodo} by {dataset_name}")
                             fig = px.bar(agg_df, x=agg_df.index, y=agg_df.values, title=f"{periodo} Aggregate")
                             st.plotly_chart(fig)
                         else:
