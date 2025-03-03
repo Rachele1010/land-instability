@@ -313,40 +313,55 @@ def Statistics(df_list, filenames):
             # Selezione della colonna datetime
             colonne_datetime = df.select_dtypes(include=['datetime64[ns]', 'datetime64[ns, UTC]']).columns
             
-            if len(colonne_datetime) > 0:
-                col1, col2 = st.columns([1, 4])
-                
-                with col1:
+            # Selezione delle variabili numeriche e categoriche
+            variabili_numeriche = df.select_dtypes(include=['number']).columns
+            variabili_categoriche = df.select_dtypes(include=['object']).columns
+    
+            col1, col2 = st.columns([1, 4])
+    
+            with col1:
+                if len(colonne_datetime) > 0:
                     colonna_data = st.selectbox(f"Select datetime for {dataset_name}", colonne_datetime, key=f"datetime_{dataset_name}")
     
-                    # Selezione delle variabili numeriche
-                    variabili_numeriche = df.select_dtypes(include=['number']).columns
+                if len(variabili_numeriche) > 0:
+                    y_axis_1[dataset_name] = st.selectbox(
+                        f"Select numerical variable for {dataset_name}", 
+                        variabili_numeriche.tolist(), 
+                        key=f"var_num_{dataset_name}"
+                    )
     
-                    if len(variabili_numeriche) > 0:
-                        y_axis_1[dataset_name] = st.selectbox(
-                            f"Select variable for {dataset_name}", 
-                            variabili_numeriche.tolist(), 
-                            key=f"var_{dataset_name}"
-                        )
+                    if y_axis_1[dataset_name]:  
+                        aggregazioni = aggrega_datos_time(df, colonna_data, y_axis_1[dataset_name])
+                        
+                if len(variabili_categoriche) > 0:
+                    categoria_scelta = st.selectbox(
+                        f"Select categorical variable for {dataset_name}",
+                        variabili_categoriche.tolist(),
+                        key=f"var_cat_{dataset_name}"
+                    )
     
-                        # Controllo se la variabile è stata selezionata
-                        if y_axis_1[dataset_name]:  
-                            aggregazioni = aggrega_datos_time(df, colonna_data, y_axis_1[dataset_name])
-                    else:
-                        st.warning(f"⚠️ No numeric variables available in {dataset_name}.")
-                
-                with col2:
-                    if "aggregazioni" in locals() and aggregazioni:
-                        for periodo, agg_df in aggregazioni.items():
-                            if not agg_df.empty:  # Controllo per evitare errori di plotting
-                                st.write(f"#### Plot {periodo} by {dataset_name}")
-                                fig = px.bar(agg_df, x=agg_df.index, y=agg_df.values, title=f"{periodo} Aggregate")
-                                st.plotly_chart(fig)
-                            else:
-                                st.warning(f"⚠️ No data to plot for {periodo}.")
-                    else:
-                        st.warning(f"⚠️ No aggregated data available.")
-            else:
-                st.warning(f"⚠️ No datetime column found in {dataset_name}.")  # Questo else ora è dentro il ciclo for
+                    if categoria_scelta:
+                        count_df = df[categoria_scelta].value_counts().reset_index()
+                        count_df.columns = [categoria_scelta, "Count"]
     
-            st.warning(f"⚠️ No datetime column found in {dataset_name}.")
+                        fig_cat = px.bar(count_df, x=categoria_scelta, y="Count", title=f"Distribution of {categoria_scelta}")
+                        st.plotly_chart(fig_cat)
+    
+                        if len(colonne_datetime) > 0:
+                            count_time_df = df.groupby([colonna_data, categoria_scelta]).size().reset_index(name="Count")
+    
+                            fig_time = px.line(count_time_df, x=colonna_data, y="Count", color=categoria_scelta, title=f"Trend of {categoria_scelta} over time")
+                            st.plotly_chart(fig_time)
+    
+            with col2:
+                if "aggregazioni" in locals() and aggregazioni:
+                    for periodo, agg_df in aggregazioni.items():
+                        if not agg_df.empty:  # Controllo per evitare errori di plotting
+                            st.write(f"#### Plot {periodo} by {dataset_name}")
+                            fig = px.bar(agg_df, x=agg_df.index, y=agg_df.values, title=f"{periodo} Aggregate")
+                            st.plotly_chart(fig)
+                        else:
+                            st.warning(f"⚠️ No data to plot for {periodo}.")
+                else:
+                    st.warning(f"⚠️ No aggregated data available.")
+
