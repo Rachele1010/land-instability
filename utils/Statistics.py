@@ -264,101 +264,101 @@ def Statistics(df_list, filenames):
 # Streamlit UI
     # Streamlit UI
     elif st.session_state["show_distribution_data"]:
-    st.subheader("Distribution Data")
-    
-    # Selezione dei dataset
-    selected_datasets = st.multiselect("Select datasets", filenames, default=filenames)
-    
-    for idx, dataset_name in enumerate(selected_datasets):
-        df = df_list[idx]
-        df = convert_unix_to_datetime(df)
-    
-        if df is not None:
-            stats_df = calcula_statistics(df)
-            if stats_df.empty:
-                st.warning(f"⚠️ No data available for {dataset_name}")
-                continue
-    
-            col1, col2, col3, col4, col5, col6, col7 = st.columns(7)
-            for _, row in stats_df.iterrows():
-                with col1:
-                    st.write(f"**Variable:** {row['Variable']}")
-                with col2:
-                    st.metric(label="Counting", value=row.get('Counting', 'N/A'))
-                if row.get('Sum', 'N/A') != 'N/A':
-                    with col3:
-                        st.metric(label="Sum", value=row['Sum'])
-                    with col4:
-                        st.metric(label="Mean", value=row['Mean'])
-                    with col5:
-                        st.metric(label="Minimum", value=row['Minimum'])
-                    with col6:
-                        st.metric(label="Max", value=row['Max'])
-                    with col7:
-                        st.metric(label="Median", value=row['Median'])
-            st.markdown("---")
-    
-        # Selezione della colonna datetime
-        colonne_datetime = df.select_dtypes(include=['datetime64[ns]', 'datetime64[ns, UTC]']).columns
-    
-        # Selezione delle variabili numeriche e categoriche
-        variabili_numeriche = df.select_dtypes(include=['number']).columns
-        variabili_categoriche = df.select_dtypes(include=['object']).columns
-    
-        col1, col2, col3 = st.columns([1, 2, 2])
-    
-        with col1:
-            if len(colonne_datetime) > 0:
-                colonna_data = st.selectbox(
-                    f"Select datetime for {dataset_name}",
-                    colonne_datetime,
-                    key=f"datetime_{dataset_name}_{idx}"  # Chiave univoca
-                )
-    
-        with col2:
-            if len(variabili_numeriche) > 0:
-                y_axis_num = st.selectbox(
-                    f"Select numerical variable for {dataset_name}",
-                    variabili_numeriche.tolist(),
-                    key=f"y_axis_num_{dataset_name}_{idx}"  # Chiave univoca
-                )
-    
-        with col3:
-            if len(variabili_categoriche) > 0:
-                categoria_scelta = st.selectbox(
-                    f"Select categorical variable for {dataset_name}",
-                    variabili_categoriche.tolist(),
-                    key=f"var_cat_{dataset_name}_{idx}"  # Chiave univoca
-                )
-    
-                if categoria_scelta:
-                    count_df = df[categoria_scelta].value_counts().reset_index()
-                    count_df.columns = [categoria_scelta, "Count"]
-    
-                    fig_cat = px.bar(count_df, x=categoria_scelta, y="Count", title=f"Distribution of {categoria_scelta}")
-                    st.plotly_chart(fig_cat)
-    
-                    if len(colonne_datetime) > 0:
-                        count_time_df = df.groupby([colonna_data, categoria_scelta]).size().reset_index(name="Count")
-    
-                        fig_time = px.line(
-                            count_time_df,
-                            x=colonna_data,
-                            y="Count",
-                            color=categoria_scelta,
-                            title=f"Trend of {categoria_scelta} over time"
-                        )
-                        st.plotly_chart(fig_time)
-    
-        # Grafico per i dati aggregati
-        with col2:
-            if "aggregazioni" in locals() and aggregazioni:
-                for periodo, agg_df in aggregazioni.items():
-                    if not agg_df.empty:
-                        st.write(f"#### Plot {periodo} by {dataset_name}")
-                        fig = px.bar(agg_df, x=agg_df.index, y=agg_df.values, title=f"{periodo} Aggregate")
-                        st.plotly_chart(fig)
-                    else:
-                        st.warning(f"⚠️ No data to plot for {periodo}.")
-            else:
-                st.warning(f"⚠️ No aggregated data available.")
+        st.subheader("Distribution Data")
+        
+        # Selezione dei dataset
+        selected_datasets = st.multiselect("Select datasets", filenames, default=filenames)
+        
+        for idx, dataset_name in enumerate(selected_datasets):
+            df = df_list[idx]
+            df = convert_unix_to_datetime(df)
+        
+            if df is not None:
+                stats_df = calcula_statistics(df)
+                if stats_df.empty:
+                    st.warning(f"⚠️ No data available for {dataset_name}")
+                    continue
+        
+                col1, col2, col3, col4, col5, col6, col7 = st.columns(7)
+                for _, row in stats_df.iterrows():
+                    with col1:
+                        st.write(f"**Variable:** {row['Variable']}")
+                    with col2:
+                        st.metric(label="Counting", value=row.get('Counting', 'N/A'))
+                    if row.get('Sum', 'N/A') != 'N/A':
+                        with col3:
+                            st.metric(label="Sum", value=row['Sum'])
+                        with col4:
+                            st.metric(label="Mean", value=row['Mean'])
+                        with col5:
+                            st.metric(label="Minimum", value=row['Minimum'])
+                        with col6:
+                            st.metric(label="Max", value=row['Max'])
+                        with col7:
+                            st.metric(label="Median", value=row['Median'])
+                st.markdown("---")
+        
+            # Selezione della colonna datetime
+            colonne_datetime = df.select_dtypes(include=['datetime64[ns]', 'datetime64[ns, UTC]']).columns
+        
+            # Selezione delle variabili numeriche e categoriche
+            variabili_numeriche = df.select_dtypes(include=['number']).columns
+            variabili_categoriche = df.select_dtypes(include=['object']).columns
+        
+            col1, col2, col3 = st.columns([1, 2, 2])
+        
+            with col1:
+                if len(colonne_datetime) > 0:
+                    colonna_data = st.selectbox(
+                        f"Select datetime for {dataset_name}",
+                        colonne_datetime,
+                        key=f"datetime_{dataset_name}_{idx}"  # Chiave univoca
+                    )
+        
+            with col2:
+                if len(variabili_numeriche) > 0:
+                    y_axis_num = st.selectbox(
+                        f"Select numerical variable for {dataset_name}",
+                        variabili_numeriche.tolist(),
+                        key=f"y_axis_num_{dataset_name}_{idx}"  # Chiave univoca
+                    )
+        
+            with col3:
+                if len(variabili_categoriche) > 0:
+                    categoria_scelta = st.selectbox(
+                        f"Select categorical variable for {dataset_name}",
+                        variabili_categoriche.tolist(),
+                        key=f"var_cat_{dataset_name}_{idx}"  # Chiave univoca
+                    )
+        
+                    if categoria_scelta:
+                        count_df = df[categoria_scelta].value_counts().reset_index()
+                        count_df.columns = [categoria_scelta, "Count"]
+        
+                        fig_cat = px.bar(count_df, x=categoria_scelta, y="Count", title=f"Distribution of {categoria_scelta}")
+                        st.plotly_chart(fig_cat)
+        
+                        if len(colonne_datetime) > 0:
+                            count_time_df = df.groupby([colonna_data, categoria_scelta]).size().reset_index(name="Count")
+        
+                            fig_time = px.line(
+                                count_time_df,
+                                x=colonna_data,
+                                y="Count",
+                                color=categoria_scelta,
+                                title=f"Trend of {categoria_scelta} over time"
+                            )
+                            st.plotly_chart(fig_time)
+        
+            # Grafico per i dati aggregati
+            with col2:
+                if "aggregazioni" in locals() and aggregazioni:
+                    for periodo, agg_df in aggregazioni.items():
+                        if not agg_df.empty:
+                            st.write(f"#### Plot {periodo} by {dataset_name}")
+                            fig = px.bar(agg_df, x=agg_df.index, y=agg_df.values, title=f"{periodo} Aggregate")
+                            st.plotly_chart(fig)
+                        else:
+                            st.warning(f"⚠️ No data to plot for {periodo}.")
+                else:
+                    st.warning(f"⚠️ No aggregated data available.")
