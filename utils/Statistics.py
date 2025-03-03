@@ -273,7 +273,8 @@ def Statistics(df_list, filenames):
         if selected_files != st.session_state["selected_files"]:
             st.session_state["selected_files"] = selected_files
             st.rerun()
-    
+            
+        y_axis_1 = {}
         for idx, dataset_name in enumerate(filenames):
             if dataset_name not in st.session_state["selected_files"]:
                 continue  
