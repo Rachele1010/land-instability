@@ -340,7 +340,16 @@ def Statistics(df_list, filenames):
                                 st.warning(f"⚠️ No data available for {variabile_plot} in {dataset_name} ({periodo}).")
                             else:
                                 st.write(f"#### Plot {periodo} by {dataset_name}")
-                                fig = px.bar(agg_df, x=agg_df.columns[0], y=agg_df.columns[1], title=f"{periodo} Aggregate")
+                    
+                                # Se agg_df è una Series, converti in DataFrame
+                                if isinstance(agg_df, pd.Series):
+                                    agg_df = agg_df.reset_index()
+                                    agg_df.columns = ["Category", "Count"]  # Rinomina le colonne
+                    
+                                    # Plotta le categorie
+                                    fig = px.bar(agg_df, x="Category", y="Count", title=f"{periodo} Aggregate")
+                                else:
+                                    # Plotta i dati numerici
+                                    fig = px.bar(agg_df, x=agg_df.index, y=agg_df.values, title=f"{periodo} Aggregate")
+                    
                                 st.plotly_chart(fig)
-                else:
-                    st.warning(f"⚠️ No datetime column found in {dataset_name}.")
