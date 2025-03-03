@@ -341,15 +341,26 @@ def Statistics(df_list, filenames):
                             else:
                                 st.write(f"#### Plot {periodo} by {dataset_name}")
                     
-                                # Se agg_df è una Series, converti in DataFrame
+                                # Converti Series in DataFrame se necessario
                                 if isinstance(agg_df, pd.Series):
                                     agg_df = agg_df.reset_index()
-                                    agg_df.columns = ["Category", "Count"]  # Rinomina le colonne
+                                    agg_df.columns = ["Category", "Value"]  # Rinomina le colonne
                     
-                                    # Plotta le categorie
-                                    fig = px.bar(agg_df, x="Category", y="Count", title=f"{periodo} Aggregate")
+                                    # Controlla se i valori sono numerici
+                                    if not pd.api.types.is_numeric_dtype(agg_df["Value"]):
+                                        st.warning("⚠️ The selected variable is not numeric and cannot be plotted as a bar chart.")
+                                        continue
+                    
+                                    # Grafico per variabili categoriche
+                                    fig = px.bar(agg_df, x="Category", y="Value", title=f"{periodo} Aggregate")
                                 else:
-                                    # Plotta i dati numerici
-                                    fig = px.bar(agg_df, x=agg_df.index, y=agg_df.values, title=f"{periodo} Aggregate")
+                                    # Assicura che l'asse y sia numerico
+                                    if not pd.api.types.is_numeric_dtype(agg_df.iloc[:, 0]):
+                                        st.warning("⚠️ The selected variable is not numeric and cannot be plotted as a bar chart.")
+                                        continue
+                    
+                                    # Grafico per variabili numeriche
+                                    fig = px.bar(agg_df, x=agg_df.index, y=agg_df.iloc[:, 0], title=f"{periodo} Aggregate")
                     
                                 st.plotly_chart(fig)
+
