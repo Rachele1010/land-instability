@@ -55,13 +55,13 @@ def create_and_render_plot(df, x_axis, y_axis, plot_type):
         y_axis_bar = st.selectbox("Select Bar Y axis", df.columns.tolist(), key=f"y_axis_bar_{x_axis}")
         chart = create_mixed_line_and_bar_chart(df, x_axis, y_axis_line, y_axis_bar)
     else:
-        st.error("❌ Errore: Tipo di grafico non supportato.")
+        st.error("❌ Error: Chart type not supported.")
         return
 
     if chart:
         st.plotly_chart(chart, use_container_width=True)
     else:
-        st.error("❌ Errore: Impossibile generare il grafico.")
+        st.error("❌ Error: Unable to generate chart.")
 
     return chart
 
