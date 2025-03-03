@@ -260,7 +260,6 @@ def Statistics(df_list, filenames):
     
             fig.update_layout(title="Cross-Correlation", xaxis_title="Lag", yaxis_title="Cross-Correlation Value")
             st.plotly_chart(fig, use_container_width=True)
-    
     # Streamlit UI
     elif st.session_state["show_distribution_data"]:
         st.subheader("Distribution Data")
