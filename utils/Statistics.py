@@ -338,29 +338,28 @@ def Statistics(df_list, filenames):
                         for periodo, agg_df in aggregazioni.items():
                             if agg_df.empty:
                                 st.warning(f"⚠️ No data available for {variabile_plot} in {dataset_name} ({periodo}).")
-                            else:
-                                st.write(f"#### Plot {periodo} by {dataset_name}")
+                                continue
                     
-                                # Converti Series in DataFrame se necessario
-                                if isinstance(agg_df, pd.Series):
-                                    agg_df = agg_df.reset_index()
-                                    agg_df.columns = ["Category", "Value"]  # Rinomina le colonne
+                            st.write(f"#### Aggregations for {variabile_plot} ({dataset_name})")
+                            
+                            # Se è una Series (es. valore categorico), converti in DataFrame
+                            if isinstance(agg_df, pd.Series):
+                                agg_df = agg_df.reset_index()
+                                agg_df.columns = ["Category", "Count"]  # Rinomina le colonne
+                                st.dataframe(agg_df)  # Mostra la tabella
                     
-                                    # Controlla se i valori sono numerici
-                                    if not pd.api.types.is_numeric_dtype(agg_df["Value"]):
-                                        st.warning("⚠️ The selected variable is not numeric and cannot be plotted as a bar chart.")
-                                        continue
-                    
-                                    # Grafico per variabili categoriche
-                                    fig = px.bar(agg_df, x="Category", y="Value", title=f"{periodo} Aggregate")
+                                # Se il conteggio è numerico, mostra il grafico
+                                if pd.api.types.is_numeric_dtype(agg_df["Count"]):
+                                    fig = px.bar(agg_df, x="Category", y="Count", title=f"{periodo} Aggregate")
+                                    st.plotly_chart(fig)
                                 else:
-                                    # Assicura che l'asse y sia numerico
-                                    if not pd.api.types.is_numeric_dtype(agg_df.iloc[:, 0]):
-                                        st.warning("⚠️ The selected variable is not numeric and cannot be plotted as a bar chart.")
-                                        continue
-                    
-                                    # Grafico per variabili numeriche
+                                    st.warning("⚠️ Data cannot be plotted, but the count is displayed above.")
+                            else:
+                                # Assicura che i dati siano coerenti per il grafico
+                                if len(agg_df.index) == len(agg_df.iloc[:, 0]):
                                     fig = px.bar(agg_df, x=agg_df.index, y=agg_df.iloc[:, 0], title=f"{periodo} Aggregate")
-                    
-                                st.plotly_chart(fig)
+                                    st.plotly_chart(fig)
+                                else:
+                                    st.warning("⚠️ Data format is inconsistent. Displaying table instead.")
+                                    st.dataframe(agg_df)
 
