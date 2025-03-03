@@ -317,12 +317,12 @@ def Statistics(df_list, filenames):
             variabili_numeriche = df.select_dtypes(include=['number']).columns
             variabili_categoriche = df.select_dtypes(include=['object']).columns
     
-            col1, col2 = st.columns([1, 4])
+            col1, col2, col3 = st.columns([1, 2, 2])
     
             with col1:
                 if len(colonne_datetime) > 0:
                     colonna_data = st.selectbox(f"Select datetime for {dataset_name}", colonne_datetime, key=f"datetime_{dataset_name}")
-    
+            with col2:
                 if len(variabili_numeriche) > 0:
                     y_axis_1[dataset_name] = st.selectbox(
                         f"Select numerical variable for {dataset_name}", 
@@ -332,7 +332,7 @@ def Statistics(df_list, filenames):
     
                     if y_axis_1[dataset_name]:  
                         aggregazioni = aggrega_datos_time(df, colonna_data, y_axis_1[dataset_name])
-                        
+            with col3:          
                 if len(variabili_categoriche) > 0:
                     categoria_scelta = st.selectbox(
                         f"Select categorical variable for {dataset_name}",
