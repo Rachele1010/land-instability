@@ -355,7 +355,7 @@ def Statistics(df_list, filenames):
                     for periodo, agg_df in aggregazioni.items():
                         if isinstance(agg_df, pd.Series) or isinstance(agg_df, pd.DataFrame):
                             if not agg_df.empty:
-                                st.write(f"#### Plot {periodo} by {dataset_name}")
+                                #st.write(f"#### Plot {periodo} by {dataset_name}")
                                 
                                 # Converte la Serie in DataFrame se necessario
                                 if isinstance(agg_df, pd.Series):
