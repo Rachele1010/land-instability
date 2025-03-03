@@ -3,7 +3,7 @@ import pandas as pd
 import plotly.graph_objects as go  
 import plotly.express as px  
 from utils.plotting import create_and_render_plot  
-from utils.utils import convert_unix_to_datetime, compute_autocorrelation,  compute_cross_correlation, calcola_statistiche, aggrega_dati_temporali
+from utils.utils import convert_unix_to_datetime, compute_autocorrelation,  compute_cross_correlation, calcula_statistics, aggrega_dati_temporali
 
 # Funzione principale per la visualizzazione e analisi dei dataset
 def Statistics(df_list, filenames):
@@ -282,7 +282,7 @@ def Statistics(df_list, filenames):
             df = convert_unix_to_datetime(df)
     
             if df is not None:
-                stats_df = calcola_statistiche(df)
+                stats_df = calcula_statistics(df)
                 if stats_df.empty:
                     st.warning(f"⚠️ No data available for {dataset_name}")
                     continue
