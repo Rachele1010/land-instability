@@ -60,12 +60,34 @@ def calcola_statistiche(df):
     return pd.DataFrame(stats)
 
 # Funzione per aggregare dati temporali
+import pandas as pd
+import streamlit as st
+
 def aggrega_dati_temporali(df, colonna_data, colonna_valore):
+    # Controllo che le colonne esistano
+    if colonna_data not in df.columns:
+        st.warning(f"⚠️ Column '{colonna_data}' not found in dataset.")
+        return {}
+
+    if colonna_valore not in df.columns:
+        st.warning(f"⚠️ Column '{colonna_valore}' not found in dataset.")
+        return {}
+
+    # Converte colonna_data in datetime se necessario
+    df[colonna_data] = pd.to_datetime(df[colonna_data], errors='coerce')
+
+    # Rimuove eventuali valori NaT (non convertibili in datetime)
+    df = df.dropna(subset=[colonna_data])
+
+    # Imposta l'indice
     df = df.set_index(colonna_data)
+
+    # Esegue l'aggregazione
     aggregazioni = {
-        'Annualy': df[colonna_valore].resample('YE').count(),
+        'Annually': df[colonna_valore].resample('YE').count(),
         'Monthly': df[colonna_valore].resample('ME').count(),
-        'Stagionality': df[colonna_valore].resample('QE').count(),
+        'Seasonally': df[colonna_valore].resample('QE').count(),
         'Six-monthly': df[colonna_valore].resample('6M').count()
     }
+
     return aggregazioni
