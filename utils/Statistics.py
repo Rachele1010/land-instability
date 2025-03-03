@@ -273,8 +273,10 @@ def Statistics(df_list, filenames):
         if selected_files != st.session_state["selected_files"]:
             st.session_state["selected_files"] = selected_files
             st.rerun()
-            
+    
+        # Inizializza il dizionario per la selezione dell'asse Y
         y_axis_1 = {}
+    
         for idx, dataset_name in enumerate(filenames):
             if dataset_name not in st.session_state["selected_files"]:
                 continue  
@@ -307,38 +309,44 @@ def Statistics(df_list, filenames):
                         with col7:    
                             st.metric(label="Median", value=row['Median'])
                 st.markdown("---")
+    
             # Selezione della colonna datetime
             colonne_datetime = df.select_dtypes(include=['datetime64[ns]', 'datetime64[ns, UTC]']).columns
-            col1, col2 = st.columns([1, 4])
-            with col1:
-                if len(colonne_datetime) > 0:
+            
+            if len(colonne_datetime) > 0:
+                col1, col2 = st.columns([1, 4])
+                
+                with col1:
                     colonna_data = st.selectbox(f"Select datetime for {dataset_name}", colonne_datetime, key=f"datetime_{dataset_name}")
+    
+                    # Selezione delle variabili numeriche
                     variabili_numeriche = df.select_dtypes(include=['number']).columns
-
-                if len(variabili_numeriche) > 0:
-                        # Selezione della variabile Y
+    
+                    if len(variabili_numeriche) > 0:
                         y_axis_1[dataset_name] = st.selectbox(
                             f"Select variable for {dataset_name}", 
                             variabili_numeriche.tolist(), 
                             key=f"var_{dataset_name}"
                         )
-
+    
                         # Controllo se la variabile è stata selezionata
                         if y_axis_1[dataset_name]:  
                             aggregazioni = aggrega_datos_time(df, colonna_data, y_axis_1[dataset_name])
-
-            with col2:
-                if aggregazioni:
-                    for periodo, agg_df in aggregazioni.items():
-                        if not agg_df.empty:  # Controllo per evitare errori di plotting
-                            st.write(f"#### Plot {periodo} by {dataset_name}")
-                            fig = px.bar(agg_df, x=agg_df.index, y=agg_df.values, title=f"{periodo} Aggregate")
-                            st.plotly_chart(fig)
-                        else:
-                            st.warning(f"⚠️ No data to plot for {periodo}.")
-                else:
-                    st.warning(f"⚠️ No aggregated data available.")
-        else:
-            st.warning(f"⚠️ No numeric variables available in {dataset_name}.")
-    else:
-        st.warning(f"⚠️ No datetime column found in {dataset_name}.")
+                    else:
+                        st.warning(f"⚠️ No numeric variables available in {dataset_name}.")
+                
+                with col2:
+                    if "aggregazioni" in locals() and aggregazioni:
+                        for periodo, agg_df in aggregazioni.items():
+                            if not agg_df.empty:  # Controllo per evitare errori di plotting
+                                st.write(f"#### Plot {periodo} by {dataset_name}")
+                                fig = px.bar(agg_df, x=agg_df.index, y=agg_df.values, title=f"{periodo} Aggregate")
+                                st.plotly_chart(fig)
+                            else:
+                                st.warning(f"⚠️ No data to plot for {periodo}.")
+                    else:
+                        st.warning(f"⚠️ No aggregated data available.")
+            else:
+                st.warning(f"⚠️ No datetime column found in {dataset_name}.")  # Questo else ora è dentro il ciclo for
+    
+            st.warning(f"⚠️ No datetime column found in {dataset_name}.")
