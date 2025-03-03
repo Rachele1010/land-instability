@@ -84,7 +84,7 @@ def Statistics(df_list, filenames):
     elif st.session_state["show_merge_multiple_dataset"]:
         st.subheader("📊 Merge Multiple Datasets in One Plot")
         
-        selected_datasets = st.multiselect("Seleziona i dataset", filenames, default=filenames)
+        selected_datasets = st.multiselect("Select datasets", filenames, default=filenames)
 
         if selected_datasets:
             fig = go.Figure()  # Unico grafico
@@ -112,7 +112,7 @@ def Statistics(df_list, filenames):
 
             with col4:
                 for i, dataset_name in enumerate(selected_datasets):
-                    second_y_axes[dataset_name] = st.checkbox(f"Secondo asse Y? ({dataset_name})", key=f"secondary_y_{i}")
+                    second_y_axes[dataset_name] = st.checkbox(f"Second axes Y? ({dataset_name})", key=f"secondary_y_{i}")
 
             for dataset_name in selected_datasets:
                 df = convert_unix_to_datetime(df_list[filenames.index(dataset_name)])
@@ -151,7 +151,7 @@ def Statistics(df_list, filenames):
         st.subheader("📈 Autocorrelation Analysis")
     
         # Selezione dataset
-        selected_datasets = st.multiselect("Seleziona i dataset", filenames, default=filenames)
+        selected_datasets = st.multiselect("Select datasets", filenames, default=filenames)
     
         if selected_datasets:
             fig = go.Figure()
@@ -220,7 +220,7 @@ def Statistics(df_list, filenames):
     elif st.session_state["show_cross_correlation"]:
         st.subheader("🔀 Cross-Correlation Analysis")
         
-        selected_datasets = st.multiselect("Seleziona i dataset", filenames, default=filenames)
+        selected_datasets = st.multiselect("Select datasets", filenames, default=filenames)
     
         if selected_datasets:
             fig = go.Figure()
@@ -268,7 +268,7 @@ def Statistics(df_list, filenames):
         if "selected_files" not in st.session_state:
             st.session_state["selected_files"] = filenames  
     
-        selected_files = st.multiselect("Select file", filenames, default=st.session_state["selected_files"])
+        selected_files = st.multiselect("Select datasets", filenames, default=st.session_state["selected_files"])
     
         if selected_files != st.session_state["selected_files"]:
             st.session_state["selected_files"] = selected_files
