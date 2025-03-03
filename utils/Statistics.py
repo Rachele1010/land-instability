@@ -317,28 +317,32 @@ def Statistics(df_list, filenames):
     
             with col2:
                 if len(variabili_numeriche) > 0:
+                    y_axis = st.selectbox(f"Select numerical variable for {dataset_name}", 
+                        variabili_numeriche.tolist(), key=f"y_axis_{idx}")
                     # Usa session_state per mantenere la selezione della variabile numerica
-                    st.session_state["y_axis_1"][dataset_name] = st.selectbox(
-                        f"Select numerical variable for {dataset_name}", 
-                        variabili_numeriche.tolist(), 
-                        key=f"var_num_{dataset_name}"
-                    )
+                     #st.session_state["y_axis_1"][dataset_name] = st.selectbox(
+                     #    f"Select numerical variable for {dataset_name}", 
+                     #    variabili_numeriche.tolist(), 
+                     #    key=f"var_num_{dataset_name}"
+                     #)
     
-                    if st.session_state["y_axis_1"][dataset_name]:  
-                        aggregazioni = aggrega_datos_time(df, colonna_data, st.session_state["y_axis_1"][dataset_name])
+                    #if st.session_state["y_axis_1"][dataset_name]:  
+                    #    aggregazioni = aggrega_datos_time(df, colonna_data, st.session_state["y_axis_1"][dataset_name])
     
-                        # Debug: stampa i dati aggregati per vedere se sono validi
-                        st.write(f"Aggregated data for {st.session_state['y_axis_1'][dataset_name]} in {dataset_name}:")
-                        st.write(aggregazioni)
+                     #   # Debug: stampa i dati aggregati per vedere se sono validi
+                    #    st.write(f"Aggregated data for {st.session_state['y_axis_1'][dataset_name]} in {dataset_name}:")
+                    #    st.write(aggregazioni)
     
             with col3:          
                 if len(variabili_categoriche) > 0:
                     # Usa session_state per mantenere la selezione della variabile categoriale
-                    st.session_state["categoria_scelta"][dataset_name] = st.selectbox(
-                        f"Select categorical variable for {dataset_name}",
-                        variabili_categoriche.tolist(),
-                        key=f"var_cat_{dataset_name}"
-                    )
+                    y_axis = st.selectbox(f"Select numerical variable for {dataset_name}", 
+                        variabili_categoriche.tolist(), key=f"y_axis_{idx}")
+                    #st.session_state["categoria_scelta"][dataset_name] = st.selectbox(
+                    #    f"Select categorical variable for {dataset_name}",
+                    #    variabili_categoriche.tolist(),
+                    #    key=f"var_cat_{dataset_name}"
+                   # )
     
                     if st.session_state["categoria_scelta"][dataset_name]:
                         count_df = df[st.session_state["categoria_scelta"][dataset_name]].value_counts().reset_index()
