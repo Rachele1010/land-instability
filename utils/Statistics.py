@@ -266,7 +266,7 @@ def Statistics(df_list, filenames):
         st.subheader("Distribution Data")
     
         # Selezione dei dataset
-        selected_files = st.multiselect("Select datasets", filenames, default=filenames)
+        selected_datasets = st.multiselect("Select datasets", filenames, default=filenames)
     
         for i, dataset_name in enumerate(selected_datasets):
             df = df_list[idx]
