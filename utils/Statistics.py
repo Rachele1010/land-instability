@@ -3,7 +3,7 @@ import pandas as pd
 import plotly.graph_objects as go  
 import plotly.express as px  
 from utils.plotting import create_and_render_plot  
-from utils.utils import convert_unix_to_datetime, compute_autocorrelation,  compute_cross_correlation, calcula_statistics, aggrega_dati_temporali
+from utils.utils import convert_unix_to_datetime, compute_autocorrelation,  compute_cross_correlation, calcula_statistics, aggrega_datos_time
 
 # Funzione principale per la visualizzazione e analisi dei dataset
 def Statistics(df_list, filenames):
@@ -306,7 +306,7 @@ def Statistics(df_list, filenames):
                         with col7:    
                             st.metric(label="Median", value=row['Median'])
                 st.markdown("---")
-    # Selezione della colonna datetime
+            # Selezione della colonna datetime
             colonne_datetime = df.select_dtypes(include=['datetime64[ns]', 'datetime64[ns, UTC]']).columns
             if len(colonne_datetime) > 0:
                 colonna_data = st.selectbox(f"Select datetime for {dataset_name}", colonne_datetime, key=f"datetime_{dataset_name}")
@@ -325,7 +325,7 @@ def Statistics(df_list, filenames):
 
                         # Controllo se la variabile è stata selezionata
                         if y_axis_1[dataset_name]:  
-                            aggregazioni = aggrega_dati_temporali(df, colonna_data, y_axis_1[dataset_name])
+                            aggregazioni = aggrega_datos_time(df, colonna_data, y_axis_1[dataset_name])
 
                     with col2:
                         if aggregazioni:
