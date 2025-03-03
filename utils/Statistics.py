@@ -321,7 +321,7 @@ def Statistics(df_list, filenames):
                         key=f"y_axis_num_{dataset_name}_{idx}"  # Chiave univoca
                     )
                     if y_axis_num:  
-                        aggregazioni, fig_seasonal = aggrega_datos_time(df, colonna_data, y_axis_num)
+                        aggregazioni = aggrega_datos_time(df, colonna_data, y_axis_num)
             with col3:
                 if len(variabili_categoriche) > 0:
                     categoria_scelta = st.selectbox(
