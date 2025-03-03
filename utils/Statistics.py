@@ -271,7 +271,7 @@ def Statistics(df_list, filenames):
         # Aggiorna solo se cambia la selezione dei file
         if selected_files != st.session_state["selected_files"]:
             st.session_state["selected_files"] = selected_files
-            st.rerun()
+            #st.rerun()
     
         for idx, dataset_name in enumerate(filenames):
             if dataset_name not in st.session_state["selected_files"]:
