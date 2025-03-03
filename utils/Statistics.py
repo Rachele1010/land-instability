@@ -270,7 +270,7 @@ def Statistics(df_list, filenames):
     if "categoria_scelta" not in st.session_state:
         st.session_state["categoria_scelta"] = {}
     
-    # Streamlit UI
+        # Streamlit UI
     elif st.session_state["show_distribution_data"]:
         st.subheader("Distribution Data")
     
@@ -346,7 +346,7 @@ def Statistics(df_list, filenames):
             
                     if y_axis_1:
                         aggregazioni = aggrega_datos_time(df, colonna_data, y_axis_1)
-            
+    
             with col3:          
                 if len(variabili_categoriche) > 0:
                     key_cat = f"var_cat_{dataset_name}"
@@ -358,25 +358,19 @@ def Statistics(df_list, filenames):
                         variabili_categoriche.tolist(),
                         key=key_cat
                     )
-
-        if categoria_scelta:
-            count_df = df[categoria_scelta].value_counts().reset_index()
-            count_df.columns = [categoria_scelta, "Count"]
-
-            fig_cat = px.bar(count_df, x=categoria_scelta, y="Count", title=f"Distribution of {categoria_scelta}")
-            st.plotly_chart(fig_cat)
     
-                    if st.session_state["categoria_scelta"][dataset_name]:
-                        count_df = df[st.session_state["categoria_scelta"][dataset_name]].value_counts().reset_index()
-                        count_df.columns = [st.session_state["categoria_scelta"][dataset_name], "Count"]
+                    # **Verifica che la categoria sia stata selezionata**
+                    if categoria_scelta:
+                        count_df = df[categoria_scelta].value_counts().reset_index()
+                        count_df.columns = [categoria_scelta, "Count"]
     
-                        fig_cat = px.bar(count_df, x=st.session_state["categoria_scelta"][dataset_name], y="Count", title=f"Distribution of {st.session_state['categoria_scelta'][dataset_name]}")
+                        fig_cat = px.bar(count_df, x=categoria_scelta, y="Count", title=f"Distribution of {categoria_scelta}")
                         st.plotly_chart(fig_cat)
     
                         if len(colonne_datetime) > 0:
-                            count_time_df = df.groupby([colonna_data, st.session_state["categoria_scelta"][dataset_name]]).size().reset_index(name="Count")
+                            count_time_df = df.groupby([colonna_data, categoria_scelta]).size().reset_index(name="Count")
     
-                            fig_time = px.line(count_time_df, x=colonna_data, y="Count", color=st.session_state["categoria_scelta"][dataset_name], title=f"Trend of {st.session_state['categoria_scelta'][dataset_name]} over time")
+                            fig_time = px.line(count_time_df, x=colonna_data, y="Count", color=categoria_scelta, title=f"Trend of {categoria_scelta} over time")
                             st.plotly_chart(fig_time)
     
             with col2:
@@ -389,4 +383,4 @@ def Statistics(df_list, filenames):
                         else:
                             st.warning(f"⚠️ No data to plot for {periodo}.")
                 else:
-                    st.warning(f"⚠️ No aggregated data available.")
+                    st.warning(f"⚠️ No aggregated data available.")   
