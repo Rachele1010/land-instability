@@ -266,17 +266,9 @@ def Statistics(df_list, filenames):
         st.subheader("Distribution Data")
     
         # Selezione dei dataset
-        selected_files = st.multiselect("Select datasets", filenames, default=st.session_state["selected_files"])
+        selected_files = st.multiselect("Select datasets", filenames, default=filenames)
     
-        # Aggiorna solo se cambia la selezione dei file
-        if selected_files != st.session_state["selected_files"]:
-            st.session_state["selected_files"] = selected_files
-            #st.rerun()
-    
-        for idx, dataset_name in enumerate(filenames):
-            if dataset_name not in st.session_state["selected_files"]:
-                continue  
-    
+        for i, dataset_name in enumerate(selected_datasets):
             df = df_list[idx]
             df = convert_unix_to_datetime(df)
     
