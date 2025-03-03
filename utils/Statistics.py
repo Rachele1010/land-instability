@@ -315,21 +315,21 @@ def Statistics(df_list, filenames):
                     if f"selected_variable_{dataset_name}" not in st.session_state:
                         st.session_state[f"selected_variable_{dataset_name}"] = tutte_le_colonne[0]  
                     
-                    with col1:
-                        variabile_plot = st.selectbox(f"Select variable {dataset_name}", tutte_le_colonne, key=f"var_{dataset_name}")
+                        with col1:
+                            variabile_plot = st.selectbox(f"Select variable {dataset_name}", tutte_le_colonne, key=f"var_{dataset_name}")
                     
-                    # Evita di ricaricare la pagina inutilmente
-                    if variabile_plot != st.session_state[f"selected_variable_{dataset_name}"]:
-                        st.session_state[f"selected_variable_{dataset_name}"] = variabile_plot
-                        st.rerun()
-                    
-                    # Controlla se la variabile è numerica o categorica
-                    if variabile_plot in df.select_dtypes(include=['number']).columns:
-                        aggregazioni = aggrega_dati_temporali(df, colonna_data, variabile_plot, metodo='sum')  
-                    else:
-                        aggregazioni = {"Count": df[variabile_plot].value_counts()}  # Conta le occorrenze se categorica
-                    
-                    st.write(f"Aggregations for {variabile_plot} ({dataset_name}):", aggregazioni)  
+                        # Evita di ricaricare la pagina inutilmente
+                        if variabile_plot != st.session_state[f"selected_variable_{dataset_name}"]:
+                            st.session_state[f"selected_variable_{dataset_name}"] = variabile_plot
+                            st.rerun()
+                        
+                        # Controlla se la variabile è numerica o categorica
+                        if variabile_plot in df.select_dtypes(include=['number']).columns:
+                            aggregazioni = aggrega_dati_temporali(df, colonna_data, variabile_plot, metodo='sum')  
+                        else:
+                            aggregazioni = {"Count": df[variabile_plot].value_counts()}  # Conta le occorrenze se categorica
+                        
+                        st.write(f"Aggregations for {variabile_plot} ({dataset_name}):", aggregazioni)  
 
 with col2:
     for periodo, agg_df in aggregazioni.items():
