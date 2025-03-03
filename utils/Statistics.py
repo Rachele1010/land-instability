@@ -261,24 +261,22 @@ def Statistics(df_list, filenames):
             fig.update_layout(title="Cross-Correlation", xaxis_title="Lag", yaxis_title="Cross-Correlation Value")
             st.plotly_chart(fig, use_container_width=True)
     
+    # Streamlit UI
     elif st.session_state["show_distribution_data"]:
         st.subheader("Distribution Data")
     
-        # Inizializza lo stato solo una volta
         if "selected_files" not in st.session_state:
             st.session_state["selected_files"] = filenames  
     
-        # Selettore dei file
         selected_files = st.multiselect("Select file", filenames, default=st.session_state["selected_files"])
     
-        # Se la selezione cambia, aggiorna lo stato e ricarica
         if selected_files != st.session_state["selected_files"]:
             st.session_state["selected_files"] = selected_files
             st.rerun()
     
         for idx, dataset_name in enumerate(filenames):
             if dataset_name not in st.session_state["selected_files"]:
-                continue  # Salta i file non selezionati
+                continue  
     
             df = df_list[idx]
             df = convert_unix_to_datetime(df)
@@ -289,11 +287,11 @@ def Statistics(df_list, filenames):
                     st.warning(f"⚠️ No data available for {dataset_name}")
                     continue
     
-                # Mostra le metriche
                 col1, col2, col3, col4, col5, col6, col7 = st.columns(7)
                 for _, row in stats_df.iterrows():
                     with col1:
-                        st.write(f"**Variable:** {row['Variable']}")
+                        with st.container():
+                            st.write(f"**Variable:** {row['Variable']}")
                     with col2:
                         st.metric(label="Counting", value=row.get('Counting', 'N/A'))
                     if row.get('Sum', 'N/A') != 'N/A':
@@ -309,35 +307,32 @@ def Statistics(df_list, filenames):
                             st.metric(label="Median", value=row['Median'])
                 st.markdown("---")
     
-                # Selezione datetime
                 colonne_datetime = df.select_dtypes(include=['datetime64[ns]', 'datetime64[ns, UTC]']).columns
                 if len(colonne_datetime) > 0:
                     colonna_data = st.selectbox(f"Select datetime {dataset_name}", colonne_datetime, key=f"datetime_{dataset_name}")
     
                     col1, col2 = st.columns([1, 4])
-                    variabili_disponibili = df.columns.tolist()
+                    variabili_numeriche = df.select_dtypes(include=['number']).columns
+                    if len(variabili_numeriche) > 0:
+                        with col1:
+                            variabile_plot = st.selectbox(f"Select variable {dataset_name}", variabili_numeriche, key=f"var_{dataset_name}")
     
-                    with col1:
-                        variabile_plot = st.selectbox(f"Select variable {dataset_name}", variabili_disponibili, key=f"var_{dataset_name}")
-                        aggregazioni = aggrega_dati_temporali(df, colonna_data, variabile_plot)  # Aggrega dati
+                            # Controllo prima di chiamare la funzione
+                            if variabile_plot:
+                                aggregazioni = aggrega_dati_temporali(df, colonna_data, variabile_plot)
     
-                    with col2:
-                        for periodo, agg_df in aggregazioni.items():
-                            st.write(f"#### {periodo} Aggregate for {variabile_plot} in {dataset_name}")
-    
-                            try:
-                                if df[variabile_plot].dtype in ['int64', 'float64']:  # Se è numerica
-                                    fig = px.bar(agg_df, x=agg_df.index, y=agg_df.values, title=f"{periodo} Aggregate")
-                                else:  # Se è categorica, conta le occorrenze
-                                    count_df = agg_df[variabile_plot].value_counts().reset_index()
-                                    count_df.columns = ["Category", "Count"]
-                                    fig = px.bar(count_df, x="Category", y="Count", title=f"{periodo} Count of {variabile_plot}")
-    
-                                st.plotly_chart(fig)
-    
-                            except Exception as e:
-                                st.warning(f"⚠️ Error plotting {variabile_plot}. Showing table instead.")
-                                st.dataframe(agg_df)
-    
+                        with col2:
+                            if aggregazioni:
+                                for periodo, agg_df in aggregazioni.items():
+                                    if not agg_df.empty:  # Controllo prima del plot
+                                        st.write(f"#### Plot {periodo} by {dataset_name}")
+                                        fig = px.bar(agg_df, x=agg_df.index, y=agg_df.values, title=f"{periodo} Aggregate")
+                                        st.plotly_chart(fig)
+                                    else:
+                                        st.warning(f"⚠️ No data to plot for {periodo}.")
+                            else:
+                                st.warning(f"⚠️ No aggregated data available.")
+                    else:
+                        st.warning(f"⚠️ No numeric variables available in {dataset_name}.")
                 else:
                     st.warning(f"⚠️ No datetime column found in {dataset_name}.")
