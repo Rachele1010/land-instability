@@ -313,7 +313,7 @@ def Statistics(df_list, filenames):
                     tutte_le_colonne = df.columns  # Includi anche le variabili categoriche
                     
                     if f"selected_variable_{dataset_name}" not in st.session_state:
-                        st.session_state[f"selected_variable_{dataset_name}"] = tutte_le_colonne[0]  
+                        st.session_state[f"selected_variable_{dataset_name}"] = tutte_le_colonne[0]
                     
                         with col1:
                             variabile_plot = st.selectbox(f"Select variable {dataset_name}", tutte_le_colonne, key=f"var_{dataset_name}")
@@ -331,24 +331,24 @@ def Statistics(df_list, filenames):
                         
                         st.write(f"Aggregations for {variabile_plot} ({dataset_name}):", aggregazioni)  
 
-                        with col2:
-                            for periodo, agg_df in aggregazioni.items():
-                                if agg_df.empty:
-                                    st.warning(f"⚠️ No data available for {variabile_plot} in {dataset_name} ({periodo}).")
-                                else:
-                                    st.write(f"#### Plot {periodo} by {dataset_name}")
-                                    fig = px.bar(agg_df, x=agg_df.index, y=agg_df.values, title=f"{periodo} Aggregate")
-                                    st.plotly_chart(fig)
-                            
-                                                with col2:
-                                                    for periodo, agg_df in aggregazioni.items():
-                                                        if agg_df.empty:
-                                                            st.warning(f"⚠️ No data available for {variabile_plot} in {dataset_name} ({periodo}).")
-                                                        else:
-                                                            st.write(f"#### Plot {periodo} by {dataset_name}")
-                                                            fig = px.bar(agg_df, x=agg_df.index, y=agg_df.values, title=f"{periodo} Aggregate")
-                                                            st.plotly_chart(fig)
-                                            else:
-                                                st.warning(f"⚠️ No numeric variables available in {dataset_name}.")
+                    with col2:
+                        for periodo, agg_df in aggregazioni.items():
+                            if agg_df.empty:
+                                st.warning(f"⚠️ No data available for {variabile_plot} in {dataset_name} ({periodo}).")
+                            else:
+                                st.write(f"#### Plot {periodo} by {dataset_name}")
+                                fig = px.bar(agg_df, x=agg_df.index, y=agg_df.values, title=f"{periodo} Aggregate")
+                                st.plotly_chart(fig)
+                        
+                                            with col2:
+                                                for periodo, agg_df in aggregazioni.items():
+                                                    if agg_df.empty:
+                                                        st.warning(f"⚠️ No data available for {variabile_plot} in {dataset_name} ({periodo}).")
+                                                    else:
+                                                        st.write(f"#### Plot {periodo} by {dataset_name}")
+                                                        fig = px.bar(agg_df, x=agg_df.index, y=agg_df.values, title=f"{periodo} Aggregate")
+                                                        st.plotly_chart(fig)
                                         else:
-                                            st.warning(f"⚠️ No datetime column found in {dataset_name}.")
+                                            st.warning(f"⚠️ No numeric variables available in {dataset_name}.")
+                                    else:
+                                        st.warning(f"⚠️ No datetime column found in {dataset_name}.")
