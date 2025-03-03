@@ -317,16 +317,30 @@ def Statistics(df_list, filenames):
     
                     col1, col2 = st.columns([1, 4])
                     variabili_numeriche = df.select_dtypes(include=['number']).columns
+                    
                     if len(variabili_numeriche) > 0:
+                        if f"selected_variable_{dataset_name}" not in st.session_state:
+                            st.session_state[f"selected_variable_{dataset_name}"] = variabili_numeriche[0]  # Valore predefinito
+                        
                         with col1:
-                            variabile_plot = st.selectbox(f"Select variable {dataset_name}", variabili_numeriche, key=f"var_{dataset_name}")
-                            aggregazioni = aggrega_dati_temporali(df, colonna_data, variabile_plot)
-    
+                            variabile_plot = st.selectbox(f"Select variable {dataset_name}", variabili_numeriche, 
+                                                          key=f"var_{dataset_name}")
+                        
+                        if variabile_plot != st.session_state[f"selected_variable_{dataset_name}"]:
+                            st.session_state[f"selected_variable_{dataset_name}"] = variabile_plot
+                            st.rerun()
+                        
+                        aggregazioni = aggrega_dati_temporali(df, colonna_data, variabile_plot)
+                        st.write(f"Aggregations for {variabile_plot} ({dataset_name}):", aggregazioni)  # Debug
+                        
                         with col2:
                             for periodo, agg_df in aggregazioni.items():
-                                st.write(f"#### Plot {periodo} by {dataset_name}")
-                                fig = px.bar(agg_df, x=agg_df.index, y=agg_df.values, title=f"{periodo} Aggregate")
-                                st.plotly_chart(fig)
+                                if agg_df.empty:
+                                    st.warning(f"⚠️ No data available for {variabile_plot} in {dataset_name} ({periodo}).")
+                                else:
+                                    st.write(f"#### Plot {periodo} by {dataset_name}")
+                                    fig = px.bar(agg_df, x=agg_df.index, y=agg_df.values, title=f"{periodo} Aggregate")
+                                    st.plotly_chart(fig)
                     else:
                         st.warning(f"⚠️ No numeric variables available in {dataset_name}.")
                 else:
