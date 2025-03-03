@@ -334,28 +334,37 @@ def Statistics(df_list, filenames):
     
             with col2:
                 if len(variabili_numeriche) > 0:
-                    # Usa session_state per mantenere la selezione della variabile numerica
-                    st.session_state["y_axis_1"][dataset_name] = st.selectbox(
+                    key_num = f"var_num_{dataset_name}"
+                    if key_num not in st.session_state:
+                        st.session_state[key_num] = variabili_numeriche[0]  # Imposta un valore di default
+                    
+                    y_axis_1 = st.selectbox(
                         f"Select numerical variable for {dataset_name}", 
                         variabili_numeriche.tolist(), 
-                        key=f"var_num_{dataset_name}"
+                        key=key_num
                     )
-    
-                    if st.session_state["y_axis_1"][dataset_name]:  
-                        aggregazioni = aggrega_datos_time(df, colonna_data, st.session_state["y_axis_1"][dataset_name])
-    
-                        # Debug: stampa i dati aggregati per vedere se sono validi
-                        st.write(f"Aggregated data for {st.session_state['y_axis_1'][dataset_name]} in {dataset_name}:")
-                        st.write(aggregazioni)
-    
+            
+                    if y_axis_1:
+                        aggregazioni = aggrega_datos_time(df, colonna_data, y_axis_1)
+            
             with col3:          
                 if len(variabili_categoriche) > 0:
-                    # Usa session_state per mantenere la selezione della variabile categoriale
-                    st.session_state["categoria_scelta"][dataset_name] = st.selectbox(
+                    key_cat = f"var_cat_{dataset_name}"
+                    if key_cat not in st.session_state:
+                        st.session_state[key_cat] = variabili_categoriche[0]  # Imposta un valore di default
+                    
+                    categoria_scelta = st.selectbox(
                         f"Select categorical variable for {dataset_name}",
                         variabili_categoriche.tolist(),
-                        key=f"var_cat_{dataset_name}"
+                        key=key_cat
                     )
+
+        if categoria_scelta:
+            count_df = df[categoria_scelta].value_counts().reset_index()
+            count_df.columns = [categoria_scelta, "Count"]
+
+            fig_cat = px.bar(count_df, x=categoria_scelta, y="Count", title=f"Distribution of {categoria_scelta}")
+            st.plotly_chart(fig_cat)
     
                     if st.session_state["categoria_scelta"][dataset_name]:
                         count_df = df[st.session_state["categoria_scelta"][dataset_name]].value_counts().reset_index()
