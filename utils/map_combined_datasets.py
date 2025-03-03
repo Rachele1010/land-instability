@@ -32,7 +32,7 @@ def map_combined_datasets(dataframes, filenames=None):
         
         for i, df in enumerate(dataframes):
             if df is None or df.empty:
-                st.warning(f"⚠ Il dataset '{filenames[i]}' is empty.")
+                st.warning(f"⚠ Dataset '{filenames[i]}' is empty.")
                 continue
             
             detected_lat_col = next((col for col in coordinate_variants["lat"] if col in df.columns), None)
@@ -48,8 +48,8 @@ def map_combined_datasets(dataframes, filenames=None):
                 continue
             
             with st.expander(f"File: {filenames[i]}"):
-                lat_col = st.selectbox(f"Seleziona colonna latitudine", df.columns, index=df.columns.get_loc(detected_lat_col), key=f"lat_{i}")
-                lon_col = st.selectbox(f"Seleziona colonna longitudine", df.columns, index=df.columns.get_loc(detected_lon_col), key=f"lon_{i}")
+                lat_col = st.selectbox(f"Select latitude", df.columns, index=df.columns.get_loc(detected_lat_col), key=f"lat_{i}")
+                lon_col = st.selectbox(f"Select longitude", df.columns, index=df.columns.get_loc(detected_lon_col), key=f"lon_{i}")
             
             lat_columns.append(lat_col)
             lon_columns.append(lon_col)
