@@ -331,15 +331,6 @@ def Statistics(df_list, filenames):
                         
                         st.write(f"Aggregations for {variabile_plot} ({dataset_name}):", aggregazioni)  
 
-with col2:
-    for periodo, agg_df in aggregazioni.items():
-        if agg_df.empty:
-            st.warning(f"⚠️ No data available for {variabile_plot} in {dataset_name} ({periodo}).")
-        else:
-            st.write(f"#### Plot {periodo} by {dataset_name}")
-            fig = px.bar(agg_df, x=agg_df.index, y=agg_df.values, title=f"{periodo} Aggregate")
-            st.plotly_chart(fig)
-    
                         with col2:
                             for periodo, agg_df in aggregazioni.items():
                                 if agg_df.empty:
@@ -348,7 +339,16 @@ with col2:
                                     st.write(f"#### Plot {periodo} by {dataset_name}")
                                     fig = px.bar(agg_df, x=agg_df.index, y=agg_df.values, title=f"{periodo} Aggregate")
                                     st.plotly_chart(fig)
-                    else:
-                        st.warning(f"⚠️ No numeric variables available in {dataset_name}.")
-                else:
-                    st.warning(f"⚠️ No datetime column found in {dataset_name}.")
+                            
+                                                with col2:
+                                                    for periodo, agg_df in aggregazioni.items():
+                                                        if agg_df.empty:
+                                                            st.warning(f"⚠️ No data available for {variabile_plot} in {dataset_name} ({periodo}).")
+                                                        else:
+                                                            st.write(f"#### Plot {periodo} by {dataset_name}")
+                                                            fig = px.bar(agg_df, x=agg_df.index, y=agg_df.values, title=f"{periodo} Aggregate")
+                                                            st.plotly_chart(fig)
+                                            else:
+                                                st.warning(f"⚠️ No numeric variables available in {dataset_name}.")
+                                        else:
+                                            st.warning(f"⚠️ No datetime column found in {dataset_name}.")
