@@ -67,55 +67,31 @@ import pandas as pd
 import plotly.express as px
 
 def aggrega_datos_time(df, colonna_data, colonna_valore):
-    # Assicuriamoci che la colonna_data sia datetime
-    df[colonna_data] = pd.to_datetime(df[colonna_data], errors='coerce')
-    
-    # Controlliamo che la colonna non abbia valori NaT
-    df = df.dropna(subset=[colonna_data])
-    
     df = df.set_index(colonna_data)
     
-    # Mappatura mesi -> stagioni
-    stagioni_map = {
-        12: 'Winter', 1: 'Winter', 2: 'Winter',
-        3: 'Spring', 4: 'Spring', 5: 'Spring',
-        6: 'Summer', 7: 'Summer', 8: 'Summer',
-        9: 'Autumn', 10: 'Autumn', 11: 'Autumn'
+    # Creazione di un mapping per assegnare le stagioni
+    stagioni = {
+        12: "Winter", 1: "Winter", 2: "Winter",
+        3: "Spring", 4: "Spring", 5: "Spring",
+        6: "Summer", 7: "Summer", 8: "Summer",
+        9: "Autumn", 10: "Autumn", 11: "Autumn"
     }
-
-    # Creiamo una colonna "Season"
-    df['Season'] = df.index.month.map(stagioni_map)
-
-    # Raggruppiamo per stagione e contiamo
-    agg_stagioni = df.groupby("Season")[colonna_valore].count().reset_index()
-
-    # Ordinare le stagioni nella sequenza corretta
-    stagione_order = ["Winter", "Spring", "Summer", "Autumn"]
-    agg_stagioni["Season"] = pd.Categorical(agg_stagioni["Season"], categories=stagione_order, ordered=True)
-    agg_stagioni = agg_stagioni.sort_values("Season")
-
-    # Creiamo il grafico
-    fig = px.bar(
-        agg_stagioni, 
-        x="Season", 
-        y=colonna_valore, 
-        color="Season", 
-        title="Seasonal Data Distribution",
-        color_discrete_map={
-            "Winter": "blue",
-            "Spring": "green",
-            "Summer": "orange",
-            "Autumn": "brown"
-        }
-    )
     
-    # Creiamo il dizionario con tutti i dati aggregati
+    df['Season'] = df.index.month.map(stagioni)
+    
+    # Aggregazione per stagione
+    agg_stagioni = df.groupby('Season')[colonna_valore].count()
+    
+    # Debug per controllare la struttura dei dati
+    print("Aggregazioni Stagionali:")
+    print(agg_stagioni)
+
     aggregazioni = {
-        'Annual': df[colonna_valore].resample('YE').count(),
+        'Annually': df[colonna_valore].resample('YE').count(),
         'Monthly': df[colonna_valore].resample('ME').count(),
-        'Seasonal': agg_stagioni.set_index("Season"),
+        'Seasonality': agg_stagioni,  # Qui potrebbe esserci il problema
         'Six-monthly': df[colonna_valore].resample('6M').count()
     }
-
-    return aggregazioni, fig  # Restituiamo i dati aggregati e il grafico
+    
+    return aggregazioni
 
