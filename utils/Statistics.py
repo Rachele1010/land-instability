@@ -268,7 +268,7 @@ def Statistics(df_list, filenames):
         # Selezione dei dataset
         selected_datasets = st.multiselect("Select datasets", filenames, default=filenames)
     
-        for i, dataset_name in enumerate(selected_datasets):
+        for idx, dataset_name in enumerate(selected_datasets):
             df = df_list[idx]
             df = convert_unix_to_datetime(df)
     
