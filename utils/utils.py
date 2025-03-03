@@ -76,13 +76,23 @@ def aggrega_dati_temporali(df, colonna_data, colonna_valore):
     # Converte colonna_data in datetime se necessario
     df[colonna_data] = pd.to_datetime(df[colonna_data], errors='coerce')
 
-    # Rimuove eventuali valori NaT (non convertibili in datetime)
+    # Rimuove eventuali valori NaT
     df = df.dropna(subset=[colonna_data])
 
-    # Imposta l'indice
+    # Controlla se il DataFrame è ancora valido dopo il filtraggio
+    if df.empty:
+        st.warning(f"⚠️ No valid datetime data remaining for column '{colonna_data}'.")
+        return {}
+
+    # Imposta l'indice, mantenendo colonna_valore
     df = df.set_index(colonna_data)
 
-    # Esegue l'aggregazione
+    # Controlla nuovamente se colonna_valore è presente dopo il set_index
+    if colonna_valore not in df.columns:
+        st.warning(f"⚠️ Column '{colonna_valore}' disappeared after setting index.")
+        return {}
+
+    # Aggrega i dati in diversi periodi
     aggregazioni = {
         'Annually': df[colonna_valore].resample('YE').count(),
         'Monthly': df[colonna_valore].resample('ME').count(),
