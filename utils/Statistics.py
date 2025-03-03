@@ -327,18 +327,18 @@ def Statistics(df_list, filenames):
                         if y_axis_1[dataset_name]:  
                             aggregazioni = aggrega_datos_time(df, colonna_data, y_axis_1[dataset_name])
 
-                    with col2:
-                        if aggregazioni:
-                            for periodo, agg_df in aggregazioni.items():
-                                if not agg_df.empty:  # Controllo per evitare errori di plotting
-                                    st.write(f"#### Plot {periodo} by {dataset_name}")
-                                    fig = px.bar(agg_df, x=agg_df.index, y=agg_df.values, title=f"{periodo} Aggregate")
-                                    st.plotly_chart(fig)
-                                else:
-                                    st.warning(f"⚠️ No data to plot for {periodo}.")
+            with col2:
+                if aggregazioni:
+                    for periodo, agg_df in aggregazioni.items():
+                        if not agg_df.empty:  # Controllo per evitare errori di plotting
+                            st.write(f"#### Plot {periodo} by {dataset_name}")
+                            fig = px.bar(agg_df, x=agg_df.index, y=agg_df.values, title=f"{periodo} Aggregate")
+                            st.plotly_chart(fig)
                         else:
-                            st.warning(f"⚠️ No aggregated data available.")
+                            st.warning(f"⚠️ No data to plot for {periodo}.")
                 else:
-                    st.warning(f"⚠️ No numeric variables available in {dataset_name}.")
-            else:
-                st.warning(f"⚠️ No datetime column found in {dataset_name}.")
+                    st.warning(f"⚠️ No aggregated data available.")
+        else:
+            st.warning(f"⚠️ No numeric variables available in {dataset_name}.")
+    else:
+        st.warning(f"⚠️ No datetime column found in {dataset_name}.")
