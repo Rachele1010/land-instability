@@ -353,11 +353,18 @@ def Statistics(df_list, filenames):
             with col2:
                 if "aggregazioni" in locals() and aggregazioni:
                     for periodo, agg_df in aggregazioni.items():
-                        if not agg_df.empty:
+                        if isinstance(agg_df, pd.DataFrame) and not agg_df.empty:  # Controllo aggiuntivo
                             st.write(f"#### Plot {periodo} by {dataset_name}")
+                            
+                            # Controllo sui dati
+                            if agg_df.index.empty or agg_df.values.size == 0:
+                                st.warning(f"⚠️ No data to plot for {periodo}.")
+                                continue
+                            
+                            # Creazione del grafico
                             fig = px.bar(agg_df, x=agg_df.index, y=agg_df.values, title=f"{periodo} Aggregate")
                             st.plotly_chart(fig)
                         else:
-                            st.warning(f"⚠️ No data to plot for {periodo}.")
+                            st.warning(f"⚠️ No valid aggregated data available for {periodo}.")
                 else:
-                    st.warning(f"⚠️ No aggregated data available.")
+                    st.warning(f"⚠️ No aggregated data available.")  
