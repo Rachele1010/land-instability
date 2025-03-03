@@ -310,21 +310,35 @@ def Statistics(df_list, filenames):
                     colonna_data = st.selectbox(f"Select datetime {dataset_name}", colonne_datetime, key=f"datetime_{dataset_name}")
     
                     col1, col2 = st.columns([1, 4])
-                    variabili_numeriche = df.select_dtypes(include=['number']).columns
-    
-                    if len(variabili_numeriche) > 0:
-                        if f"selected_variable_{dataset_name}" not in st.session_state:
-                            st.session_state[f"selected_variable_{dataset_name}"] = variabili_numeriche[0] 
-    
-                        with col1:
-                            variabile_plot = st.selectbox(f"Select variable {dataset_name}", variabili_numeriche, key=f"var_{dataset_name}")
-    
-                        if variabile_plot != st.session_state[f"selected_variable_{dataset_name}"]:
-                            st.session_state[f"selected_variable_{dataset_name}"] = variabile_plot
-                            st.rerun()
-    
-                        aggregazioni = aggrega_dati_temporali(df, colonna_data, variabile_plot)
-                        st.write(f"Aggregations for {variabile_plot} ({dataset_name}):", aggregazioni)  
+                    tutte_le_colonne = df.columns  # Includi anche le variabili categoriche
+                    
+                    if f"selected_variable_{dataset_name}" not in st.session_state:
+                        st.session_state[f"selected_variable_{dataset_name}"] = tutte_le_colonne[0]  
+                    
+                    with col1:
+                        variabile_plot = st.selectbox(f"Select variable {dataset_name}", tutte_le_colonne, key=f"var_{dataset_name}")
+                    
+                    # Evita di ricaricare la pagina inutilmente
+                    if variabile_plot != st.session_state[f"selected_variable_{dataset_name}"]:
+                        st.session_state[f"selected_variable_{dataset_name}"] = variabile_plot
+                        st.rerun()
+                    
+                    # Controlla se la variabile è numerica o categorica
+                    if variabile_plot in df.select_dtypes(include=['number']).columns:
+                        aggregazioni = aggrega_dati_temporali(df, colonna_data, variabile_plot, metodo='sum')  
+                    else:
+                        aggregazioni = {"Count": df[variabile_plot].value_counts()}  # Conta le occorrenze se categorica
+                    
+                    st.write(f"Aggregations for {variabile_plot} ({dataset_name}):", aggregazioni)  
+
+with col2:
+    for periodo, agg_df in aggregazioni.items():
+        if agg_df.empty:
+            st.warning(f"⚠️ No data available for {variabile_plot} in {dataset_name} ({periodo}).")
+        else:
+            st.write(f"#### Plot {periodo} by {dataset_name}")
+            fig = px.bar(agg_df, x=agg_df.index, y=agg_df.values, title=f"{periodo} Aggregate")
+            st.plotly_chart(fig)
     
                         with col2:
                             for periodo, agg_df in aggregazioni.items():
