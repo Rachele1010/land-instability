@@ -354,7 +354,7 @@ def Statistics(df_list, filenames):
                 if "aggregazioni" in locals() and aggregazioni:
                     for periodo, agg_df in aggregazioni.items():
                         if not agg_df.empty:
-                            st.write(f"#### Plot {periodo} by {dataset_name}")
+                            #st.write(f"#### Plot {periodo} by {dataset_name}")
                             fig = px.bar(agg_df, x=agg_df.index, y=agg_df.values, title=f"{periodo} Aggregate")
                             st.plotly_chart(fig)
                         else:
