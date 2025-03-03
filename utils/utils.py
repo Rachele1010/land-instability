@@ -65,10 +65,39 @@ import streamlit as st
 
 def aggrega_datos_time(df, colonna_data, colonna_valore):
     df = df.set_index(colonna_data)
-    aggregazioni = {
-        'Annualy': df[colonna_valore].resample('YE').count(),
-        'Monthly': df[colonna_valore].resample('ME').count(),
-        'Stagionality': df[colonna_valore].resample('QE').count(),
-        'Six-monthly': df[colonna_valore].resample('6M').count()
+    
+    # Mappatura mesi -> stagioni (emisfero nord)
+    stagioni_map = {
+        12: 'Winter', 1: 'Winter', 2: 'Winter',
+        3: 'Spring', 4: 'Spring', 5: 'Spring',
+        6: 'Summer', 7: 'Summer', 8: 'Summer',
+        9: 'Autumn', 10: 'Autumn', 11: 'Autumn'
     }
-    return aggregazioni
+
+    # Creiamo una colonna "Stagione"
+    df['Season'] = df.index.month.map(stagioni_map)
+
+    # Raggruppiamo per stagione e contiamo
+    aggregazioni = df.groupby("Season")[colonna_valore].count().reset_index()
+
+    # Ordinare le stagioni nella sequenza corretta
+    stagione_order = ["Winter", "Spring", "Summer", "Autumn"]
+    aggregazioni["Season"] = pd.Categorical(aggregazioni["Season"], categories=stagione_order, ordered=True)
+    aggregazioni = aggregazioni.sort_values("Season")
+
+    # Creiamo il grafico
+    fig = px.bar(
+        aggregazioni, 
+        x="Season", 
+        y=colonna_valore, 
+        color="Season", 
+        title="Seasonal Data Distribution",
+        color_discrete_map={
+            "Winter": "blue",
+            "Spring": "green",
+            "Summer": "orange",
+            "Autumn": "brown"
+        }
+    )
+    
+    return fig, aggregazioni  # Restituiamo il grafico
