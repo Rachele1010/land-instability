@@ -309,21 +309,35 @@ def Statistics(df_list, filenames):
                             st.metric(label="Median", value=row['Median'])
                 st.markdown("---")
     
-                # Selezione della variabile
-                colonne_disponibili = df.columns.tolist()
-                variabile_plot = st.selectbox(f"Select variable {dataset_name}", colonne_disponibili, key=f"var_{dataset_name}")
+                # Selezione datetime
+                colonne_datetime = df.select_dtypes(include=['datetime64[ns]', 'datetime64[ns, UTC]']).columns
+                if len(colonne_datetime) > 0:
+                    colonna_data = st.selectbox(f"Select datetime {dataset_name}", colonne_datetime, key=f"datetime_{dataset_name}")
     
-                if variabile_plot:
-                    try:
-                        if df[variabile_plot].dtype in ['int64', 'float64']:  # Caso numerico
-                            fig = px.histogram(df, x=variabile_plot, title=f"Distribution of {variabile_plot}")
-                        else:  # Caso categorico (conteggio delle occorrenze)
-                            count_df = df[variabile_plot].value_counts().reset_index()
-                            count_df.columns = ["Category", "Count"]
-                            fig = px.bar(count_df, x="Category", y="Count", title=f"Count of {variabile_plot}")
+                    col1, col2 = st.columns([1, 4])
+                    variabili_disponibili = df.columns.tolist()
     
-                        st.plotly_chart(fig)
+                    with col1:
+                        variabile_plot = st.selectbox(f"Select variable {dataset_name}", variabili_disponibili, key=f"var_{dataset_name}")
+                        aggregazioni = aggrega_dati_temporali(df, colonna_data, variabile_plot)  # Aggrega dati
     
-                    except Exception as e:
-                        st.warning(f"⚠️ Error plotting {variabile_plot}. Showing table instead.")
-                        st.dataframe(df[variabile_plot].value_counts().reset_index())
+                    with col2:
+                        for periodo, agg_df in aggregazioni.items():
+                            st.write(f"#### {periodo} Aggregate for {variabile_plot} in {dataset_name}")
+    
+                            try:
+                                if df[variabile_plot].dtype in ['int64', 'float64']:  # Se è numerica
+                                    fig = px.bar(agg_df, x=agg_df.index, y=agg_df.values, title=f"{periodo} Aggregate")
+                                else:  # Se è categorica, conta le occorrenze
+                                    count_df = agg_df[variabile_plot].value_counts().reset_index()
+                                    count_df.columns = ["Category", "Count"]
+                                    fig = px.bar(count_df, x="Category", y="Count", title=f"{periodo} Count of {variabile_plot}")
+    
+                                st.plotly_chart(fig)
+    
+                            except Exception as e:
+                                st.warning(f"⚠️ Error plotting {variabile_plot}. Showing table instead.")
+                                st.dataframe(agg_df)
+    
+                else:
+                    st.warning(f"⚠️ No datetime column found in {dataset_name}.")
