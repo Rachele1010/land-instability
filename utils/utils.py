@@ -63,9 +63,9 @@ def calcola_statistiche(df):
 def aggrega_dati_temporali(df, colonna_data, colonna_valore):
     df = df.set_index(colonna_data)
     aggregazioni = {
-        'Annualy': df[colonna_valore].resample('Y').sum(),
-        'Monthly': df[colonna_valore].resample('M').sum(),
-        'Stagionality': df[colonna_valore].resample('Q').sum(),
+        'Annualy': df[colonna_valore].resample('YE').sum(),
+        'Monthly': df[colonna_valore].resample('ME').sum(),
+        'Stagionality': df[colonna_valore].resample('QE').sum(),
         'Six-monthly': df[colonna_valore].resample('6M').sum()
     }
     return aggregazioni
