@@ -332,6 +332,10 @@ def Statistics(df_list, filenames):
     
                     if y_axis_1[dataset_name]:  
                         aggregazioni = aggrega_datos_time(df, colonna_data, y_axis_1[dataset_name])
+                    
+                        # Debug: stampa i dati aggregati per vedere se sono validi
+                        st.write(f"Aggregated data for {y_axis_1[dataset_name]} in {dataset_name}:")
+                        st.write(aggregazioni)
             with col3:          
                 if len(variabili_categoriche) > 0:
                     categoria_scelta = st.selectbox(
