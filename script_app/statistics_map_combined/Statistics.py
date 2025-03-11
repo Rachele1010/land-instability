@@ -280,7 +280,7 @@ def Statistics(df_list, filenames):
             st.session_state["selected_datasets"] = st.session_state["dataset_selector"]
     
         # 🔹 UI per selezionare i dataset (senza forzare il refresh)
-        selected_datasets = st.multiselect(
+        st.multiselect(
             "Select datasets",
             st.session_state["filenames"],  # Opzioni disponibili
             default=st.session_state["selected_datasets"],  # Selezione attuale
@@ -295,6 +295,9 @@ def Statistics(df_list, filenames):
     
         # 🔹 Loop sui dataset selezionati
         for dataset_name in st.session_state["selected_datasets"]:
+            if dataset_name not in st.session_state["filenames"]:
+                continue  # Evita errori se un dataset è stato rimosso
+    
             idx = st.session_state["filenames"].index(dataset_name)
             df = st.session_state["df_list"][idx]  # Recupera il dataframe dalla sessione
             df = convert_unix_to_datetime(df)  # Converti la data solo una volta
