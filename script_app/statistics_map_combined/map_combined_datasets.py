@@ -1,8 +1,8 @@
 import streamlit as st
 import pandas as pd
 import plotly.graph_objects as go
-from utils.plotting import create_and_render_plot
-from utils.load import load_file, process_file
+from script_app.load_plotting_utils.plotting import create_and_render_plot
+from script_app.load_plotting_utils.load import load_file, process_file
 
 def map_combined_datasets(dataframes, filenames=None):
     """
