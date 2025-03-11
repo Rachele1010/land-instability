@@ -4,20 +4,38 @@ import io
 
 # Funzione per rilevare il separatore in un file CSV o TXT
 def detect_separator(uploaded_file):
-    """Detects the column separator in a CSV or TXT file from an uploaded file."""
-    first_line = io.StringIO(uploaded_file.getvalue().decode("utf-8")).readline()
+    """Rileva il separatore di un file CSV o TXT analizzando le prime righe."""
+    content = io.StringIO(uploaded_file.getvalue().decode("utf-8"))
+    
     possible_separators = [';', ',', '\t', ' ']  # Punto e virgola, virgola, tabulazione, spazio
-    separator_counts = {sep: first_line.count(sep) for sep in possible_separators}
-    return max(separator_counts, key=separator_counts.get) if max(separator_counts.values()) > 0 else ','
+    line_count = 5  # Numero di righe da analizzare
+    
+    # Legge le prime 'line_count' righe
+    lines = [content.readline() for _ in range(line_count)]
+    
+    # Conta la frequenza dei separatori su più righe
+    separator_counts = {sep: sum(line.count(sep) for line in lines) for sep in possible_separators}
+    
+    # Se tutti i valori sono zero, assume la virgola come default
+    best_separator = max(separator_counts, key=separator_counts.get)
+    return best_separator if separator_counts[best_separator] > 0 else ','
 
 # Funzione per caricare il file in base al tipo di estensione
 @st.cache_data
+@st.cache_data
 def load_file(uploaded_file):
-    """Carica un file da un oggetto file caricato e rileva il separatore per CSV/TXT."""
+    """Carica un file CSV, TXT o Excel rilevando il separatore."""
     if uploaded_file.name.endswith(('.csv', '.txt')):
         sep = detect_separator(uploaded_file)
         try:
-            return pd.read_csv(io.StringIO(uploaded_file.getvalue().decode("utf-8")), sep=sep)
+            df = pd.read_csv(io.StringIO(uploaded_file.getvalue().decode("utf-8")), sep=sep)
+            
+            # Controllo se le colonne sono uniche (evita errori di parsing)
+            if df.shape[1] == 1:
+                st.warning("Attenzione: il file non sembra tabulato correttamente. Il separatore potrebbe essere errato.")
+            
+            return df
+        
         except pd.errors.ParserError as e:
             st.error(f"Errore di parsing del file: {e}")
             return None
@@ -26,7 +44,6 @@ def load_file(uploaded_file):
     else:
         st.error("Formato file non supportato")
         return None
-
 # Funzione per inferire e analizzare le date nel DataFrame
 def infer_and_parse_dates(df):
     """Inferisce e analizza le date nel DataFrame."""
