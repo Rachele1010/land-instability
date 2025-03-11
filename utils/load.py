@@ -48,38 +48,22 @@ def detect_separator(uploaded_file):
 
 # Funzione per caricare il file in base al tipo di estensione
 @st.cache_data
+@st.cache_data
 def load_file(uploaded_file):
-    """Carica un file CSV, TXT o Excel con separatori misti e normalizza i dati."""
+    """Carica un file da un oggetto file caricato e rileva il separatore per CSV/TXT."""
     if uploaded_file.name.endswith(('.csv', '.txt')):
         sep = detect_separator(uploaded_file)
-
         try:
-            # Normalizza il contenuto per eliminare spazi multipli prima del parsing
-            raw_text = uploaded_file.getvalue().decode("utf-8")
-            raw_text = re.sub(r'\s+', ' ', raw_text)  # Converte spazi multipli in singoli
-            
-            # Crea un DataFrame
-            df = pd.read_csv(io.StringIO(raw_text), sep=sep, engine='python')
-
-            # Controllo sulla correttezza del parsing
-            if df.shape[1] == 1:
-                st.warning("⚠️ Il file non sembra tabulato correttamente. Il separatore potrebbe essere errato.")
-
-            # Prova a convertire colonne numeriche e date
-            for col in df.columns:
-                df[col] = pd.to_numeric(df[col], errors='ignore')  # Converte numeri
-                df[col] = pd.to_datetime(df[col], errors='ignore')  # Converte date
-
-            return df
-
+            return pd.read_csv(io.StringIO(uploaded_file.getvalue().decode("utf-8")), sep=sep)
         except pd.errors.ParserError as e:
-            st.error(f"❌ Errore di parsing: {e}")
+            st.error(f"Errore di parsing del file: {e}")
             return None
     elif uploaded_file.name.endswith('.xlsx'):
         return pd.read_excel(uploaded_file)
     else:
         st.error("Formato file non supportato")
         return None
+        
 # Funzione per inferire e analizzare le date nel DataFrame
 def infer_and_parse_dates(df):
     """Inferisce e analizza le date nel DataFrame."""
