@@ -266,13 +266,22 @@ def Statistics(df_list, filenames):
         st.session_state["dataset_selector"] = st.session_state.get("selected_datasets", [])
 
         # Selezione dei dataset senza forzare il ricaricamento
+        # Inizializza lo stato se non esiste
+        if "selected_datasets" not in st.session_state:
+            st.session_state["selected_datasets"] = filenames  # Seleziona tutti i dataset per default
+        
+        # UI per selezionare i dataset SENZA ricaricare la pagina
         selected_datasets = st.multiselect(
-        "Select datasets",
-        st.session_state["filenames"],
-        default=st.session_state["selected_datasets"],
-        key="dataset_selector",
-        on_change=update_selection  # Funzione di callback per salvare lo stato
-    )
+            "Select datasets",
+            filenames,  # Opzioni disponibili
+            default=st.session_state["selected_datasets"],  # Valore attuale nello stato
+            key="dataset_selector"
+        )
+        
+        # Aggiorna session_state SOLO se cambia la selezione
+        if selected_datasets != st.session_state["selected_datasets"]:
+            st.session_state["selected_datasets"] = selected_datasets
+
         for dataset_name in st.session_state["selected_datasets"]::
             idx = st.session_state["filenames"].index(dataset_name)
             df = st.session_state["df_list"][idx]  # Usa la sessione per mantenere il dataframe
