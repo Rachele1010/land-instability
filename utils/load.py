@@ -3,13 +3,13 @@ import pandas as pd
 import io
 import re
 # Funzione per rilevare il separatore in un file CSV o TXT
-# Funzione migliorata per normalizzare il separatore senza eliminare le righe
+# Funzione migliorata per normalizzare il separatore senza eliminare i ritorni a capo
 def normalize_separator(text):
     """Normalizza i separatori mantenendo le righe separate"""
     text = re.sub(r'\s*,\s*', ',', text)  # Rimuove spazi attorno alle virgole
     text = re.sub(r'\s*;\s*', ';', text)  # Rimuove spazi attorno ai punti e virgola
-    text = re.sub(r'[ ]+', ' ', text)  # Sostituisce spazi multipli con singoli
-    return text  # NON rimuoviamo i ritorni a capo!
+    text = re.sub(r'[ ]+', ' ', text)  # Sostituisce spazi multipli con singoli MA mantiene i ritorni a capo
+    return text  # Non rimuoviamo '\n'!
 
 @st.cache_data
 def load_file(uploaded_file):
@@ -23,7 +23,7 @@ def load_file(uploaded_file):
             st.write("📄 **Anteprima del file originale:**")
             st.text("\n".join(raw_text.split("\n")[:10]))  # Prime 10 righe
 
-            # Normalizza il testo senza distruggere la struttura
+            # Normalizza il testo SENZA eliminare i ritorni a capo
             normalized_text = normalize_separator(raw_text)
 
             # DEBUG 2: Mostra il file dopo la normalizzazione
@@ -36,12 +36,7 @@ def load_file(uploaded_file):
             # DEBUG 3: Mostra la forma del DataFrame
             st.write(f"📊 **Shape del DataFrame:** {df.shape}")
 
-            # Se il dataframe è vuoto, prova con spazi multipli come separatore
-            if df.empty:
-                st.warning("⚠️ Il dataset è vuoto con `sep=','`, provo con `sep=r'\\s+'`...")
-                df = pd.read_csv(io.StringIO(normalized_text), sep=r'\s+', engine="python")
-                st.write(f"📊 **Nuova Shape del DataFrame:** {df.shape}")
-
+            # Se il dataframe è vuoto, avvisa l'utente
             if df.empty:
                 st.error("❌ Il dataset è ancora vuoto dopo il caricamento. Controlla il file e il separatore.")
                 return None
