@@ -3,7 +3,6 @@ import pandas as pd
 import io
 import re
 # Funzione per rilevare il separatore in un file CSV o TXT
-# Funzione per standardizzare il separatore
 def normalize_separator(text):
     """Sostituisce i separatori misti con una virgola e rimuove spazi superflui"""
     text = re.sub(r'\s*[,;]\s*', ',', text)  # Converte ", ", "; ", ";" in ","
@@ -21,8 +20,12 @@ def load_file(uploaded_file):
             # Normalizza i separatori
             normalized_text = normalize_separator(raw_text)
 
-            # Converte in DataFrame
-            df = pd.read_csv(io.StringIO(normalized_text), sep=',', engine='python')
+            # DEBUG: Mostra il testo processato
+            st.write("📄 **Anteprima del file normalizzato:**")
+            st.text(normalized_text[:500])  # Mostra i primi 500 caratteri
+
+            # Caricamento con pandas
+            df = pd.read_csv(io.StringIO(normalized_text), sep=",", engine="python", skip_blank_lines=True)
 
             # Controlla se il dataframe è vuoto
             if df.empty:
@@ -30,6 +33,7 @@ def load_file(uploaded_file):
                 return None
 
             # Mostra un'anteprima per debugging
+            st.write("📊 **Anteprima del DataFrame:**")
             st.write(df.head())
 
             return df
