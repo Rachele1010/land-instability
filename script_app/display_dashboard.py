@@ -3,10 +3,10 @@ import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go
 from streamlit_echarts import st_echarts
-from utils.plotting import create_and_render_plot
-from utils.load import load_file, process_file
-from utils.map_combined_datasets import map_combined_datasets
-from utils.Statistics import Statistics
+from script_app.load_plotting_utils.plotting import create_and_render_plot
+from script_app.load_plotting_utils.load import load_file, process_file
+from script_app.statistics_map_combined.map_combined_datasets import map_combined_datasets
+from utilsscript_app.statistics_map_combined.Statistics import Statistics
 
 def display_dashboard():
     st.header("Data Analysis and Plotting")
