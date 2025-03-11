@@ -3,12 +3,13 @@ import pandas as pd
 import io
 import re
 # Funzione per rilevare il separatore in un file CSV o TXT
+# Funzione per standardizzare il separatore
 def normalize_separator(text):
     """Sostituisce i separatori misti con una virgola e rimuove spazi superflui"""
     text = re.sub(r'\s*[,;]\s*', ',', text)  # Converte ", ", "; ", ";" in ","
     text = re.sub(r'\s+', ' ', text).strip()  # Rimuove spazi multipli
     return text
-# Funzione per caricare il file in base all'estensione
+
 @st.cache_data
 def load_file(uploaded_file):
     """Carica un file CSV o TXT con separatori misti e normalizza i dati."""
@@ -17,22 +18,35 @@ def load_file(uploaded_file):
             # Legge il contenuto del file
             raw_text = uploaded_file.getvalue().decode("utf-8")
 
+            # DEBUG 1: Mostra le prime righe del file originale
+            st.write("📄 **Anteprima del file originale:**")
+            st.text(raw_text[:500])  # Mostra i primi 500 caratteri
+
             # Normalizza i separatori
             normalized_text = normalize_separator(raw_text)
 
-            # DEBUG: Mostra il testo processato
-            st.write("📄 **Anteprima del file normalizzato:**")
-            st.text(normalized_text[:500])  # Mostra i primi 500 caratteri
+            # DEBUG 2: Mostra il file dopo la normalizzazione
+            st.write("📄 **Anteprima dopo la normalizzazione:**")
+            st.text(normalized_text[:500])
 
-            # Caricamento con pandas
+            # Tentativo 1: Caricamento con virgole
             df = pd.read_csv(io.StringIO(normalized_text), sep=",", engine="python", skip_blank_lines=True)
 
-            # Controlla se il dataframe è vuoto
+            # DEBUG 3: Mostra la forma del DataFrame
+            st.write(f"📊 **Shape del DataFrame:** {df.shape}")
+
+            # Se è vuoto, prova con spazi multipli come separatore
             if df.empty:
-                st.error("❌ Il dataset è vuoto dopo il caricamento. Controlla il file e il separatore.")
+                st.warning("⚠️ Il dataset è vuoto con `sep=','`, provo con `sep=r'\\s+'`...")
+                df = pd.read_csv(io.StringIO(normalized_text), sep=r'\s+', engine="python", skip_blank_lines=True)
+                st.write(f"📊 **Nuova Shape del DataFrame:** {df.shape}")
+
+            # Controlla se il dataframe è ancora vuoto
+            if df.empty:
+                st.error("❌ Il dataset è ancora vuoto dopo il caricamento. Controlla il file e il separatore.")
                 return None
 
-            # Mostra un'anteprima per debugging
+            # Mostra un'anteprima del dataframe
             st.write("📊 **Anteprima del DataFrame:**")
             st.write(df.head())
 
