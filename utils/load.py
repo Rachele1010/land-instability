@@ -8,24 +8,43 @@ def remove_thousands_separator(text):
     """Rimuove la virgola come separatore delle migliaia, senza toccare i separatori di colonna."""
     return re.sub(r'(?<=\d),(?=\d{1,3}(\D|$))', '', text)
 
-# 🔹 Normalizza il separatore senza eliminare i ritorni a capo
-def normalize_separator(text):
-    """Normalizza i separatori mantenendo le righe separate"""
-    text = remove_thousands_separator(text)  # Rimuove il separatore delle migliaia
-    text = re.sub(r'\s*,\s*', ',', text)  # Rimuove spazi attorno alle virgole (separatore di colonna)
-    text = re.sub(r'\s*;\s*', ';', text)  # Rimuove spazi attorno ai punti e virgola
-    text = re.sub(r'\s*[,;]\s*', ',', text)  # Sostituisce punto e virgola e virgole con un'unica virgola
-    text = re.sub(r'[ ,;]+', ',', text)  # Sostituisce spazi, virgole e punto e virgola con una virgola
-    return text  # Non rimuoviamo '\n'!
+def detect_separator(text):
+    """Rileva il separatore di colonna in base alla riga con più separatori."""
+    possible_separators = [';', ',', '\t', ' ']  # Separatori comuni
+    lines = text.split("\n")
+    
+    # Cerca la riga con più separatori
+    best_line = max(lines, key=lambda line: sum(line.count(sep) for sep in possible_separators))
 
-@st.cache_data
+    # Conta le occorrenze di ciascun separatore nella riga selezionata
+    separator_counts = {sep: best_line.count(sep) for sep in possible_separators}
+
+    # Se lo spazio ha meno occorrenze di altri separatori, lo escludiamo per evitare errori
+    if separator_counts[' '] < max(separator_counts.values()):
+        separator_counts.pop(' ')  
+
+    return max(separator_counts, key=separator_counts.get) if max(separator_counts.values()) > 0 else ','
+
+def normalize_separator(text, detected_separator):
+    """Normalizza i separatori mantenendo le righe separate"""
+    text = remove_thousands_separator(text)  # Rimuove separatori delle migliaia
+
+    # Normalizza separatori, ma mantiene il principale rilevato
+    text = re.sub(r'\s*,\s*', ',', text)  # Rimuove spazi attorno alle virgole
+    text = re.sub(r'\s*;\s*', ';', text)  # Rimuove spazi attorno ai punti e virgola
+    text = re.sub(r'\s*[,;]\s*', detected_separator, text)  # Unifica i separatori alla modalità corretta
+    text = re.sub(r'[ ,;]+', detected_separator, text)  # Sostituisce separatori misti con quello corretto
+
+    return text  # Manteniamo i ritorni a capo
+
 def load_file(uploaded_file):
     """Carica il file CSV o TXT con separatori misti senza perdere la struttura"""
     if uploaded_file.name.endswith(('.csv', '.txt')):
         try:
             raw_text = uploaded_file.getvalue().decode("utf-8")  # Legge il contenuto del file
-            normalized_text = normalize_separator(raw_text)  # Normalizza i separatori
-            df = pd.read_csv(io.StringIO(normalized_text), sep=",", engine="python")  # Legge il file con pandas
+            detected_separator = detect_separator(raw_text)  # Rileva il separatore
+            normalized_text = normalize_separator(raw_text, detected_separator)  # Normalizza il testo
+            df = pd.read_csv(io.StringIO(normalized_text), sep=detected_separator, engine="python")  # Legge il file con pandas
 
             if df.empty:
                 st.error("❌ Il dataset è vuoto. Controlla il file e il separatore.")
