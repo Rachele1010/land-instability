@@ -7,7 +7,7 @@ def detect_separator(uploaded_file):
     """Rileva il separatore di un file CSV o TXT analizzando le prime righe."""
     content = io.StringIO(uploaded_file.getvalue().decode("utf-8"))
     
-    possible_separators = [';', ',', '\t', ' ']  # Punto e virgola, virgola, tabulazione, spazio
+    possible_separators = [';', ',', '\t', ' ', ',  ', ' , ']  # Punto e virgola, virgola, tabulazione, spazio
     line_count = 5  # Numero di righe da analizzare
     
     # Legge le prime 'line_count' righe
