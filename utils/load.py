@@ -3,14 +3,14 @@ import pandas as pd
 import io
 import re
 # Funzione per rilevare il separatore in un file CSV o TXT
-# Funzione per standardizzare il separatore
-# Funzione migliorata per normalizzare il separatore
+# Funzione migliorata per normalizzare il separatore senza eliminare le righe
 def normalize_separator(text):
-    """Normalizza i separatori senza distruggere la struttura delle righe"""
-    text = re.sub(r'\s*,\s*', ',', text)  # Rimuove spazi attorno a virgole
-    text = re.sub(r'\s*;\s*', ';', text)  # Rimuove spazi attorno a punti e virgola
-    text = re.sub(r'\s+', ' ', text)  # Converte spazi multipli in singoli
-    return text.strip()  # Rimuove spazi iniziali/finali
+    """Normalizza i separatori mantenendo le righe separate"""
+    text = re.sub(r'\s*,\s*', ',', text)  # Rimuove spazi attorno alle virgole
+    text = re.sub(r'\s*;\s*', ';', text)  # Rimuove spazi attorno ai punti e virgola
+    text = re.sub(r'[ ]+', ' ', text)  # Sostituisce spazi multipli con singoli
+    return text  # NON rimuoviamo i ritorni a capo!
+
 @st.cache_data
 def load_file(uploaded_file):
     """Carica il file CSV o TXT con separatori misti senza perdere la struttura"""
