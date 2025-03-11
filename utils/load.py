@@ -3,47 +3,28 @@ import pandas as pd
 import io
 import re
 # Funzione per rilevare il separatore in un file CSV o TXT
-def detect_separator(uploaded_file):
-    """Rileva il separatore predominante in un file con separatori misti."""
-    content = io.StringIO(uploaded_file.getvalue().decode("utf-8"))
-
-    # Legge le prime 5 righe del file
-    lines = [content.readline().strip() for _ in range(5)]
-
-    # Normalizza gli spazi multipli in un solo spazio
-    lines = [re.sub(r'\s+', ' ', line) for line in lines]
-
-    possible_separators = [',', ';', '\t', ' ']
-
-    # Conta la frequenza dei separatori per ogni riga
-    separator_counts = {sep: sum(line.count(sep) for line in lines) for sep in possible_separators}
-
-    # Trova il separatore più coerente
-    best_separator = max(separator_counts, key=separator_counts.get)
-
-    # Se lo spazio è il separatore principale, assicurati che non sia dovuto a spazi multipli
-    if best_separator == ' ':
-        for line in lines:
-            if ',' in line or ';' in line or '\t' in line:
-                best_separator = ','  # Riprova con la virgola come fallback
-                break
-
-    return best_separator
-
+# Funzione per standardizzare il separatore
+def normalize_separator(text):
+    """Sostituisce i separatori misti con una virgola e rimuove spazi superflui"""
+    text = re.sub(r'\s*[,;]\s*', ',', text)  # Converte ", ", "; ", ";" in ","
+    text = re.sub(r'\s+', ' ', text).strip()  # Rimuove spazi multipli
+    return text
 # Funzione per caricare il file in base all'estensione
 @st.cache_data
 def load_file(uploaded_file):
-    """Carica un file CSV, TXT o Excel con separatori misti e normalizza i dati."""
+    """Carica un file CSV o TXT con separatori misti e normalizza i dati."""
     if uploaded_file.name.endswith(('.csv', '.txt')):
-        sep = detect_separator(uploaded_file)
-        st.write(f"Separatore rilevato: '{sep}'")  # Debug
-
         try:
+            # Legge il contenuto del file
             raw_text = uploaded_file.getvalue().decode("utf-8")
 
-            # Usa `delim_whitespace=True` per gestire spazi multipli
-            df = pd.read_csv(io.StringIO(raw_text), delim_whitespace=True, engine='python')
+            # Normalizza i separatori
+            normalized_text = normalize_separator(raw_text)
 
+            # Converte in DataFrame
+            df = pd.read_csv(io.StringIO(normalized_text), sep=',', engine='python')
+
+            # Controlla se il dataframe è vuoto
             if df.empty:
                 st.error("❌ Il dataset è vuoto dopo il caricamento. Controlla il file e il separatore.")
                 return None
