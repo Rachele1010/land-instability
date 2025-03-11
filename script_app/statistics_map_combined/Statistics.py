@@ -261,38 +261,51 @@ def Statistics(df_list, filenames):
             fig.update_layout(title="Cross-Correlation", xaxis_title="Lag", yaxis_title="Cross-Correlation Value")
             st.plotly_chart(fig, use_container_width=True)
     # Streamlit UI
+    # Streamlit UI
     elif st.session_state["show_distribution_data"]:
         st.subheader("Distribution Data")
-        st.session_state["dataset_selector"] = st.session_state.get("selected_datasets", [])
-
-        # Selezione dei dataset senza forzare il ricaricamento
-        # Inizializza lo stato se non esiste
+    
+        # 🔹 Inizializza lo stato della sessione per mantenere le selezioni
         if "selected_datasets" not in st.session_state:
-            st.session_state["selected_datasets"] = filenames  # Seleziona tutti i dataset per default
-        
-        # UI per selezionare i dataset SENZA ricaricare la pagina
+            st.session_state["selected_datasets"] = filenames  # Seleziona tutti i dataset inizialmente
+    
+        if "df_list" not in st.session_state:
+            st.session_state["df_list"] = df_list  # Mantiene i dataframe in sessione
+    
+        if "filenames" not in st.session_state:
+            st.session_state["filenames"] = filenames  # Mantiene i nomi dei file in sessione
+    
+        # 🔹 Funzione per aggiornare i dataset selezionati senza ricaricare la pagina
+        def update_selected_datasets():
+            st.session_state["selected_datasets"] = st.session_state["dataset_selector"]
+    
+        # 🔹 UI per selezionare i dataset (senza forzare il refresh)
         selected_datasets = st.multiselect(
             "Select datasets",
-            filenames,  # Opzioni disponibili
-            default=st.session_state["selected_datasets"],  # Valore attuale nello stato
-            key="dataset_selector"
+            st.session_state["filenames"],  # Opzioni disponibili
+            default=st.session_state["selected_datasets"],  # Selezione attuale
+            key="dataset_selector",
+            on_change=update_selected_datasets  # Callback per aggiornare senza ricaricare
         )
-        
-        # Aggiorna session_state SOLO se cambia la selezione
-        if selected_datasets != st.session_state["selected_datasets"]:
-            st.session_state["selected_datasets"] = selected_datasets
-
-        for dataset_name in st.session_state["selected_datasets"]::
+    
+        # 🔹 Se non ci sono dataset selezionati, mostra un messaggio di avviso e blocca l'esecuzione
+        if not st.session_state["selected_datasets"]:
+            st.warning("⚠️ No dataset selected. Please select at least one dataset.")
+            st.stop()
+    
+        # 🔹 Loop sui dataset selezionati
+        for dataset_name in st.session_state["selected_datasets"]:
             idx = st.session_state["filenames"].index(dataset_name)
-            df = st.session_state["df_list"][idx]  # Usa la sessione per mantenere il dataframe
+            df = st.session_state["df_list"][idx]  # Recupera il dataframe dalla sessione
             df = convert_unix_to_datetime(df)  # Converti la data solo una volta
-        
+    
             if df is not None:
                 stats_df = calcula_statistics(df)
                 if stats_df.empty:
                     st.warning(f"⚠️ No data available for {dataset_name}")
                     continue
-                
+    
+                # 🔹 Mostra metriche statistiche
                 col1, col2, col3, col4, col5, col6, col7 = st.columns(7)
                 for _, row in stats_df.iterrows():
                     with col1:
@@ -311,51 +324,52 @@ def Statistics(df_list, filenames):
                         with col7:
                             st.metric(label="Median", value=row['Median'])
                 st.markdown("---")
-        
-            # Selezione della colonna datetime
+    
+            # 🔹 Selezione della colonna datetime
             colonne_datetime = df.select_dtypes(include=['datetime64[ns]', 'datetime64[ns, UTC]']).columns
-        
-            # Selezione delle variabili numeriche e categoriche
+    
+            # 🔹 Selezione delle variabili numeriche e categoriche
             variabili_numeriche = df.select_dtypes(include=['number']).columns
             variabili_categoriche = df.select_dtypes(include=['object']).columns
-        
+    
             col1, col2, col3 = st.columns([1, 2, 2])
-        
+    
             with col1:
                 if len(colonne_datetime) > 0:
                     colonna_data = st.selectbox(
                         f"Select datetime for {dataset_name}",
                         colonne_datetime,
-                        key=f"datetime_{dataset_name}_{idx}"  # Chiave univoca
+                        key=f"datetime_{dataset_name}_{idx}"
                     )
-        
+    
             with col2:
                 if len(variabili_numeriche) > 0:
                     y_axis_num = st.selectbox(
                         f"Select numerical variable for {dataset_name}",
                         variabili_numeriche.tolist(),
-                        key=f"y_axis_num_{dataset_name}_{idx}"  # Chiave univoca
+                        key=f"y_axis_num_{dataset_name}_{idx}"
                     )
                     if y_axis_num:  
                         aggregazioni = aggrega_datos_time(df, colonna_data, y_axis_num)
+    
             with col3:
                 if len(variabili_categoriche) > 0:
                     categoria_scelta = st.selectbox(
                         f"Select categorical variable for {dataset_name}",
                         variabili_categoriche.tolist(),
-                        key=f"var_cat_{dataset_name}_{idx}"  # Chiave univoca
+                        key=f"var_cat_{dataset_name}_{idx}"
                     )
-        
+    
                     if categoria_scelta:
                         count_df = df[categoria_scelta].value_counts().reset_index()
                         count_df.columns = [categoria_scelta, "Count"]
-        
+    
                         fig_cat = px.bar(count_df, x=categoria_scelta, y="Count", title=f"Distribution of {categoria_scelta}")
                         st.plotly_chart(fig_cat)
-        
+    
                         if len(colonne_datetime) > 0:
                             count_time_df = df.groupby([colonna_data, categoria_scelta]).size().reset_index(name="Count")
-        
+    
                             fig_time = px.line(
                                 count_time_df,
                                 x=colonna_data,
@@ -364,22 +378,18 @@ def Statistics(df_list, filenames):
                                 title=f"Trend of {categoria_scelta} over time"
                             )
                             st.plotly_chart(fig_time)
-        
-            # Grafico per i dati aggregati
+    
+            # 🔹 Grafico per i dati aggregati
             with col2:
                 if "aggregazioni" in locals() and aggregazioni:
                     for periodo, agg_df in aggregazioni.items():
-                        if isinstance(agg_df, pd.Series) or isinstance(agg_df, pd.DataFrame):
+                        if isinstance(agg_df, (pd.Series, pd.DataFrame)):
                             if not agg_df.empty:
-                                #st.write(f"#### Plot {periodo} by {dataset_name}")
-                                
-                                # Converte la Serie in DataFrame se necessario
                                 if isinstance(agg_df, pd.Series):
                                     agg_df = agg_df.reset_index()
-                                
-                                # Debug per controllare le lunghezze
+    
                                 st.write(f"Data shape: {agg_df.shape}")
-                                
+    
                                 if len(agg_df) > 1:
                                     fig = px.bar(agg_df, x=agg_df.iloc[:, 0], y=agg_df.iloc[:, 1], title=f"{periodo} Aggregate")
                                     st.plotly_chart(fig)
