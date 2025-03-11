@@ -1,7 +1,7 @@
 import streamlit as st
 import pandas as pd
 import io
-
+import re
 # Funzione per rilevare il separatore in un file CSV o TXT
 def detect_separator(uploaded_file):
     """Rileva il separatore predominante in un file con separatori misti."""
