@@ -20,21 +20,21 @@ def load_file(uploaded_file):
             raw_text = uploaded_file.getvalue().decode("utf-8")
 
             # DEBUG 1: Mostra il file originale
-            st.write("📄 **Anteprima del file originale:**")
-            st.text("\n".join(raw_text.split("\n")[:10]))  # Prime 10 righe
+            #st.write("📄 **Anteprima del file originale:**")
+            #st.text("\n".join(raw_text.split("\n")[:10]))  # Prime 10 righe
 
             # Normalizza il testo SENZA eliminare i ritorni a capo
             normalized_text = normalize_separator(raw_text)
 
             # DEBUG 2: Mostra il file dopo la normalizzazione
-            st.write("📄 **Anteprima dopo la normalizzazione:**")
-            st.text("\n".join(normalized_text.split("\n")[:10]))
+            #st.write("📄 **Anteprima dopo la normalizzazione:**")
+            #st.text("\n".join(normalized_text.split("\n")[:10]))
 
             # Legge il file con pandas usando la virgola come separatore
             df = pd.read_csv(io.StringIO(normalized_text), sep=",", engine="python")
 
             # DEBUG 3: Mostra la forma del DataFrame
-            st.write(f"📊 **Shape del DataFrame:** {df.shape}")
+            #st.write(f"📊 **Shape del DataFrame:** {df.shape}")
 
             # Se il dataframe è vuoto, avvisa l'utente
             if df.empty:
@@ -42,8 +42,8 @@ def load_file(uploaded_file):
                 return None
 
             # DEBUG 4: Mostra le prime righe del DataFrame
-            st.write("📊 **Anteprima del DataFrame:**")
-            st.write(df.head())
+            #st.write("📊 **Anteprima del DataFrame:**")
+            #st.write(df.head())
 
             return df
 
