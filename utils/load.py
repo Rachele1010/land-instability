@@ -2,11 +2,17 @@ import streamlit as st
 import pandas as pd
 import io
 import re
+def remove_thousands_separator(text):
+    """Rimuove la virgola come separatore delle migliaia, senza toccare i separatori di colonna."""
+    # Sostituisce le virgole nei numeri (ma non tra parole)
+    return re.sub(r'(?<=\d),(?=\d{3}\b)', '', text)
+
 # Funzione per rilevare il separatore in un file CSV o TXT
 # Funzione migliorata per normalizzare il separatore senza eliminare i ritorni a capo
 def normalize_separator(text):
     """Normalizza i separatori mantenendo le righe separate"""
-    text = re.sub(r'\s*,\s*', ',', text)  # Rimuove spazi attorno alle virgole
+    text = remove_thousands_separator(text)  # Rimuove il separatore delle migliaia
+    text = re.sub(r'\s*,\s*', ',', text)  # Rimuove spazi attorno alle virgole (separatore di colonna)
     text = re.sub(r'\s*;\s*', ';', text)  # Rimuove spazi attorno ai punti e virgola
     text = re.sub(r'[ ]+', ' ', text)  # Sostituisce spazi multipli con singoli MA mantiene i ritorni a capo
     return text  # Non rimuoviamo '\n'!
