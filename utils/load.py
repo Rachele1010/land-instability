@@ -9,42 +9,43 @@ def remove_thousands_separator(text):
     return re.sub(r'(?<=\d),(?=\d{1,3}(\D|$))', '', text)
 
 def detect_separator(text):
-    """Rileva il separatore di colonna in base alla riga con più separatori."""
-    possible_separators = [';', ',', '\t', ' ']  # Separatori comuni
+    """Rileva il separatore di colonna esaminando la prima riga con dati."""
+    possible_separators = [';', ',', '\t', ' ']  # I separatori più comuni
     lines = text.split("\n")
-    
-    # Cerca la riga con più separatori
-    best_line = max(lines, key=lambda line: sum(line.count(sep) for sep in possible_separators))
 
-    # Conta le occorrenze di ciascun separatore nella riga selezionata
-    separator_counts = {sep: best_line.count(sep) for sep in possible_separators}
+    # Cerca la prima riga con dati non vuota
+    for line in lines:
+        if line.strip():  # Salta righe vuote
+            # Conta i separatori
+            separator_counts = {sep: line.count(sep) for sep in possible_separators}
 
-    # Se lo spazio ha meno occorrenze di altri separatori, lo escludiamo per evitare errori
-    if separator_counts[' '] < max(separator_counts.values()):
-        separator_counts.pop(' ')  
+            # Se troviamo `,` o `;`, scegliamo quello con più occorrenze
+            if separator_counts[','] > 0 or separator_counts[';'] > 0:
+                return ',' if separator_counts[','] >= separator_counts[';'] else ';'
 
-    return max(separator_counts, key=separator_counts.get) if max(separator_counts.values()) > 0 else ','
+            # Se non ci sono `,` o `;`, scegliamo il più frequente tra `\t` e spazio
+            return max(separator_counts, key=separator_counts.get) if max(separator_counts.values()) > 0 else ','
+
+    return ','  # Default nel caso non trovi separatori
 
 def normalize_separator(text, detected_separator):
-    """Normalizza i separatori mantenendo le righe separate"""
+    """Normalizza il testo rimuovendo i separatori delle migliaia e uniformando i separatori di colonna."""
     text = remove_thousands_separator(text)  # Rimuove separatori delle migliaia
 
-    # Normalizza separatori, ma mantiene il principale rilevato
-    text = re.sub(r'\s*,\s*', ',', text)  # Rimuove spazi attorno alle virgole
-    text = re.sub(r'\s*;\s*', ';', text)  # Rimuove spazi attorno ai punti e virgola
-    text = re.sub(r'\s*[,;]\s*', detected_separator, text)  # Unifica i separatori alla modalità corretta
-    text = re.sub(r'[ ,;]+', detected_separator, text)  # Sostituisce separatori misti con quello corretto
+    # Se il separatore principale non è lo spazio, manteniamo gli spazi nei dati
+    if detected_separator in [',', ';', '\t']:
+        text = re.sub(r'\s*[,;]\s*', detected_separator, text)  # Unifica `,` e `;` nel separatore rilevato
 
     return text  # Manteniamo i ritorni a capo
 
 def load_file(uploaded_file):
-    """Carica il file CSV o TXT con separatori misti senza perdere la struttura"""
+    """Carica il file CSV o TXT rilevando automaticamente il separatore."""
     if uploaded_file.name.endswith(('.csv', '.txt')):
         try:
             raw_text = uploaded_file.getvalue().decode("utf-8")  # Legge il contenuto del file
             detected_separator = detect_separator(raw_text)  # Rileva il separatore
             normalized_text = normalize_separator(raw_text, detected_separator)  # Normalizza il testo
-            df = pd.read_csv(io.StringIO(normalized_text), sep=detected_separator, engine="python")  # Legge il file con pandas
+            df = pd.read_csv(io.StringIO(normalized_text), sep=detected_separator, engine="python")  # Legge con pandas
 
             if df.empty:
                 st.error("❌ Il dataset è vuoto. Controlla il file e il separatore.")
