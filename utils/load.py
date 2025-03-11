@@ -4,8 +4,7 @@ import io
 import re
 def remove_thousands_separator(text):
     """Rimuove la virgola come separatore delle migliaia, senza toccare i separatori di colonna."""
-    # Sostituisce le virgole nei numeri (ma non tra parole)
-    return re.sub(r'(?<=\d),(?=\d{3}\b)', '', text)
+    return re.sub(r'(?<=\d),(?=\d{1,3}(\D|$))', '', text)
 
 # Funzione per rilevare il separatore in un file CSV o TXT
 # Funzione migliorata per normalizzare il separatore senza eliminare i ritorni a capo
