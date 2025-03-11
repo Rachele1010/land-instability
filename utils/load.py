@@ -4,49 +4,49 @@ import io
 import re
 # Funzione per rilevare il separatore in un file CSV o TXT
 # Funzione per standardizzare il separatore
+# Funzione migliorata per normalizzare il separatore
 def normalize_separator(text):
-    """Sostituisce i separatori misti con una virgola e rimuove spazi superflui"""
-    text = re.sub(r'\s*[,;]\s*', ',', text)  # Converte ", ", "; ", ";" in ","
-    text = re.sub(r'\s+', ' ', text).strip()  # Rimuove spazi multipli
-    return text
-
+    """Normalizza i separatori senza distruggere la struttura delle righe"""
+    text = re.sub(r'\s*,\s*', ',', text)  # Rimuove spazi attorno a virgole
+    text = re.sub(r'\s*;\s*', ';', text)  # Rimuove spazi attorno a punti e virgola
+    text = re.sub(r'\s+', ' ', text)  # Converte spazi multipli in singoli
+    return text.strip()  # Rimuove spazi iniziali/finali
 @st.cache_data
 def load_file(uploaded_file):
-    """Carica un file CSV o TXT con separatori misti e normalizza i dati."""
+    """Carica il file CSV o TXT con separatori misti senza perdere la struttura"""
     if uploaded_file.name.endswith(('.csv', '.txt')):
         try:
             # Legge il contenuto del file
             raw_text = uploaded_file.getvalue().decode("utf-8")
 
-            # DEBUG 1: Mostra le prime righe del file originale
+            # DEBUG 1: Mostra il file originale
             st.write("📄 **Anteprima del file originale:**")
-            st.text(raw_text[:500])  # Mostra i primi 500 caratteri
+            st.text("\n".join(raw_text.split("\n")[:10]))  # Prime 10 righe
 
-            # Normalizza i separatori
+            # Normalizza il testo senza distruggere la struttura
             normalized_text = normalize_separator(raw_text)
 
             # DEBUG 2: Mostra il file dopo la normalizzazione
             st.write("📄 **Anteprima dopo la normalizzazione:**")
-            st.text(normalized_text[:500])
+            st.text("\n".join(normalized_text.split("\n")[:10]))
 
-            # Tentativo 1: Caricamento con virgole
-            df = pd.read_csv(io.StringIO(normalized_text), sep=",", engine="python", skip_blank_lines=True)
+            # Legge il file con pandas usando la virgola come separatore
+            df = pd.read_csv(io.StringIO(normalized_text), sep=",", engine="python")
 
             # DEBUG 3: Mostra la forma del DataFrame
             st.write(f"📊 **Shape del DataFrame:** {df.shape}")
 
-            # Se è vuoto, prova con spazi multipli come separatore
+            # Se il dataframe è vuoto, prova con spazi multipli come separatore
             if df.empty:
                 st.warning("⚠️ Il dataset è vuoto con `sep=','`, provo con `sep=r'\\s+'`...")
-                df = pd.read_csv(io.StringIO(normalized_text), sep=r'\s+', engine="python", skip_blank_lines=True)
+                df = pd.read_csv(io.StringIO(normalized_text), sep=r'\s+', engine="python")
                 st.write(f"📊 **Nuova Shape del DataFrame:** {df.shape}")
 
-            # Controlla se il dataframe è ancora vuoto
             if df.empty:
                 st.error("❌ Il dataset è ancora vuoto dopo il caricamento. Controlla il file e il separatore.")
                 return None
 
-            # Mostra un'anteprima del dataframe
+            # DEBUG 4: Mostra le prime righe del DataFrame
             st.write("📊 **Anteprima del DataFrame:**")
             st.write(df.head())
 
