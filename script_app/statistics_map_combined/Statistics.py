@@ -263,11 +263,17 @@ def Statistics(df_list, filenames):
     # Streamlit UI
     elif st.session_state["show_distribution_data"]:
         st.subheader("Distribution Data")
-        
+        st.session_state["dataset_selector"] = st.session_state.get("selected_datasets", [])
+
         # Selezione dei dataset senza forzare il ricaricamento
-        selected_datasets = st.multiselect("Select datasets", st.session_state["filenames"], default=st.session_state["filenames"])
-        
-        for dataset_name in selected_datasets:
+        selected_datasets = st.multiselect(
+        "Select datasets",
+        st.session_state["filenames"],
+        default=st.session_state["selected_datasets"],
+        key="dataset_selector",
+        on_change=update_selection  # Funzione di callback per salvare lo stato
+    )
+        for dataset_name in st.session_state["selected_datasets"]::
             idx = st.session_state["filenames"].index(dataset_name)
             df = st.session_state["df_list"][idx]  # Usa la sessione per mantenere il dataframe
             df = convert_unix_to_datetime(df)  # Converti la data solo una volta
