@@ -14,6 +14,7 @@ def normalize_separator(text):
     text = remove_thousands_separator(text)  # Rimuove il separatore delle migliaia
     text = re.sub(r'\s*,\s*', ',', text)  # Rimuove spazi attorno alle virgole (separatore di colonna)
     text = re.sub(r'\s*;\s*', ';', text)  # Rimuove spazi attorno ai punti e virgola
+    text = re.sub(r'\s*[,;]\s*', ',', text)  # Sostituisce punto e virgola e virgole con un'unica virgola
     text = re.sub(r'[ ]+', ' ', text)  # Sostituisce spazi multipli con singoli MA mantiene i ritorni a capo
     return text  # Non rimuoviamo '\n'!
 
