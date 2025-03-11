@@ -36,23 +36,20 @@ def load_file(uploaded_file):
     """Carica un file CSV, TXT o Excel con separatori misti e normalizza i dati."""
     if uploaded_file.name.endswith(('.csv', '.txt')):
         sep = detect_separator(uploaded_file)
+        st.write(f"Separatore rilevato: '{sep}'")  # Debug
 
         try:
-            # Normalizza il contenuto per eliminare spazi multipli prima del parsing
             raw_text = uploaded_file.getvalue().decode("utf-8")
-            raw_text = re.sub(r'\s+', ' ', raw_text)  # Converte spazi multipli in singoli
-            
-            # Crea un DataFrame
-            df = pd.read_csv(io.StringIO(raw_text), sep=sep, engine='python')
 
-            # Controllo sulla correttezza del parsing
-            if df.shape[1] == 1:
-                st.warning("⚠️ Il file non sembra tabulato correttamente. Il separatore potrebbe essere errato.")
+            # Usa `delim_whitespace=True` per gestire spazi multipli
+            df = pd.read_csv(io.StringIO(raw_text), delim_whitespace=True, engine='python')
 
-            # Prova a convertire colonne numeriche e date
-            for col in df.columns:
-                df[col] = pd.to_numeric(df[col], errors='ignore')  # Converte numeri
-                df[col] = pd.to_datetime(df[col], errors='ignore')  # Converte date
+            if df.empty:
+                st.error("❌ Il dataset è vuoto dopo il caricamento. Controlla il file e il separatore.")
+                return None
+
+            # Mostra un'anteprima per debugging
+            st.write(df.head())
 
             return df
 
