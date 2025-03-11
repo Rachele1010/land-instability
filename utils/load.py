@@ -15,7 +15,7 @@ def normalize_separator(text):
     text = re.sub(r'\s*,\s*', ',', text)  # Rimuove spazi attorno alle virgole (separatore di colonna)
     text = re.sub(r'\s*;\s*', ';', text)  # Rimuove spazi attorno ai punti e virgola
     text = re.sub(r'\s*[,;]\s*', ',', text)  # Sostituisce punto e virgola e virgole con un'unica virgola
-    text = re.sub(r'[ ]+', ' ', text)  # Sostituisce spazi multipli con singoli MA mantiene i ritorni a capo
+    text = re.sub(r'[ ,;]+', ',', text)  # Sostituisce spazi, virgole e punto e virgola con una virgola
     return text  # Non rimuoviamo '\n'!
 
 @st.cache_data
