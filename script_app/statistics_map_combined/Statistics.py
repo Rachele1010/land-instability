@@ -275,18 +275,25 @@ def Statistics(df_list, filenames):
         if "filenames" not in st.session_state:
             st.session_state["filenames"] = filenames  # Mantiene i nomi dei file in sessione
     
-        # 🔹 Funzione per aggiornare i dataset selezionati senza ricaricare la pagina
-        def update_selected_datasets():
-            st.session_state["selected_datasets"] = st.session_state["dataset_selector"]
+        # 🔹 UI per selezionare i dataset (SENZA MULTISELECT, SOLO CHECKBOX)
+        st.subheader("Select Datasets")
     
-        # 🔹 UI per selezionare i dataset (senza forzare il refresh)
-        st.multiselect(
-            "Select datasets",
-            st.session_state["filenames"],  # Opzioni disponibili
-            default=st.session_state["selected_datasets"],  # Selezione attuale
-            key="dataset_selector",
-            on_change=update_selected_datasets  # Callback per aggiornare senza ricaricare
-        )
+        col1, col2 = st.columns([1, 1])
+        with col1:
+            if st.button("Select All"):
+                st.session_state["selected_datasets"] = st.session_state["filenames"]
+    
+        with col2:
+            if st.button("Deselect All"):
+                st.session_state["selected_datasets"] = []
+    
+        selected_datasets = []
+        for dataset in st.session_state["filenames"]:
+            if st.checkbox(dataset, value=dataset in st.session_state["selected_datasets"], key=f"chk_{dataset}"):
+                selected_datasets.append(dataset)
+    
+        # 🔹 Aggiorna lo stato dei dataset selezionati
+        st.session_state["selected_datasets"] = selected_datasets
     
         # 🔹 Se non ci sono dataset selezionati, mostra un messaggio di avviso e blocca l'esecuzione
         if not st.session_state["selected_datasets"]:
