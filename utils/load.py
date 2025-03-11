@@ -19,37 +19,67 @@ def detect_separator(uploaded_file):
     # Trova il separatore più coerente (esclude valori anomali con varianza alta)
     best_separator = max(separator_counts, key=separator_counts.get)
     
-    return best_separator if separator_counts[best_separator] > 0 else ','
+    return best_separator if separator_counts[best_separator] > 0 else ','def detect_separator(uploaded_file):
+    """Rileva il separatore predominante in un file con separatori misti."""
+    content = io.StringIO(uploaded_file.getvalue().decode("utf-8"))
+
+    # Legge le prime 5 righe del file
+    lines = [content.readline().strip() for _ in range(5)]
+
+    # Normalizza gli spazi multipli in un solo spazio
+    lines = [re.sub(r'\s+', ' ', line) for line in lines]
+
+    possible_separators = [',', ';', '\t', ' ']
+
+    # Conta la frequenza dei separatori per ogni riga
+    separator_counts = {sep: sum(line.count(sep) for line in lines) for sep in possible_separators}
+
+    # Trova il separatore più coerente
+    best_separator = max(separator_counts, key=separator_counts.get)
+
+    # Se lo spazio è il separatore principale, assicurati che non sia dovuto a spazi multipli
+    if best_separator == ' ':
+        for line in lines:
+            if ',' in line or ';' in line or '\t' in line:
+                best_separator = ','  # Riprova con la virgola come fallback
+                break
+
+    return best_separator
 
 # Funzione per caricare il file in base al tipo di estensione
 @st.cache_data
 def load_file(uploaded_file):
-    """Carica un file CSV, TXT o Excel rilevando il separatore e convertendo colonne con separatori multipli."""
+    """Carica un file CSV, TXT o Excel con separatori misti e normalizza i dati."""
     if uploaded_file.name.endswith(('.csv', '.txt')):
         sep = detect_separator(uploaded_file)
+
         try:
-            df = pd.read_csv(io.StringIO(uploaded_file.getvalue().decode("utf-8")), sep=sep)
+            # Normalizza il contenuto per eliminare spazi multipli prima del parsing
+            raw_text = uploaded_file.getvalue().decode("utf-8")
+            raw_text = re.sub(r'\s+', ' ', raw_text)  # Converte spazi multipli in singoli
             
-            # Controllo se il parsing è riuscito correttamente
+            # Crea un DataFrame
+            df = pd.read_csv(io.StringIO(raw_text), sep=sep, engine='python')
+
+            # Controllo sulla correttezza del parsing
             if df.shape[1] == 1:
-                st.warning("⚠️ Attenzione: il file non sembra tabulato correttamente. Il separatore potrebbe essere errato.")
-            
-            # Individua colonne che contengono valori separati da virgole o punto e virgola
-            for col in df.select_dtypes(include=['object']).columns:
-                if df[col].astype(str).str.contains(r',|;').any():
-                    df[col] = df[col].apply(lambda x: x.split(',') if ',' in x else x.split(';') if ';' in x else x)
+                st.warning("⚠️ Il file non sembra tabulato correttamente. Il separatore potrebbe essere errato.")
+
+            # Prova a convertire colonne numeriche e date
+            for col in df.columns:
+                df[col] = pd.to_numeric(df[col], errors='ignore')  # Converte numeri
+                df[col] = pd.to_datetime(df[col], errors='ignore')  # Converte date
 
             return df
-        
+
         except pd.errors.ParserError as e:
-            st.error(f"❌ Errore di parsing del file: {e}")
+            st.error(f"❌ Errore di parsing: {e}")
             return None
     elif uploaded_file.name.endswith('.xlsx'):
         return pd.read_excel(uploaded_file)
     else:
         st.error("Formato file non supportato")
         return None
-
 # Funzione per inferire e analizzare le date nel DataFrame
 def infer_and_parse_dates(df):
     """Inferisce e analizza le date nel DataFrame."""
