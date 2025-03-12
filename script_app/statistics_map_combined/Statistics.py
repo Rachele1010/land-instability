@@ -457,8 +457,27 @@ def Statistics_Data(df_list, filenames):
                 fig = px.bar(var_exp_df, x="Component", y="Variance Explained", title="Explained Variance by Principal Components")
                 st.plotly_chart(fig)
                 
-                if num_components >= 2:
-                    st.write("### 2D PCA Scatter Plot")
-                    fig_scatter = px.scatter(pca_df, x='PC1', y='PC2', title="PCA: First Two Principal Components")
-                    st.plotly_chart(fig_scatter)
-
+                if num_components >= 3:
+                    st.write("### Principal Component Analysis (PCA) - Breakdown")
+                    
+                    # Creazione della figura con tre sottotrame affiancate
+                    fig_pca, axes = plt.subplots(1, 3, figsize=(18, 5))
+                    
+                    # 1. Varianza spiegata per componente
+                    sns.barplot(x=[f'PC{i+1}' for i in range(num_components)], y=explained_variance, ax=axes[0])
+                    axes[0].set_title("Explained Variance by Component")
+                    axes[0].set_ylabel("Variance Explained")
+                    axes[0].set_xticklabels([f'PC{i+1}' for i in range(num_components)], rotation=45)
+                    
+                    # 2. Serie temporali delle componenti principali (solo le prime tre)
+                    pca_df[['PC1', 'PC2', 'PC3']].plot(ax=axes[1])
+                    axes[1].set_title("Principal Components Time Series")
+                    axes[1].set_xlabel("Time")
+                    
+                    # 3. Loadings delle variabili originali sulle prime tre componenti
+                    loadings = pd.DataFrame(pca.components_[:3], columns=df.columns, index=[f'PC{i+1}' for i in range(3)])
+                    sns.heatmap(loadings.T, annot=True, cmap="coolwarm", center=0, ax=axes[2])
+                    axes[2].set_title("Feature Loadings on Principal Components")
+                    
+                    # Mostra la figura
+                    st.pyplot(fig_pca)
