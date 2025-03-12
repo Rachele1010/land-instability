@@ -423,6 +423,7 @@ def Statistics_Data(df_list, filenames):
                 st.warning(f"⚠️ No aggregated data available.")
 
     # Corretto l'indentazione del blocco PCA
+    # Corretto l'indentazione del blocco PCA
     if st.session_state.get("show_pca", False):  # Questa è la condizione che dobbiamo controllare
         st.subheader("🔢 Principal Component Analysis (PCA)")
         selected_dataset = st.selectbox("Select dataset for PCA", filenames)
@@ -455,15 +456,13 @@ def Statistics_Data(df_list, filenames):
                 
                     # 2. Serie temporali delle prime tre componenti principali
                     pca_df.iloc[:, :3].plot(ax=axes[1])
-                    axes[1].set_title("Principal Components Time Series")
-                    axes[1].set_xlabel("Time")
+                    axes[1].set_title("Top 3 Principal Components over Time")
+                    axes[1].set_ylabel("Component Value")
                 
-                    # 3. Loadings delle variabili originali sulle prime tre componenti
-                    from sklearn.decomposition import PCA  # Assicurati che PCA sia importato
-                    pca = PCA(n_components=num_components).fit(df)  # Rifai il fit del PCA se non già fatto
-                    loadings = pd.DataFrame(pca.components_[:3], columns=df.columns, index=[f'PC{i+1}' for i in range(3)])
-                    sns.heatmap(loadings.T, annot=True, cmap="coolwarm", center=0, ax=axes[2])
-                    axes[2].set_title("Feature Loadings on Principal Components")
+                    # 3. Scatter plot delle prime due componenti principali
+                    axes[2].scatter(pca_df.iloc[:, 0], pca_df.iloc[:, 1])
+                    axes[2].set_title("Scatter Plot of First Two Principal Components")
+                    axes[2].set_xlabel("PC1")
+                    axes[2].set_ylabel("PC2")
                 
-                    # Mostra la figura
                     st.pyplot(fig_pca)
