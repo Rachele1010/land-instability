@@ -422,7 +422,7 @@ def Statistics_Data(df_list, filenames):
             else:
                 st.warning(f"⚠️ No aggregated data available.")
 
-       elif st.session_state.get("show_pca", False):
+       if st.session_state.get("show_pca", False):
             st.subheader("🔢 Principal Component Analysis (PCA)")
             selected_dataset = st.selectbox("Select dataset for PCA", filenames)
             
