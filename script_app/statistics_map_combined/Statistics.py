@@ -6,7 +6,7 @@ from script_app.load_plotting_utils.plotting import create_and_render_plot
 from script_app.load_plotting_utils.utils import convert_unix_to_datetime, compute_autocorrelation,  compute_cross_correlation, calcula_statistics, aggrega_datos_time
 from sklearn.decomposition import PCA
 from sklearn.preprocessing import StandardScaler
-
+import matplotlib.pyplot as plt
 def perform_pca(df, num_components):
     numeric_cols = df.select_dtypes(include=['number']).columns.tolist()
     
@@ -462,22 +462,24 @@ def Statistics_Data(df_list, filenames):
                     
                     # Creazione della figura con tre sottotrame affiancate
                     fig_pca, axes = plt.subplots(1, 3, figsize=(18, 5))
-                    
+                
                     # 1. Varianza spiegata per componente
                     sns.barplot(x=[f'PC{i+1}' for i in range(num_components)], y=explained_variance, ax=axes[0])
                     axes[0].set_title("Explained Variance by Component")
                     axes[0].set_ylabel("Variance Explained")
                     axes[0].set_xticklabels([f'PC{i+1}' for i in range(num_components)], rotation=45)
-                    
-                    # 2. Serie temporali delle componenti principali (solo le prime tre)
-                    pca_df[['PC1', 'PC2', 'PC3']].plot(ax=axes[1])
+                
+                    # 2. Serie temporali delle prime tre componenti principali
+                    pca_df.iloc[:, :3].plot(ax=axes[1])
                     axes[1].set_title("Principal Components Time Series")
                     axes[1].set_xlabel("Time")
-                    
+                
                     # 3. Loadings delle variabili originali sulle prime tre componenti
+                    from sklearn.decomposition import PCA  # Assicurati che PCA sia importato
+                    pca = PCA(n_components=num_components).fit(df)  # Rifai il fit del PCA se non già fatto
                     loadings = pd.DataFrame(pca.components_[:3], columns=df.columns, index=[f'PC{i+1}' for i in range(3)])
                     sns.heatmap(loadings.T, annot=True, cmap="coolwarm", center=0, ax=axes[2])
                     axes[2].set_title("Feature Loadings on Principal Components")
-                    
+                
                     # Mostra la figura
                     st.pyplot(fig_pca)
