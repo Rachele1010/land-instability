@@ -3,7 +3,7 @@ import streamlit as st
 st.set_page_config(layout="wide", page_title="Land instability", page_icon="🌍", initial_sidebar_state="auto")
 import hydralit_components as hc
 from PIL import Image
-from utils.display_dashboard import display_dashboard
+from script_app.display_dashboard import display_dashboard
 
 def main():
     # Definisci il menu con le voci principali e i sottomenu
