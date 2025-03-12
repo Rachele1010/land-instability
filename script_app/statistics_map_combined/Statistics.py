@@ -296,7 +296,7 @@ def Statistics_Data(df_list, filenames):
     elif st.session_state["show_distribution_data"]:
         st.subheader("Distribution Data")
     
-        selected_datasets = st.selectbox("Select datasets", filenames, default=filenames)
+        selected_datasets = st.selectbox("Select datasets", filenames, index=0)  
     
         # 🔹 Aggiorna lo stato dei dataset selezionati
         st.session_state["selected_datasets"] = selected_datasets
