@@ -7,6 +7,8 @@ from script_app.load_plotting_utils.utils import convert_unix_to_datetime, compu
 from sklearn.decomposition import PCA
 from sklearn.preprocessing import StandardScaler
 import matplotlib.pyplot as plt
+import seaborn as sns
+
 def perform_pca(df, num_components):
     numeric_cols = df.select_dtypes(include=['number']).columns.tolist()
     
