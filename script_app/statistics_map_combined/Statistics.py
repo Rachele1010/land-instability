@@ -6,7 +6,7 @@ from script_app.load_plotting_utils.plotting import create_and_render_plot
 from script_app.load_plotting_utils.utils import convert_unix_to_datetime, compute_autocorrelation,  compute_cross_correlation, calcula_statistics, aggrega_datos_time
 
 # Funzione principale per la visualizzazione e analisi dei dataset
-def Statistics(df_list, filenames):
+def Statistics_Data(df_list, filenames):
     if "show_individual_plots" not in st.session_state:
         st.session_state["show_individual_plots"] = True
     if "show_merge_multiple_dataset" not in st.session_state:
