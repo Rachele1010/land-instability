@@ -75,11 +75,11 @@ def Statistics_Data(df_list, filenames):
             st.session_state["show_distribution_data"] = False
     with col5:
         if st.button("🔄 Distribution Data"):
-            st.session_state["show_distribution_data"] = True
             st.session_state["show_individual_plots"] = False
             st.session_state["show_merge_multiple_dataset"] = False
             st.session_state["show_autocorrelation"] = False
             st.session_state["show_cross_correlation"] = False
+            st.session_state["show_distribution_data"] = True
     with col6:
         if st.button("🔢 PCA Analysis"):
             st.session_state["show_pca"] = True
@@ -296,32 +296,7 @@ def Statistics_Data(df_list, filenames):
     elif st.session_state["show_distribution_data"]:
         st.subheader("Distribution Data")
     
-        # 🔹 Inizializza lo stato della sessione per mantenere le selezioni
-        if "selected_datasets" not in st.session_state:
-            st.session_state["selected_datasets"] = filenames  # Seleziona tutti i dataset inizialmente
-    
-        if "df_list" not in st.session_state:
-            st.session_state["df_list"] = df_list  # Mantiene i dataframe in sessione
-    
-        if "filenames" not in st.session_state:
-            st.session_state["filenames"] = filenames  # Mantiene i nomi dei file in sessione
-    
-        # 🔹 UI per selezionare i dataset (SENZA MULTISELECT, SOLO CHECKBOX)
-        st.subheader("Select Datasets")
-    
-        col1, col2 = st.columns([1, 1])
-        with col1:
-            if st.button("Select All"):
-                st.session_state["selected_datasets"] = st.session_state["filenames"]
-    
-        with col2:
-            if st.button("Deselect All"):
-                st.session_state["selected_datasets"] = []
-    
-        selected_datasets = []
-        for dataset in st.session_state["filenames"]:
-            if st.checkbox(dataset, value=dataset in st.session_state["selected_datasets"], key=f"chk_{dataset}"):
-                selected_datasets.append(dataset)
+        selected_datasets = st.multiselect("Select datasets", filenames, default=filenames)
     
         # 🔹 Aggiorna lo stato dei dataset selezionati
         st.session_state["selected_datasets"] = selected_datasets
