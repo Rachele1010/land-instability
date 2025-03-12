@@ -425,10 +425,10 @@ def Statistics_Data(df_list, filenames):
     # Corretto l'indentazione del blocco PCA
     if st.session_state.get("show_pca", False):  # Questa è la condizione che dobbiamo controllare
         st.subheader("🔢 Principal Component Analysis (PCA)")
-        selected_dataset = st.selectbox("Select dataset for PCA", filename)
+        selected_dataset = st.selectbox("Select dataset for PCA", filenames)
         
         if selected_dataset:
-            df = df_list[filename.index(selected_dataset)]
+            df = df_list[filenames.index(selected_dataset)]
             num_components = st.slider("Number of Principal Components", 2, min(len(df.columns), 10), 2)
             pca_df, explained_variance = perform_pca(df, num_components)
             
