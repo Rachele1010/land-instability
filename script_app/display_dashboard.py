@@ -6,7 +6,7 @@ from streamlit_echarts import st_echarts
 from script_app.load_plotting_utils.plotting import create_and_render_plot
 from script_app.load_plotting_utils.load import load_file, process_file
 from script_app.statistics_map_combined.map_combined_datasets import map_combined_datasets
-from script_app.statistics_map_combined.Statistics import Statistics
+from script_app.statistics_map_combined.Statistics import Statistics_Data
 
 def display_dashboard():
     st.header("Data Analysis and Plotting")
