@@ -4,6 +4,25 @@ import plotly.graph_objects as go
 import plotly.express as px  
 from script_app.load_plotting_utils.plotting import create_and_render_plot  
 from script_app.load_plotting_utils.utils import convert_unix_to_datetime, compute_autocorrelation,  compute_cross_correlation, calcula_statistics, aggrega_datos_time
+from sklearn.decomposition import PCA
+from sklearn.preprocessing import StandardScaler
+
+def perform_pca(df, num_components):
+    numeric_cols = df.select_dtypes(include=['number']).columns.tolist()
+    
+    if len(numeric_cols) < 2:
+        st.warning("⚠️ PCA requires at least two numerical variables.")
+        return None, None
+    
+    scaler = StandardScaler()
+    df_scaled = scaler.fit_transform(df[numeric_cols])
+    pca = PCA(n_components=num_components)
+    principal_components = pca.fit_transform(df_scaled)
+    
+    pca_df = pd.DataFrame(principal_components, columns=[f'PC{i+1}' for i in range(num_components)])
+    explained_variance = pca.explained_variance_ratio_
+    
+    return pca_df, explained_variance
 
 # Funzione principale per la visualizzazione e analisi dei dataset
 def Statistics_Data(df_list, filenames):
@@ -17,10 +36,12 @@ def Statistics_Data(df_list, filenames):
         st.session_state["show_cross_correlation"] = False
     if "show_pivot" not in st.session_state:
         st.session_state["show_distribution_data"] = False
+    if "show_pca" not in st.session_state:
+        st.session_state["show_pca"] = False
         
         st.subheader("📈 Data Plotting")
     
-    col1, col2, col3, col4, col5 = st.columns(5)
+    col1, col2, col3, col4, col5, col6 = st.columns(6)
     
     with col1:
         if st.button("📊 Single Plot"):
@@ -53,6 +74,14 @@ def Statistics_Data(df_list, filenames):
     with col5:
         if st.button("🔄 Distribution Data"):
             st.session_state["show_distribution_data"] = True
+            st.session_state["show_individual_plots"] = False
+            st.session_state["show_merge_multiple_dataset"] = False
+            st.session_state["show_autocorrelation"] = False
+            st.session_state["show_cross_correlation"] = False
+    with col6:
+        if st.button("🔢 PCA Analysis"):
+            st.session_state["show_pca"] = True
+            st.session_state["show_distribution_data"] = False
             st.session_state["show_individual_plots"] = False
             st.session_state["show_merge_multiple_dataset"] = False
             st.session_state["show_autocorrelation"] = False
@@ -409,3 +438,27 @@ def Statistics_Data(df_list, filenames):
                                 st.warning(f"⚠️ No data to plot for {periodo}.")
                 else:
                     st.warning(f"⚠️ No aggregated data available.")
+   
+    elif st.session_state["show_pca"]:
+        st.subheader("🔢 Principal Component Analysis (PCA)")
+        selected_dataset = st.selectbox("Select dataset for PCA", filenames)
+        
+        if selected_dataset:
+            df = df_list[filenames.index(selected_dataset)]
+            num_components = st.slider("Number of Principal Components", 2, min(len(df.columns), 10), 2)
+            pca_df, explained_variance = perform_pca(df, num_components)
+            
+            if pca_df is not None:
+                st.write("### Principal Components Data")
+                st.dataframe(pca_df)
+                
+                st.write("### Explained Variance Ratio")
+                var_exp_df = pd.DataFrame({"Component": [f'PC{i+1}' for i in range(num_components)], "Variance Explained": explained_variance})
+                fig = px.bar(var_exp_df, x="Component", y="Variance Explained", title="Explained Variance by Principal Components")
+                st.plotly_chart(fig)
+                
+                if num_components >= 2:
+                    st.write("### 2D PCA Scatter Plot")
+                    fig_scatter = px.scatter(pca_df, x='PC1', y='PC2', title="PCA: First Two Principal Components")
+                    st.plotly_chart(fig_scatter)
+
