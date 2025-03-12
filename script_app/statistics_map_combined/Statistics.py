@@ -52,6 +52,7 @@ def Statistics_Data(df_list, filenames):
             st.session_state["show_autocorrelation"] = False
             st.session_state["show_cross_correlation"] = False
             st.session_state["show_distribution_data"] = False
+            st.session_state["show_pca"] = False
     with col2:
         if st.button("🔄 Merge Datasets"):
             st.session_state["show_individual_plots"] = False
@@ -59,6 +60,7 @@ def Statistics_Data(df_list, filenames):
             st.session_state["show_autocorrelation"] = False
             st.session_state["show_cross_correlation"] = False
             st.session_state["show_distribution_data"] = False
+            st.session_state["show_pca"] = False
     with col3:
         if st.button("📈 Autocorrelation"):
             st.session_state["show_individual_plots"] = False
@@ -66,6 +68,7 @@ def Statistics_Data(df_list, filenames):
             st.session_state["show_autocorrelation"] = True
             st.session_state["show_cross_correlation"] = False
             st.session_state["show_distribution_data"] = False
+            st.session_state["show_pca"] = False
     with col4:
         if st.button("🔀 Cross-Correlation"):
             st.session_state["show_individual_plots"] = False
@@ -73,6 +76,7 @@ def Statistics_Data(df_list, filenames):
             st.session_state["show_autocorrelation"] = False
             st.session_state["show_cross_correlation"] = True
             st.session_state["show_distribution_data"] = False
+            st.session_state["show_pca"] = False
     with col5:
         if st.button("🔄 Distribution Data"):
             st.session_state["show_individual_plots"] = False
@@ -80,6 +84,7 @@ def Statistics_Data(df_list, filenames):
             st.session_state["show_autocorrelation"] = False
             st.session_state["show_cross_correlation"] = False
             st.session_state["show_distribution_data"] = True
+            st.session_state["show_pca"] = False
     with col6:
         if st.button("🔢 PCA Analysis"):
             st.session_state["show_pca"] = True
