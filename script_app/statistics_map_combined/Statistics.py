@@ -422,47 +422,48 @@ def Statistics_Data(df_list, filenames):
             else:
                 st.warning(f"⚠️ No aggregated data available.")
 
-       if st.session_state.get("show_pca", False):
-            st.subheader("🔢 Principal Component Analysis (PCA)")
-            selected_dataset = st.selectbox("Select dataset for PCA", filenames)
+# Corretto l'indentazione del blocco PCA
+if st.session_state.get("show_pca", False):  # Questa è la condizione che dobbiamo controllare
+    st.subheader("🔢 Principal Component Analysis (PCA)")
+    selected_dataset = st.selectbox("Select dataset for PCA", filenames)
+    
+    if selected_dataset:
+        df = df_list[filenames.index(selected_dataset)]
+        num_components = st.slider("Number of Principal Components", 2, min(len(df.columns), 10), 2)
+        pca_df, explained_variance = perform_pca(df, num_components)
+        
+        if pca_df is not None:
+            st.write("### Principal Components Data")
+            st.dataframe(pca_df)
             
-            if selected_dataset:
-                df = df_list[filenames.index(selected_dataset)]
-                num_components = st.slider("Number of Principal Components", 2, min(len(df.columns), 10), 2)
-                pca_df, explained_variance = perform_pca(df, num_components)
+            st.write("### Explained Variance Ratio")
+            var_exp_df = pd.DataFrame({"Component": [f'PC{i+1}' for i in range(num_components)], "Variance Explained": explained_variance})
+            fig = px.bar(var_exp_df, x="Component", y="Variance Explained", title="Explained Variance by Principal Components")
+            st.plotly_chart(fig)
+            
+            if num_components >= 3:
+                st.write("### Principal Component Analysis (PCA) - Breakdown")
                 
-                if pca_df is not None:
-                    st.write("### Principal Components Data")
-                    st.dataframe(pca_df)
-                    
-                    st.write("### Explained Variance Ratio")
-                    var_exp_df = pd.DataFrame({"Component": [f'PC{i+1}' for i in range(num_components)], "Variance Explained": explained_variance})
-                    fig = px.bar(var_exp_df, x="Component", y="Variance Explained", title="Explained Variance by Principal Components")
-                    st.plotly_chart(fig)
-                    
-                    if num_components >= 3:
-                        st.write("### Principal Component Analysis (PCA) - Breakdown")
-                        
-                        # Creazione della figura con tre sottotrame affiancate
-                        fig_pca, axes = plt.subplots(1, 3, figsize=(18, 5))
-                    
-                        # 1. Varianza spiegata per componente
-                        sns.barplot(x=[f'PC{i+1}' for i in range(num_components)], y=explained_variance, ax=axes[0])
-                        axes[0].set_title("Explained Variance by Component")
-                        axes[0].set_ylabel("Variance Explained")
-                        axes[0].set_xticklabels([f'PC{i+1}' for i in range(num_components)], rotation=45)
-                    
-                        # 2. Serie temporali delle prime tre componenti principali
-                        pca_df.iloc[:, :3].plot(ax=axes[1])
-                        axes[1].set_title("Principal Components Time Series")
-                        axes[1].set_xlabel("Time")
-                    
-                        # 3. Loadings delle variabili originali sulle prime tre componenti
-                        from sklearn.decomposition import PCA  # Assicurati che PCA sia importato
-                        pca = PCA(n_components=num_components).fit(df)  # Rifai il fit del PCA se non già fatto
-                        loadings = pd.DataFrame(pca.components_[:3], columns=df.columns, index=[f'PC{i+1}' for i in range(3)])
-                        sns.heatmap(loadings.T, annot=True, cmap="coolwarm", center=0, ax=axes[2])
-                        axes[2].set_title("Feature Loadings on Principal Components")
-                    
-                        # Mostra la figura
-                        st.pyplot(fig_pca)
+                # Creazione della figura con tre sottotrame affiancate
+                fig_pca, axes = plt.subplots(1, 3, figsize=(18, 5))
+            
+                # 1. Varianza spiegata per componente
+                sns.barplot(x=[f'PC{i+1}' for i in range(num_components)], y=explained_variance, ax=axes[0])
+                axes[0].set_title("Explained Variance by Component")
+                axes[0].set_ylabel("Variance Explained")
+                axes[0].set_xticklabels([f'PC{i+1}' for i in range(num_components)], rotation=45)
+            
+                # 2. Serie temporali delle prime tre componenti principali
+                pca_df.iloc[:, :3].plot(ax=axes[1])
+                axes[1].set_title("Principal Components Time Series")
+                axes[1].set_xlabel("Time")
+            
+                # 3. Loadings delle variabili originali sulle prime tre componenti
+                from sklearn.decomposition import PCA  # Assicurati che PCA sia importato
+                pca = PCA(n_components=num_components).fit(df)  # Rifai il fit del PCA se non già fatto
+                loadings = pd.DataFrame(pca.components_[:3], columns=df.columns, index=[f'PC{i+1}' for i in range(3)])
+                sns.heatmap(loadings.T, annot=True, cmap="coolwarm", center=0, ax=axes[2])
+                axes[2].set_title("Feature Loadings on Principal Components")
+            
+                # Mostra la figura
+                st.pyplot(fig_pca)
