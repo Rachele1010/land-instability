@@ -300,54 +300,57 @@ def Statistics_Data(df_list, filenames):
     # Streamlit UI
     elif st.session_state.get("show_distribution_data", False):
         st.subheader("Distribution Data")
-    
-        # Verifica se filenames esiste e contiene dati
-        if "filenames" not in st.session_state or not st.session_state["filenames"]:
+
+        # Controllo che filenames sia definito e non vuoto
+        if not filenames:
             st.warning("⚠️ No datasets available. Please upload or load datasets first.")
             st.stop()
-    
-        # Recupera i nomi dei dataset disponibili
-        filenames = st.session_state["filenames"]
     
         # Selezione del dataset
         dataset_name = st.selectbox("Select dataset", filenames)
     
         # Verifica se il dataset selezionato è valido
-        if not dataset_name or dataset_name not in filenames:
-            st.warning(f"⚠️ Please select a valid dataset.")
+        if dataset_name not in filenames:
+            st.warning("⚠️ Please select a valid dataset.")
             st.stop()
     
         # Recupera il dataframe associato
         idx = filenames.index(dataset_name)
-        df = st.session_state["df_list"][idx]  # Recupera il dataframe dalla sessione
+        df = df_list[idx]  # Recupera il dataframe dalla lista
         df = convert_unix_to_datetime(df)  # Converti la data solo una volta
     
         st.caption(f"**Dataset {idx + 1} - {dataset_name}**")
     
-        # Se il dataframe è valido, calcola le statistiche
-        if df is not None and not df.empty:
-            stats_df = calcula_statistics(df)
-            if stats_df.empty:
-                st.warning(f"⚠️ No data available for {dataset_name}")
-            else:
-                col1, col2, col3, col4, col5, col6, col7 = st.columns(7)
-                for _, row in stats_df.iterrows():
-                    with col1:
-                        st.write(f"**Variable:** {row['Variable']}")
-                    with col2:
-                        st.metric(label="Counting", value=row.get('Counting', 'N/A'))
-                    if row.get('Sum', 'N/A') != 'N/A':
-                        with col3:
-                            st.metric(label="Sum", value=row['Sum'])
-                        with col4:
-                            st.metric(label="Mean", value=row['Mean'])
-                        with col5:
-                            st.metric(label="Minimum", value=row['Minimum'])
-                        with col6:
-                            st.metric(label="Max", value=row['Max'])
-                        with col7:
-                            st.metric(label="Median", value=row['Median'])
-                st.markdown("---")
+        # Controllo se il dataframe è vuoto
+        if df.empty:
+            st.warning(f"⚠️ No data available in the dataset {dataset_name}.")
+            st.stop()
+    
+        # Calcola le statistiche
+        stats_df = calcula_statistics(df)
+        if stats_df.empty:
+            st.warning(f"⚠️ No data available for {dataset_name}")
+            st.stop()
+        
+        # Visualizza le metriche statistiche
+        col1, col2, col3, col4, col5, col6, col7 = st.columns(7)
+        for _, row in stats_df.iterrows():
+            with col1:
+                st.write(f"**Variable:** {row['Variable']}")
+            with col2:
+                st.metric(label="Counting", value=row.get('Counting', 'N/A'))
+            if row.get('Sum', 'N/A') != 'N/A':
+                with col3:
+                    st.metric(label="Sum", value=row['Sum'])
+                with col4:
+                    st.metric(label="Mean", value=row['Mean'])
+                with col5:
+                    st.metric(label="Minimum", value=row['Minimum'])
+                with col6:
+                    st.metric(label="Max", value=row['Max'])
+                with col7:
+                    st.metric(label="Median", value=row['Median'])
+        st.markdown("---")
         else:
             st.warning(f"⚠️ No data available in the dataset {dataset_name}.")
         
