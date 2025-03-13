@@ -430,7 +430,7 @@ def Statistics_Data(df_list, filenames):
                 else:
                     st.warning(f"⚠️ No aggregated data available.")
     else:
-        st.warning("⚠️ Click again on "Distribution Data" ")
+        st.warning("⚠️ Click again on Distribution Data")
                     
     # Corretto l'indentazione del blocco PCA
     
