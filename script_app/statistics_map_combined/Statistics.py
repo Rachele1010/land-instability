@@ -432,7 +432,7 @@ def Statistics_Data(df_list, filenames):
                     
     # Corretto l'indentazione del blocco PCA
     
-    elif st.session_state["show_pca"]:        
+    if st.session_state["show_pca"]:        
         st.subheader("🔢 Principal Component Analysis (PCA)")
         selected_dataset = st.selectbox("Select dataset for PCA", filenames)
         
