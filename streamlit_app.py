@@ -58,7 +58,7 @@ def main():
         st.header("Information")
         col1, col2 = st.columns([1, 1])
         with col1:
-            st.subheader("Readme - Format file")
+            st.subheader("Readme")
             st.caption("Data type")
             st.write("""The following file types can be uploaded: xlsx, csv, txt. 
                         The application reads the comma as a point according to the most widely used scientific system.""") 
