@@ -298,16 +298,18 @@ def Statistics_Data(df_list, filenames):
             st.plotly_chart(fig, use_container_width=True)
     # Streamlit UI
     # Streamlit UI
-    # Inizializza "filenames" se non esiste
-    # Verifica se filenames e df_list sono stati inizializzati e contengono dati
-    if "filenames" not in st.session_state or not st.session_state["filenames"]:
+    
+    if "filenames" not in st.session_state:
+        st.session_state["filenames"] = []  # Lista vuota o caricare i nomi dei dataset disponibili
+    
+    if "df_list" not in st.session_state:
+        st.session_state["df_list"] = []  # Lista vuota per i dataframe
+    
+    # Verifica se ci sono dataset disponibili prima di continuare
+    if not st.session_state["filenames"]:
         st.warning("⚠️ No datasets available. Please upload or load datasets first.")
         st.stop()
     
-    if "df_list" not in st.session_state or not st.session_state["df_list"]:
-        st.warning("⚠️ Dataset list is empty. Please check your data loading process.")
-        st.stop()
-        
     elif st.session_state["show_distribution_data"]:
         st.subheader("Distribution Data")
     
