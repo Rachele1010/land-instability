@@ -299,20 +299,17 @@ def Statistics_Data(df_list, filenames):
     # Streamlit UI
     # Streamlit UI
     # Inizializza "filenames" se non esiste
-    if "filenames" not in st.session_state:
-        st.session_state["filenames"] = []  # O assegna una lista con nomi di dataset predefiniti
+    # Verifica se filenames e df_list sono stati inizializzati e contengono dati
+    if "filenames" not in st.session_state or not st.session_state["filenames"]:
+        st.warning("⚠️ No datasets available. Please upload or load datasets first.")
+        st.stop()
     
-    # Inizializza "df_list" se non esiste
-    if "df_list" not in st.session_state:
-        st.session_state["df_list"] = []
-    
+    if "df_list" not in st.session_state or not st.session_state["df_list"]:
+        st.warning("⚠️ Dataset list is empty. Please check your data loading process.")
+        st.stop()
+        
     elif st.session_state["show_distribution_data"]:
         st.subheader("Distribution Data")
-    
-        # Controlla se ci sono dataset disponibili
-        if not st.session_state["filenames"]:
-            st.warning("⚠️ No datasets available.")
-            st.stop()
     
         # Selezione e validazione del dataset
         dataset_name = st.selectbox("Select dataset", st.session_state["filenames"], index=0)
