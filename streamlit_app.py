@@ -56,11 +56,20 @@ def main():
     # Sezione Contatti
     if menu_id == "Info":
         st.header("Information")
-        st.subheader("Contact Us")
-        st.write("""Information about how to contact the team or get support. 
-                 Rachele Franceschini : rfranceschini@ogs.it""")
         col1, col2 = st.columns([1, 1])
         with col1:
+            st.subheader("Readme - Format file")
+            st.write(""" The following file types can be uploaded: xlsx, csv, txt. 
+                    The column separators must be unique, or all commas, or all spaces, or all semicolons. If the column separators are not the same, 
+                    the application may read the data incorrectly and not display it correctly in charts, tables and maps.
+                    If the date format is present, the following formats are read: Unixtime, YYYY-MM-DD and is translated to DD-MM-YYYY.
+                    The existing coordinates are preferred in the case studies: latitude, longitude, lat, long, x and y. 
+                    However, the system also reads if there is a different formulation with the words "lat" or "lon" within the data frame. 
+                    The coordinates should be given in degrees, with a comma as a separator. The application reads the comma as a point according to the most widely used scientific system.""")        
+
+        with col2:
+            st.subheader("Contact Us")
+            st.write("""Information about how to contact the team or get support. Rachele Franceschini : rfranceschini@ogs.it""")
             st.markdown("For more details about ITINERIS project, click on link -> **[ITINERIS](https://itineris.d4science.org/)**")
 if __name__ == "__main__":
     main()
