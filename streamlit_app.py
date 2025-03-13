@@ -59,14 +59,18 @@ def main():
         col1, col2 = st.columns([1, 1])
         with col1:
             st.subheader("Readme - Format file")
-            st.write(""" The following file types can be uploaded: xlsx, csv, txt. 
-                    The column separators must be unique, or all commas, or all spaces, or all semicolons. If the column separators are not the same, 
-                    the application may read the data incorrectly and not display it correctly in charts, tables and maps.
-                    If the date format is present, the following formats are read: Unixtime, YYYY-MM-DD and is translated to DD-MM-YYYY.
-                    The existing coordinates are preferred in the case studies: latitude, longitude, lat, long, x and y. 
+            st.caption("Data type")
+            st.write("""The following file types can be uploaded: xlsx, csv, txt. 
+                        The application reads the comma as a point according to the most widely used scientific system.""") 
+            st.caption("Split data")
+            st.write("""The column separators must be unique, or all commas, or all spaces, or all semicolons. If the column separators are not the same, 
+                    the application may read the data incorrectly and not display it correctly in charts, tables and maps.""")
+            st.caption("Datatime")
+            st.write("""If the date format is present, the following formats are read: Unixtime, YYYY-MM-DD and is translated to DD-MM-YYYY.""")
+            st.caption("Coordinates")
+            st.write("""The existing coordinates are preferred in the case studies: latitude, longitude, lat, long, x and y. 
                     However, the system also reads if there is a different formulation with the words "lat" or "lon" within the data frame. 
-                    The coordinates should be given in degrees, with a comma as a separator. The application reads the comma as a point according to the most widely used scientific system.""")        
-
+                    The coordinates should be given in degrees, with a comma as a separator. """)        
         with col2:
             st.subheader("Contact Us")
             st.write("""Information about how to contact the team or get support. Rachele Franceschini : rfranceschini@ogs.it""")
