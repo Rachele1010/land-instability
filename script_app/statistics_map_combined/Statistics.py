@@ -371,7 +371,7 @@ def Statistics_Data(df_list, filenames):
                 )
             else:
                 st.warning(f"⚠️ No datetime columns found in the dataset {dataset_name}.")
-                colonna_data = None  # Impostiamo colonna_data a None se non ci sono colonne datetime
+                colonna_data = None  # Se non ci sono colonne datetime, colonna_data è None
         
         # Selezione variabili numeriche
         with col2:
@@ -383,7 +383,7 @@ def Statistics_Data(df_list, filenames):
                 )
             else:
                 st.warning(f"⚠️ No numerical variables found in the dataset {dataset_name}.")
-                y_axis_num = None  # Impostiamo y_axis_num a None se non ci sono variabili numeriche
+                y_axis_num = None  # Se non ci sono variabili numeriche, y_axis_num è None
         
         # Selezione variabili categoriche
         with col3:
@@ -395,17 +395,18 @@ def Statistics_Data(df_list, filenames):
                 )
             else:
                 st.warning(f"⚠️ No categorical variables found in the dataset {dataset_name}.")
-                categoria_scelta = None  # Impostiamo categoria_scelta a None se non ci sono variabili categoriche
+                categoria_scelta = None  # Se non ci sono variabili categoriche, categoria_scelta è None
         
         # Verifica che siano stati selezionati sia una colonna datetime che una variabile numerica prima di chiamare la funzione aggrega_datos_time
-        if colonna_data and y_axis_num:
+        if colonna_data and y_axis_num:  # Verifica se entrambe le variabili sono definite
             aggregazioni = aggrega_datos_time(df, colonna_data, y_axis_num)
         else:
             st.warning("⚠️ Please select both a datetime column and a numerical variable.")
-            
+            aggregazioni = None  # Imposta aggregazioni a None se non è stato selezionato colonna_data o y_axis_num
+        
         # Grafico per i dati aggregati
         with col2:
-            if "aggregazioni" in locals() and aggregazioni:
+            if aggregazioni:
                 for periodo, agg_df in aggregazioni.items():
                     if isinstance(agg_df, (pd.Series, pd.DataFrame)):
                         if not agg_df.empty:
