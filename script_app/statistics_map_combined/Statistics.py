@@ -301,29 +301,17 @@ def Statistics_Data(df_list, filenames):
     elif st.session_state["show_distribution_data"]:
         st.subheader("Distribution Data")
     
-        # Selezione del dataset (un solo dataset per volta)
-        selected_datasets = st.selectbox("Select datasets", filenames, index=0)  
+        # Selezione e validazione del dataset
+        dataset_name = st.selectbox("Select dataset", st.session_state["filenames"], index=0)
     
-        # Aggiorna lo stato dei dataset selezionati
-        st.session_state["selected_datasets"] = selected_datasets
-    
-        # Se non ci sono dataset selezionati, mostra un messaggio di avviso e blocca l'esecuzione
-        if not st.session_state["selected_datasets"]:
-            st.warning("⚠️ No dataset selected. Please select at least one dataset.")
+        if not dataset_name or dataset_name not in st.session_state["filenames"]:
+            st.warning("⚠️ Please select a valid dataset.")
             st.stop()
     
-        dataset_name = st.session_state["selected_datasets"]
-    
-        # Verifica se il dataset selezionato è valido
-        if dataset_name not in st.session_state["filenames"]:
-            st.warning(f"⚠️ Dataset '{dataset_name}' non trovato.")
-            st.stop()
-    
-        # Recupera il dataframe associato al dataset selezionato
-        idx = st.session_state["filenames"].index(dataset_name)
-        df = st.session_state["df_list"][idx]  # Recupera il dataframe dalla sessione
-        df = convert_unix_to_datetime(df)  # Converti la data solo una volta
-    
+        # Recupera il dataframe e converte la data
+        df = st.session_state["df_list"][st.session_state["filenames"].index(dataset_name)]
+        df = convert_unix_to_datetime(df)
+        
         if df is not None:
             stats_df = calcula_statistics(df)
             if stats_df.empty:
