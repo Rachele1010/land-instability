@@ -21,8 +21,8 @@ def map_combined_datasets(dataframes, filenames=None):
     default_center = {"lat": 41.8719, "lon": 12.5674}  # Centro Italia
 
     coordinate_variants = {
-        "lat": ["lat", "latitude", "Latitudine", "y", "Y"],
-        "lon": ["lon", "longitude", "Longitudine", "x", "X"]
+        "lat": ["lat", "latitude", "Latitudine", "y", "Y", "_latitude"],
+        "lon": ["lon", "longitude", "Longitudine", "x", "X", "_longitude"]
     }
 
     with col2:
