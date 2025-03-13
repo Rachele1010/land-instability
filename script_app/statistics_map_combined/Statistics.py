@@ -315,11 +315,12 @@ def Statistics_Data(df_list, filenames):
         st.session_state.selected_distribution_datasets = selected_datasets
     
         # Se sono selezionati dei dataset
-        if selected_datasets:
-            for dataset_name in selected_datasets:
-                idx = filenames.index(dataset_name)
-                df = df_list[idx]  # Recupera il dataframe dalla lista
-                df = convert_unix_to_datetime(df)  # Converti la data solo una volta
+        if dataset_name in selected_datasets:
+            # Logica di visualizzazione dei dati
+            idx = filenames.index(dataset_name)
+            df = df_list[idx]  # Recupera il dataframe dalla lista
+            df = convert_unix_to_datetime(df)  # Converti la data solo una volta
+            # (continua con la logica di visualizzazione del dataset)
     
                 st.caption(f"**Dataset {idx + 1} - {dataset_name}**")
     
