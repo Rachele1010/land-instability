@@ -14,6 +14,10 @@ def convert_unix_to_datetime(df):
             # Verifica se i valori sono plausibili per timestamp in millisecondi
             elif df[col].between(1e12, 2e12).all():
                 df[col] = pd.to_datetime(df[col], unit='ms')
+        elif pd.api.types.is_string_dtype(df[col]):
+            # Verifica se la colonna è nel formato YYYYMMDD
+            if df[col].str.match(r'^\d{8}$').all():
+                df[col] = pd.to_datetime(df[col], format='%Y%m%d')
     return df
 
 # Funzione per calcolare l'autocorrelazione
