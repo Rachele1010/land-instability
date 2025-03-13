@@ -309,7 +309,7 @@ def Statistics_Data(df_list, filenames):
         if 'selected_distribution_datasets' not in st.session_state:
             st.session_state.selected_distribution_datasets = filenames  # Imposta il valore iniziale
     
-        selected_datasets = st.multiselect("Select datasets", filenames, default=st.session_state.selected_distribution_datasets)
+        selected_datasets = st.multiselect("Select datasets", filenames, default=filenames)
     
         # Selezioniamo solo i dataset che sono stati selezionati
         st.session_state.selected_distribution_datasets = selected_datasets
