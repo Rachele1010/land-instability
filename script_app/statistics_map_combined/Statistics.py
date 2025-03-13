@@ -304,34 +304,33 @@ def Statistics_Data(df_list, filenames):
         if not filenames:
             st.warning("⚠️ No datasets available. Please upload or load datasets first.")
             st.stop()
-        
-        # Selezione del dataset
-        dataset_name = st.checkbox("Select dataset", filenames)
-        
-        
+    
+        # Selezione del dataset usando selectbox invece di checkbox
+        dataset_name = st.selectbox("Select dataset", filenames)
+    
         # Verifica se il dataset selezionato è valido
         if dataset_name not in filenames:
             st.warning("⚠️ Please select a valid dataset.")
             st.stop()
-        
+    
         # Recupera il dataframe associato
         idx = filenames.index(dataset_name)
         df = df_list[idx]  # Recupera il dataframe dalla lista
         df = convert_unix_to_datetime(df)  # Converti la data solo una volta
-        
+    
         st.caption(f"**Dataset {idx + 1} - {dataset_name}**")
-        
+    
         # Controllo se il dataframe è vuoto
         if df.empty:
             st.warning(f"⚠️ No data available in the dataset {dataset_name}.")
             st.stop()
-        
+    
         # Calcola le statistiche
         stats_df = calcula_statistics(df)
         if stats_df.empty:
             st.warning(f"⚠️ No data available for {dataset_name}")
             st.stop()
-        
+    
         # Visualizza le metriche statistiche
         col1, col2, col3, col4, col5, col6, col7 = st.columns(7)
         for _, row in stats_df.iterrows():
@@ -351,16 +350,16 @@ def Statistics_Data(df_list, filenames):
                 with col7:
                     st.metric(label="Median", value=row['Median'])
         st.markdown("---")
-        
+    
         # Selezione della colonna datetime
         colonne_datetime = df.select_dtypes(include=['datetime64[ns]', 'datetime64[ns, UTC]']).columns
-        
+    
         # Selezione delle variabili numeriche e categoriche
         variabili_numeriche = df.select_dtypes(include=['number']).columns
         variabili_categoriche = df.select_dtypes(include=['object']).columns
-        
+    
         col1, col2, col3 = st.columns([1, 2, 2])
-        
+    
         # Selezione della colonna datetime
         with col1:
             if len(colonne_datetime) > 0:
@@ -372,7 +371,7 @@ def Statistics_Data(df_list, filenames):
             else:
                 st.warning(f"⚠️ No datetime columns found in the dataset {dataset_name}.")
                 colonna_data = None  # Se non ci sono colonne datetime, colonna_data è None
-        
+    
         # Selezione variabili numeriche
         with col2:
             if len(variabili_numeriche) > 0:
@@ -384,7 +383,7 @@ def Statistics_Data(df_list, filenames):
             else:
                 st.warning(f"⚠️ No numerical variables found in the dataset {dataset_name}.")
                 y_axis_num = None  # Se non ci sono variabili numeriche, y_axis_num è None
-        
+    
         # Selezione variabili categoriche
         with col3:
             if len(variabili_categoriche) > 0:
@@ -396,14 +395,14 @@ def Statistics_Data(df_list, filenames):
             else:
                 st.warning(f"⚠️ No categorical variables found in the dataset {dataset_name}.")
                 categoria_scelta = None  # Se non ci sono variabili categoriche, categoria_scelta è None
-        
+    
         # Verifica che siano stati selezionati sia una colonna datetime che una variabile numerica prima di chiamare la funzione aggrega_datos_time
         if colonna_data and y_axis_num:  # Verifica se entrambe le variabili sono definite
             aggregazioni = aggrega_datos_time(df, colonna_data, y_axis_num)
         else:
             st.warning("⚠️ Please select both a datetime column and a numerical variable.")
             aggregazioni = None  # Imposta aggregazioni a None se non è stato selezionato colonna_data o y_axis_num
-        
+    
         # Grafico per i dati aggregati
         with col2:
             if aggregazioni:
@@ -412,9 +411,9 @@ def Statistics_Data(df_list, filenames):
                         if not agg_df.empty:
                             if isinstance(agg_df, pd.Series):
                                 agg_df = agg_df.reset_index()
-            
+    
                             st.write(f"Data shape: {agg_df.shape}")
-            
+    
                             if len(agg_df) > 1:
                                 fig = px.bar(agg_df, x=agg_df.iloc[:, 0], y=agg_df.iloc[:, 1], title=f"{periodo} Aggregate")
                                 st.plotly_chart(fig)
