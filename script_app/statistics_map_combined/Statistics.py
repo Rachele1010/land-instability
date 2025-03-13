@@ -300,6 +300,11 @@ def Statistics_Data(df_list, filenames):
     # Streamlit UI
     elif st.session_state.get("show_distribution_data", False):
         st.subheader("Distribution Data")
+            # Controllo che filenames sia definito e non vuoto
+        if not filenames:
+            st.warning("⚠️ No datasets available. Please upload or load datasets first.")
+            st.stop()
+
     # Usa session_state per mantenere lo stato dei dataset selezionati
         if 'selected_datasets' not in st.session_state:
             st.session_state.selected_datasets = filenames  # Imposta il valore iniziale
