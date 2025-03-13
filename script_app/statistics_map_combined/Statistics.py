@@ -430,9 +430,6 @@ def Statistics_Data(df_list, filenames):
     else:
         st.warning("⚠️ No datasets selected.")
                     
-
-
-    # Corretto l'indentazione del blocco PCA
     # Corretto l'indentazione del blocco PCA
     elif st.session_state["show_pca"]:  # Questa è la condizione che dobbiamo controllare
         st.subheader("🔢 Principal Component Analysis (PCA)")
