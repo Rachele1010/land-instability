@@ -45,10 +45,10 @@ def main():
         st.title("Welcome to Downstream - Land Domain")
         display_dashboard()
         st.stop()
-    else:
+    #else:
         # Gestisci la visualizzazione dei tab
-        generator_tab, statistics_tab = st.tabs([
-            "📊 Statistics", "🗺️ Map Generator",])
+        #generator_tab, statistics_tab = st.tabs([
+        #    "📊 Statistics", "🗺️ Map Generator",])
         
 #################################################################################################################################################################################################################
 ##################### CONTACT #################################################################################################################################################################################
