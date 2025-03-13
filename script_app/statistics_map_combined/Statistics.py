@@ -327,13 +327,13 @@ def Statistics_Data(df_list, filenames):
             # Controllo se il dataframe è vuoto
             if df.empty:
                 st.warning(f"⚠️ No data available in the dataset {dataset_name}.")
-                continue  # Continua con il prossimo dataset
+                return    # Continua con il prossimo dataset
 
             # Calcola le statistiche
             stats_df = calcula_statistics(df)
             if stats_df.empty:
                 st.warning(f"⚠️ No data available for {dataset_name}")
-                continue  # Continua con il prossimo dataset
+                return    # Continua con il prossimo dataset
 
             # Visualizza le metriche statistiche
             col1, col2, col3, col4, col5, col6, col7 = st.columns(7)
