@@ -310,7 +310,7 @@ def Statistics_Data(df_list, filenames):
             st.session_state.selected_distribution_datasets = []  # Imposta il valore iniziale come lista vuota
         
         # Seleziona un singolo dataset con selectbox
-        dataset_name = st.selectbox("Select a dataset", filenames, index=0 if len(filenames) > 0 else None)
+        dataset_name = st.selectbox("Select a dataset and click again on Distribution Data botton", filenames, index=0 if len(filenames) > 0 else None)
         
         # Se è stato selezionato un dataset
         if dataset_name:
@@ -320,7 +320,7 @@ def Statistics_Data(df_list, filenames):
             df = convert_unix_to_datetime(df)  # Converti la data solo una volta
             # (continua con la logica di visualizzazione del dataset)
         
-            st.caption(f"**Dataset {idx + 1} - {dataset_name}**")
+            st.subheader(f"**Dataset {idx + 1} - {dataset_name}**")
         
             # Controllo se il dataframe è vuoto
             if df.empty:
