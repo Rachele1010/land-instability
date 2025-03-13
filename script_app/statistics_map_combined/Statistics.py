@@ -298,32 +298,15 @@ def Statistics_Data(df_list, filenames):
             st.plotly_chart(fig, use_container_width=True)
     # Streamlit UI
     # Streamlit UI
-    
-    if "filenames" not in st.session_state:
-        st.session_state["filenames"] = []  # Lista vuota o caricare i nomi dei dataset disponibili
-    
-    if "df_list" not in st.session_state:
-        st.session_state["df_list"] = []  # Lista vuota per i dataframe
-    
-    # Verifica se ci sono dataset disponibili prima di continuare
-    if not st.session_state["filenames"]:
-        st.warning("⚠️ No datasets available. Please upload or load datasets first.")
-        st.stop()
-    
+       
     elif st.session_state["show_distribution_data"]:
         st.subheader("Distribution Data")
-    
-        # Selezione e validazione del dataset
-        dataset_name = st.selectbox("Select dataset", st.session_state["filenames"], index=0)
-    
-        if dataset_name not in st.session_state["filenames"]:
-            st.warning("⚠️ Please select a valid dataset.")
-            st.stop()
-    
-        # Recupera il dataframe e converte la data
-        df = st.session_state["df_list"][st.session_state["filenames"].index(dataset_name)]
-        df = convert_unix_to_datetime(df)
-       
+        for idx, df in enumerate(df_list):
+            df = st.session_state["df_list"][st.session_state["filenames"].index(dataset_name)]
+            df = convert_unix_to_datetime(df)
+
+            st.caption(f"**Dataset {idx + 1} - {filenames[idx]}**")
+            
         if df is not None:
             stats_df = calcula_statistics(df)
             if stats_df.empty:
