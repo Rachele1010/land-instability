@@ -300,32 +300,31 @@ def Statistics_Data(df_list, filenames):
     # Streamlit UI
     elif st.session_state.get("show_distribution_data", False):
         st.subheader("Distribution Data")
-
         # Controllo che filenames sia definito e non vuoto
         if not filenames:
             st.warning("⚠️ No datasets available. Please upload or load datasets first.")
             st.stop()
-    
+        
         # Selezione del dataset
         dataset_name = st.selectbox("Select dataset", filenames)
-    
+        
         # Verifica se il dataset selezionato è valido
         if dataset_name not in filenames:
             st.warning("⚠️ Please select a valid dataset.")
             st.stop()
-    
+        
         # Recupera il dataframe associato
         idx = filenames.index(dataset_name)
         df = df_list[idx]  # Recupera il dataframe dalla lista
         df = convert_unix_to_datetime(df)  # Converti la data solo una volta
-    
+        
         st.caption(f"**Dataset {idx + 1} - {dataset_name}**")
-    
+        
         # Controllo se il dataframe è vuoto
         if df.empty:
             st.warning(f"⚠️ No data available in the dataset {dataset_name}.")
             st.stop()
-    
+        
         # Calcola le statistiche
         stats_df = calcula_statistics(df)
         if stats_df.empty:
@@ -412,9 +411,9 @@ def Statistics_Data(df_list, filenames):
                         if not agg_df.empty:
                             if isinstance(agg_df, pd.Series):
                                 agg_df = agg_df.reset_index()
-        
+            
                             st.write(f"Data shape: {agg_df.shape}")
-        
+            
                             if len(agg_df) > 1:
                                 fig = px.bar(agg_df, x=agg_df.iloc[:, 0], y=agg_df.iloc[:, 1], title=f"{periodo} Aggregate")
                                 st.plotly_chart(fig)
