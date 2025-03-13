@@ -20,9 +20,9 @@ def map_combined_datasets(dataframes, filenames=None):
     
     default_center = {"lat": 41.8719, "lon": 12.5674}  # Centro Italia
 
-    coordinate_variants = {
-        "lat": ["lat", "latitude", "Latitudine", "y", "Y", "_latitude"],  # Aggiunto "_latitude"
-        "lon": ["lon", "longitude", "Longitudine", "x", "X", "_longitude"]  # Aggiunto "_longitude"
+    coordinate_keywords = {
+        "lat": ["lat", "latitude", "y", "_latitude"],  # parole chiave per latitudine
+        "lon": ["lon", "longitude", "x", "_longitude"]  # parole chiave per longitudine
     }
 
     with col2:
@@ -34,21 +34,24 @@ def map_combined_datasets(dataframes, filenames=None):
             if df is None or df.empty:
                 st.warning(f"⚠ Dataset '{filenames[i]}' is empty.")
                 continue
-            
-            # Ricerca delle colonne latitudine e longitudine con i nuovi nomi
-            detected_lat_col = next((col for col in coordinate_variants["lat"] if col in df.columns), None)
-            detected_lon_col = next((col for col in coordinate_variants["lon"] if col in df.columns), None)
 
-            # Se non trovata, si cerca nei nomi comuni 'y' o 'x'
-            if detected_lat_col is None:
-                detected_lat_col = "y" if "y" in df.columns else "Y" if "Y" in df.columns else None
-            if detected_lon_col is None:
-                detected_lon_col = "x" if "x" in df.columns else "X" if "X" in df.columns else None
+            # Convertiamo tutto in minuscolo per ignorare maiuscole/minuscole
+            df.columns = df.columns.str.strip().str.lower()
+
+            detected_lat_col = None
+            detected_lon_col = None
+
+            # Cerchiamo colonne contenenti "lat" e "lon"
+            for col in df.columns:
+                if any(keyword in col for keyword in coordinate_keywords["lat"]):
+                    detected_lat_col = col
+                if any(keyword in col for keyword in coordinate_keywords["lon"]):
+                    detected_lon_col = col
 
             if detected_lat_col is None or detected_lon_col is None:
                 st.warning(f"⚠ Dataset '{filenames[i]}' hasn't lat and lon.")
                 continue
-            
+
             with st.expander(f"File: {filenames[i]}"):
                 lat_col = st.selectbox(f"Select latitude", df.columns, index=df.columns.get_loc(detected_lat_col), key=f"lat_{i}")
                 lon_col = st.selectbox(f"Select longitude", df.columns, index=df.columns.get_loc(detected_lon_col), key=f"lon_{i}")
