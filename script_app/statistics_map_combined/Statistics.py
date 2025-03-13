@@ -306,7 +306,8 @@ def Statistics_Data(df_list, filenames):
             st.stop()
         
         # Selezione del dataset
-        dataset_name = st.selectbox("Select dataset", filenames)
+        dataset_name = st.checkbox("Select dataset", filenames)
+        
         
         # Verifica se il dataset selezionato è valido
         if dataset_name not in filenames:
