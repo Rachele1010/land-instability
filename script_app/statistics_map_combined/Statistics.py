@@ -304,23 +304,25 @@ def Statistics_Data(df_list, filenames):
         if not filenames:
             st.warning("⚠️ No datasets available. Please upload or load datasets first.")
             st.stop()
-    
+        
         # Usa session_state per mantenere lo stato dei dataset selezionati
         if 'selected_distribution_datasets' not in st.session_state:
-            st.session_state.selected_distribution_datasets = filenames  # Imposta il valore iniziale
-    
-        selected_datasets = [dataset for dataset in filenames if st.checkbox(f"Select {dataset}", value=True if dataset in st.session_state.selected_distribution_datasets else False)]
-    
-        # Selezioniamo solo i dataset che sono stati selezionati
-        st.session_state.selected_distribution_datasets = selected_datasets
-    
+            st.session_state.selected_distribution_datasets = []  # Imposta il valore iniziale come lista vuota
+        
+        # Crea una lista di checkbox per ogni dataset
+        selected_datasets = []
+        for dataset in filenames:
+            if st.checkbox(f"Select {dataset}", value=True if dataset in st.session_state.selected_distribution_datasets else False):
+                selected_datasets.append(dataset)
+        
         # Se sono selezionati dei dataset
-        if dataset_name in selected_datasets:
-            # Logica di visualizzazione dei dati
-            idx = filenames.index(dataset_name)
-            df = df_list[idx]  # Recupera il dataframe dalla lista
-            df = convert_unix_to_datetime(df)  # Converti la data solo una volta
-            # (continua con la logica di visualizzazione del dataset)
+        if selected_datasets:
+            for dataset_name in selected_datasets:
+                # Logica di visualizzazione dei dati
+                idx = filenames.index(dataset_name)
+                df = df_list[idx]  # Recupera il dataframe dalla lista
+                df = convert_unix_to_datetime(df)  # Converti la data solo una volta
+                # (continua con la logica di visualizzazione del dataset)
     
             st.caption(f"**Dataset {idx + 1} - {dataset_name}**")
 
