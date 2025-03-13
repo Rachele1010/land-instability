@@ -66,10 +66,22 @@ import streamlit as st
 import pandas as pd
 import plotly.express as px
 
+import pandas as pd
+
 def aggrega_datos_time(df, colonna_data, colonna_valore):
+    # Assicura che la colonna datetime sia nel formato corretto
+    df[colonna_data] = pd.to_datetime(df[colonna_data], errors='coerce')
+    
+    # Rimuove eventuali righe con date nulle
+    df = df.dropna(subset=[colonna_data])
+    
+    # Imposta la colonna datetime come indice
     df = df.set_index(colonna_data)
     
-    # Creazione di un mapping per assegnare le stagioni
+    # Riempie eventuali NaN nella colonna di valore
+    df[colonna_valore] = df[colonna_valore].fillna(0)
+    
+    # Mappa le stagioni
     stagioni = {
         12: "Winter", 1: "Winter", 2: "Winter",
         3: "Spring", 4: "Spring", 5: "Spring",
@@ -79,9 +91,13 @@ def aggrega_datos_time(df, colonna_data, colonna_valore):
     
     df['Season'] = df.index.month.map(stagioni)
     
+    # Mantiene l'ordine corretto delle stagioni
+    stagioni_ordine = pd.CategoricalDtype(["Winter", "Spring", "Summer", "Autumn"], ordered=True)
+    df['Season'] = df['Season'].astype(stagioni_ordine)
+
     # Aggregazione per stagione
     agg_stagioni = df.groupby('Season')[colonna_valore].count()
-    
+
     # Debug per controllare la struttura dei dati
     print("Aggregazioni Stagionali:")
     print(agg_stagioni)
@@ -89,9 +105,8 @@ def aggrega_datos_time(df, colonna_data, colonna_valore):
     aggregazioni = {
         'Annually': df[colonna_valore].resample('YE').count(),
         'Monthly': df[colonna_valore].resample('ME').count(),
-        'Seasonality': agg_stagioni,  # Qui potrebbe esserci il problema
+        'Seasonality': agg_stagioni,
         'Six-monthly': df[colonna_valore].resample('6M').count()
     }
     
     return aggregazioni
-
