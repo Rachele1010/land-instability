@@ -297,8 +297,8 @@ def Statistics_Data(df_list, filenames):
             fig.update_layout(title="Cross-Correlation", xaxis_title="Lag", yaxis_title="Cross-Correlation Value")
             st.plotly_chart(fig, use_container_width=True)
     # Streamlit UI
-    # Streamlit UI
-    elif st.session_state.get("show_distribution_data", False):
+    # Sezione per Merge Datasets (UNICO GRAFICO)
+    elif st.session_state["show_distribution_data"]:    
         st.subheader("Distribution Data")
         # Controllo che filenames sia definito e non vuoto
         if not filenames:
@@ -431,8 +431,7 @@ def Statistics_Data(df_list, filenames):
         st.warning("⚠️ No datasets selected.")
                     
     # Corretto l'indentazione del blocco PCA
-    elif st.session_state.get("show_pca", False):  # Questa è la condizione che dobbiamo controllare
-    
+    elif st.session_state["show_pca"]:        
         st.subheader("🔢 Principal Component Analysis (PCA)")
         selected_dataset = st.selectbox("Select dataset for PCA", filenames)
         
