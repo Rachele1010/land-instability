@@ -5,6 +5,9 @@ import plotly.express as px
 from script_app.load_plotting_utils.plotting import create_and_render_plot  
 
 # Funzione per convertire timestamp Unix in datetime
+import pandas as pd
+
+# Funzione per convertire timestamp Unix in datetime
 def convert_unix_to_datetime(df):
     for col in df.columns:
         if pd.api.types.is_numeric_dtype(df[col]):
@@ -18,7 +21,11 @@ def convert_unix_to_datetime(df):
             # Verifica se la colonna è nel formato YYYYMMDD
             if df[col].str.match(r'^\d{8}$').all():
                 df[col] = pd.to_datetime(df[col], format='%Y%m%d')
+            # Verifica se la colonna è nel formato YYYY-MM-DD
+            elif df[col].str.match(r'^\d{4}-\d{2}-\d{2}$').all():
+                df[col] = pd.to_datetime(df[col], format='%Y-%m-%d')
     return df
+
 
 # Funzione per calcolare l'autocorrelazione
 def compute_autocorrelation(df, column, max_lag=50):
