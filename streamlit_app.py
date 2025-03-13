@@ -45,6 +45,11 @@ def main():
         st.title("Welcome to Downstream - Land Domain")
         display_dashboard()
         st.stop()
+    else:
+        # Gestisci la visualizzazione dei tab
+        generator_tab, statistics_tab = st.tabs([
+            "📊 Statistics", "🗺️ Map Generator",
+        ])
 #################################################################################################################################################################################################################
 ##################### CONTACT #################################################################################################################################################################################
 #################################################################################################################################################################################################################
@@ -57,11 +62,5 @@ def main():
         col1, col2 = st.columns([1, 1])
         with col1:
             st.markdown("For more details about ITINERIS project, click on link -> **[ITINERIS](https://itineris.d4science.org/)**")
-    else:
-        # Gestisci la visualizzazione dei tab
-        generator_tab, statistics_tab = st.tabs([
-            "📊 Statistics", "🗺️ Map Generator",
-        ])
-
 if __name__ == "__main__":
     main()
