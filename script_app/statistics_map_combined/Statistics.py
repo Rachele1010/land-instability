@@ -354,13 +354,13 @@ def Statistics_Data(df_list, filenames):
         
         # Selezione della colonna datetime
         colonne_datetime = df.select_dtypes(include=['datetime64[ns]', 'datetime64[ns, UTC]']).columns
-    
+        
         # Selezione delle variabili numeriche e categoriche
         variabili_numeriche = df.select_dtypes(include=['number']).columns
         variabili_categoriche = df.select_dtypes(include=['object']).columns
-    
+        
         col1, col2, col3 = st.columns([1, 2, 2])
-    
+        
         # Selezione della colonna datetime
         with col1:
             if len(colonne_datetime) > 0:
@@ -369,7 +369,10 @@ def Statistics_Data(df_list, filenames):
                     colonne_datetime,
                     key=f"datetime_{dataset_name}_{idx}"
                 )
-    
+            else:
+                st.warning(f"⚠️ No datetime columns found in the dataset {dataset_name}.")
+                colonna_data = None  # Impostiamo colonna_data a None se non ci sono colonne datetime
+        
         # Selezione variabili numeriche
         with col2:
             if len(variabili_numeriche) > 0:
@@ -378,9 +381,10 @@ def Statistics_Data(df_list, filenames):
                     variabili_numeriche.tolist(),
                     key=f"y_axis_num_{dataset_name}_{idx}"
                 )
-                if y_axis_num:
-                    aggregazioni = aggrega_datos_time(df, colonna_data, y_axis_num)
-    
+            else:
+                st.warning(f"⚠️ No numerical variables found in the dataset {dataset_name}.")
+                y_axis_num = None  # Impostiamo y_axis_num a None se non ci sono variabili numeriche
+        
         # Selezione variabili categoriche
         with col3:
             if len(variabili_categoriche) > 0:
@@ -389,26 +393,16 @@ def Statistics_Data(df_list, filenames):
                     variabili_categoriche.tolist(),
                     key=f"var_cat_{dataset_name}_{idx}"
                 )
-    
-                if categoria_scelta:
-                    count_df = df[categoria_scelta].value_counts().reset_index()
-                    count_df.columns = [categoria_scelta, "Count"]
-    
-                    fig_cat = px.bar(count_df, x=categoria_scelta, y="Count", title=f"Distribution of {categoria_scelta}")
-                    st.plotly_chart(fig_cat)
-    
-                    if len(colonne_datetime) > 0:
-                        count_time_df = df.groupby([colonna_data, categoria_scelta]).size().reset_index(name="Count")
-    
-                        fig_time = px.line(
-                            count_time_df,
-                            x=colonna_data,
-                            y="Count",
-                            color=categoria_scelta,
-                            title=f"Trend of {categoria_scelta} over time"
-                        )
-                        st.plotly_chart(fig_time)
-    
+            else:
+                st.warning(f"⚠️ No categorical variables found in the dataset {dataset_name}.")
+                categoria_scelta = None  # Impostiamo categoria_scelta a None se non ci sono variabili categoriche
+        
+        # Verifica che siano stati selezionati sia una colonna datetime che una variabile numerica prima di chiamare la funzione aggrega_datos_time
+        if colonna_data and y_axis_num:
+            aggregazioni = aggrega_datos_time(df, colonna_data, y_axis_num)
+        else:
+            st.warning("⚠️ Please select both a datetime column and a numerical variable.")
+            
         # Grafico per i dati aggregati
         with col2:
             if "aggregazioni" in locals() and aggregazioni:
@@ -417,9 +411,9 @@ def Statistics_Data(df_list, filenames):
                         if not agg_df.empty:
                             if isinstance(agg_df, pd.Series):
                                 agg_df = agg_df.reset_index()
-    
+        
                             st.write(f"Data shape: {agg_df.shape}")
-    
+        
                             if len(agg_df) > 1:
                                 fig = px.bar(agg_df, x=agg_df.iloc[:, 0], y=agg_df.iloc[:, 1], title=f"{periodo} Aggregate")
                                 st.plotly_chart(fig)
@@ -429,6 +423,7 @@ def Statistics_Data(df_list, filenames):
                             st.warning(f"⚠️ No data to plot for {periodo}.")
             else:
                 st.warning(f"⚠️ No aggregated data available.")
+
 
     # Corretto l'indentazione del blocco PCA
     # Corretto l'indentazione del blocco PCA
