@@ -431,45 +431,46 @@ def Statistics_Data(df_list, filenames):
         st.warning("⚠️ No datasets selected.")
                     
     # Corretto l'indentazione del blocco PCA
-        elif st.session_state["show_pca"]:  # Questa è la condizione che dobbiamo controllare
-            st.subheader("🔢 Principal Component Analysis (PCA)")
-            selected_dataset = st.selectbox("Select dataset for PCA", filenames)
+    elif st.session_state.get("show_pca", False):  # Questa è la condizione che dobbiamo controllare
+    
+        st.subheader("🔢 Principal Component Analysis (PCA)")
+        selected_dataset = st.selectbox("Select dataset for PCA", filenames)
+        
+        if selected_dataset:
+            df = df_list[filenames.index(selected_dataset)]
+            num_components = st.slider("Number of Principal Components", 2, min(len(df.columns), 10), 2)
+            pca_df, explained_variance = perform_pca(df, num_components)
             
-            if selected_dataset:
-                df = df_list[filenames.index(selected_dataset)]
-                num_components = st.slider("Number of Principal Components", 2, min(len(df.columns), 10), 2)
-                pca_df, explained_variance = perform_pca(df, num_components)
+            if pca_df is not None:
+                st.write("### Principal Components Data")
+                st.dataframe(pca_df)
                 
-                if pca_df is not None:
-                    st.write("### Principal Components Data")
-                    st.dataframe(pca_df)
+                st.write("### Explained Variance Ratio")
+                var_exp_df = pd.DataFrame({"Component": [f'PC{i+1}' for i in range(num_components)], "Variance Explained": explained_variance})
+                fig = px.bar(var_exp_df, x="Component", y="Variance Explained", title="Explained Variance by Principal Components")
+                st.plotly_chart(fig)
+                
+                if num_components >= 3:
+                    st.write("### Principal Component Analysis (PCA) - Breakdown")
                     
-                    st.write("### Explained Variance Ratio")
-                    var_exp_df = pd.DataFrame({"Component": [f'PC{i+1}' for i in range(num_components)], "Variance Explained": explained_variance})
-                    fig = px.bar(var_exp_df, x="Component", y="Variance Explained", title="Explained Variance by Principal Components")
-                    st.plotly_chart(fig)
-                    
-                    if num_components >= 3:
-                        st.write("### Principal Component Analysis (PCA) - Breakdown")
-                        
-                        # Creazione della figura con tre sottotrame affiancate
-                        fig_pca, axes = plt.subplots(1, 3, figsize=(18, 5))
-                    
-                        # 1. Varianza spiegata per componente
-                        sns.barplot(x=[f'PC{i+1}' for i in range(num_components)], y=explained_variance, ax=axes[0])
-                        axes[0].set_title("Explained Variance by Component")
-                        axes[0].set_ylabel("Variance Explained")
-                        axes[0].set_xticklabels([f'PC{i+1}' for i in range(num_components)], rotation=45)
-                    
-                        # 2. Serie temporali delle prime tre componenti principali
-                        pca_df.iloc[:, :3].plot(ax=axes[1])
-                        axes[1].set_title("Top 3 Principal Components over Time")
-                        axes[1].set_ylabel("Component Value")
-                    
-                        # 3. Scatter plot delle prime due componenti principali
-                        axes[2].scatter(pca_df.iloc[:, 0], pca_df.iloc[:, 1])
-                        axes[2].set_title("Scatter Plot of First Two Principal Components")
-                        axes[2].set_xlabel("PC1")
-                        axes[2].set_ylabel("PC2")
-                    
-                        st.pyplot(fig_pca)
+                    # Creazione della figura con tre sottotrame affiancate
+                    fig_pca, axes = plt.subplots(1, 3, figsize=(18, 5))
+                
+                    # 1. Varianza spiegata per componente
+                    sns.barplot(x=[f'PC{i+1}' for i in range(num_components)], y=explained_variance, ax=axes[0])
+                    axes[0].set_title("Explained Variance by Component")
+                    axes[0].set_ylabel("Variance Explained")
+                    axes[0].set_xticklabels([f'PC{i+1}' for i in range(num_components)], rotation=45)
+                
+                    # 2. Serie temporali delle prime tre componenti principali
+                    pca_df.iloc[:, :3].plot(ax=axes[1])
+                    axes[1].set_title("Top 3 Principal Components over Time")
+                    axes[1].set_ylabel("Component Value")
+                
+                    # 3. Scatter plot delle prime due componenti principali
+                    axes[2].scatter(pca_df.iloc[:, 0], pca_df.iloc[:, 1])
+                    axes[2].set_title("Scatter Plot of First Two Principal Components")
+                    axes[2].set_xlabel("PC1")
+                    axes[2].set_ylabel("PC2")
+                
+                    st.pyplot(fig_pca)
